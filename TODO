@@ -1,0 +1,14 @@
+1) Initial port to Cytoscape 3
+	 The idea is to just get the basic functionality moved over.  We can 
+	 clean up where it makes sense, but we want to avoid any major
+	 refactoring.
+
+2) Prototype REST communication
+	 Eventually, we hope that REST will be part of the Cytoscape core,
+	 but until then, we should feel free to prototype our own.  This
+	 will allow us to avoid having to do much in the way of cleaning up
+	 the pipe communication.
+
+3) Complete prototype "Create network from structure" functionality
+
+

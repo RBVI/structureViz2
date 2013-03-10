@@ -14,9 +14,14 @@ import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
+import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraManager;
+import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+
 public class OpenStructuresTaskFactory extends AbstractTaskFactory
                                        implements NetworkViewTaskFactory, NodeViewTaskFactory {
 
+	public OpenStructuresTaskFactory(StructureManager structureManager, ChimeraManager chimeraManager) {
+	}
 
 	public TaskIterator createTaskIterator() {
 		return null;

@@ -51,7 +51,9 @@ public class StructureManager {
 				Arrays.asList(defaultResidueKeys));
 		residueColumns.setSelectedValues(Arrays.asList(defaultResidueKeys));
 	}
-	
+
+	// I added these methods hoping that this may undo the strange settings dialog behavior,
+	// but it didn't
 	public ListMultipleSelection<String> getStructureColumns() {
 		return this.structureColumns;
 	}

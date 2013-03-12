@@ -35,6 +35,8 @@ public class StructureSettings {
 		// This seems a little strange, but it has to do with the order of tunable interceptor
 		// handling.  We need to set these selectors in our structure manager and dynamically
 		// pull the data out as needed....
-		manager.setStructureSettings(this);
+		manager.setStructureSettings(network, this);
 	}
+
+	public ListMultipleSelection<String> getStructureColumns() { return structureColumns; }
 }

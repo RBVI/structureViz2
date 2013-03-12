@@ -3,7 +3,9 @@ package edu.ucsf.rbvi.structureViz2.internal.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.cytoscape.model.CyEdge;
@@ -26,13 +28,14 @@ public class StructureManager {
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList" };
 
-	StructureSettings settings = null;
+	Map<CyNetwork,StructureSettings> settings = null;
 
 	public StructureManager() {
+		settings = new HashMap<CyNetwork, StructureSettings>();
 	}
 
-	public void setStructureSettings(StructureSettings settings) {
-		this.settings = settings;
+	public void setStructureSettings(CyNetwork network, StructureSettings newSettings) {
+		settings.put(network,newSettings);
 	}
 
 	// TODO: this is just for testing -- eventually we need
@@ -42,7 +45,9 @@ public class StructureManager {
 	}
 
 	public List<String> getCurrentStructureKeys(CyNetwork network) {
-		return Arrays.asList(defaultStructureKeys);
+		if (!settings.containsKey(network))
+			return Arrays.asList(defaultStructureKeys);
+		return settings.get(network).getStructureColumns().getSelectedValues();
 	}
 
 	public List<String> getAllChemStructKeys(CyNetwork network) {
@@ -65,7 +70,7 @@ public class StructureManager {
 		if (network == null)
 			return false;
 		CyTable nodeTable = network.getDefaultNodeTable();
-		List<String> attrsFound = getMatchingAttributes(nodeTable, getStructureAttributes());
+		List<String> attrsFound = getMatchingAttributes(nodeTable, getStructureAttributes(network));
 		Collection idSet = nodeSet;
 		return hasStructures(idSet, nodeTable, attrsFound);
 	}
@@ -74,7 +79,7 @@ public class StructureManager {
 		if (network == null)
 			return new ArrayList<String>();
 		CyTable nodeTable = network.getDefaultNodeTable();
-		List<String> attrsFound = getMatchingAttributes(nodeTable, getStructureAttributes());
+		List<String> attrsFound = getMatchingAttributes(nodeTable, getStructureAttributes(network));
 		Collection idSet = nodeSet;
 		return getStructures(idSet, nodeTable, attrsFound);
 	}
@@ -83,13 +88,15 @@ public class StructureManager {
 		if (network == null)
 			return false;
 		CyTable edgeTable = network.getDefaultEdgeTable();
-		List<String> attrsFound = getMatchingAttributes(edgeTable, getStructureAttributes());
+		List<String> attrsFound = getMatchingAttributes(edgeTable, getStructureAttributes(network));
 		Collection idSet = edgeSet;
 		return hasStructures(idSet, edgeTable, attrsFound);
 	}
 
-	private List<String> getStructureAttributes() {
-		return settings.structureColumns.getSelectedValues();
+	private List<String> getStructureAttributes(CyNetwork network) {
+		if (settings.containsKey(network))
+			return settings.get(network).getStructureColumns().getSelectedValues();
+		return Arrays.asList(defaultStructureKeys);
 	}
 
 	private boolean hasStructures(Collection<CyIdentifiable> objs, CyTable table,

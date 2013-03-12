@@ -3,8 +3,6 @@ package edu.ucsf.rbvi.structureViz2.internal.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.task.NetworkViewTaskFactory;
@@ -20,7 +18,11 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 public class OpenStructuresTaskFactory extends AbstractTaskFactory
                                        implements NetworkViewTaskFactory, NodeViewTaskFactory {
 
+	private StructureManager structureManager;
+	
 	public OpenStructuresTaskFactory(StructureManager structureManager, ChimeraManager chimeraManager) {
+		this.structureManager = structureManager;
+		// TODO: where is the chimera manager needed? 
 	}
 
 	public TaskIterator createTaskIterator() {
@@ -38,14 +40,15 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory
 	public TaskIterator createTaskIterator(CyNetworkView netView) {
 		List<CyNode> nodeList = new ArrayList<CyNode>();
 		// Get all of the selected nodes
-		return new TaskIterator(new OpenStructuresTask(netView, nodeList));
+		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), "selected", true));
+		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager));
 	}
 
 	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netView) {
 		List<CyNode> nodeList = new ArrayList<CyNode>();
 		nodeList.add(nodeView.getModel());
 		// Get all of the selected nodes
-
-		return new TaskIterator(new OpenStructuresTask(netView, nodeList));
+		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), "selected", true));
+		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager));
 	}
 }

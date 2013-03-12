@@ -21,65 +21,46 @@ import org.cytoscape.work.util.ListMultipleSelection;
  * objects.
  */
 public class StructureManager {
-	public static final String[] defaultStructureKeys = { "Structure", "pdb", "pdbFileName",
+	static final String[] defaultStructureKeys = { "Structure", "pdb", "pdbFileName",
 			"PDB ID", "structure", "biopax.xref.PDB", "pdb_ids" };
-	public static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
-	public static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList" };
+	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
+	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList" };
 
-	// Add Tunables to get the column names to search
-	@Tunable(description = "Columns to search for PDB identifiers")
-	public ListMultipleSelection<String> structureColumns = null;
-
-	@Tunable(description = "Columns to search for Compound (small molecule) identifiers")
-	public ListMultipleSelection<String> chemColumns = null;
-
-	@Tunable(description = "Columns to search for key or functional residue identifiers")
-	public ListMultipleSelection<String> residueColumns = null;
+	StructureSettings settings = null;
 
 	public StructureManager() {
-		// TODO: strange behavior: the dialog only opens once!
-		// Initialize our tunables
-		structureColumns = new ListMultipleSelection<String>(
-				Arrays.asList(defaultStructureKeys));
-		structureColumns.setSelectedValues(Arrays.asList(defaultStructureKeys));
-
-		chemColumns = new ListMultipleSelection<String>(
-				Arrays.asList(defaultChemStructKeys));
-		chemColumns.setSelectedValues(Arrays.asList(defaultChemStructKeys));
-
-		residueColumns = new ListMultipleSelection<String>(
-				Arrays.asList(defaultResidueKeys));
-		residueColumns.setSelectedValues(Arrays.asList(defaultResidueKeys));
 	}
 
-	// I added these methods hoping that this may undo the strange settings dialog behavior,
-	// but it didn't
-	public ListMultipleSelection<String> getStructureColumns() {
-		return this.structureColumns;
+	public void setStructureSettings(StructureSettings settings) {
+		this.settings = settings;
 	}
 
-	public ListMultipleSelection<String> getChemColumns() {
-		return this.chemColumns;
+	// TODO: this is just for testing -- eventually we need
+	// to return the actual list of keys for this network
+	public List<String> getAllStructureKeys(CyNetwork network) {
+		return Arrays.asList(defaultStructureKeys);
 	}
 
-	public ListMultipleSelection<String> getResidueColumns() {
-		return this.residueColumns;
-	}
-	
-	public void setStructureColumns(ListMultipleSelection<String> structureColumns) {
-		this.structureColumns = structureColumns;
-	}
-	
-	public void setChemColumns(ListMultipleSelection<String> chemColumns) {
-		this.chemColumns = chemColumns;
-	}
-	
-	public void setResidueColumns(ListMultipleSelection<String> residueColumns) {
-		this.residueColumns = residueColumns;
+	public List<String> getCurrentStructureKeys(CyNetwork network) {
+		return Arrays.asList(defaultStructureKeys);
 	}
 
-	
-	
+	public List<String> getAllChemStructKeys(CyNetwork network) {
+		return Arrays.asList(defaultChemStructKeys);
+	}
+
+	public List<String> getCurrentChemStructKeys(CyNetwork network) {
+		return Arrays.asList(defaultChemStructKeys);
+	}
+
+	public List<String> getAllResidueKeys(CyNetwork network) {
+		return Arrays.asList(defaultResidueKeys);
+	}
+
+	public List<String> getCurrentResidueKeys(CyNetwork network) {
+		return Arrays.asList(defaultResidueKeys);
+	}
+
 	public boolean hasNodeStructures(CyNetwork network, Collection<CyNode> nodeSet) {
 		if (network == null)
 			return false;
@@ -108,7 +89,7 @@ public class StructureManager {
 	}
 
 	private List<String> getStructureAttributes() {
-		return structureColumns.getSelectedValues();
+		return settings.structureColumns.getSelectedValues();
 	}
 
 	private boolean hasStructures(Collection<CyIdentifiable> objs, CyTable table,

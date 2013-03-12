@@ -6,16 +6,19 @@ import org.cytoscape.work.ContainsTunables;
 import org.cytoscape.work.TaskMonitor;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+import edu.ucsf.rbvi.structureViz2.internal.model.StructureSettings;
 
 public class StructureVizSettingsTask extends AbstractTask {
 	CyNetwork network;
+	StructureManager structureManager;
 
 	@ContainsTunables
-	public StructureManager structureManager = null;
+	public StructureSettings structureSettings = null;
 
 	public StructureVizSettingsTask(CyNetwork network, StructureManager structureManager) {
 		this.network = network;
 		this.structureManager = structureManager;
+		structureSettings = new StructureSettings(network, structureManager);
 	}
 
 	public void run(TaskMonitor taskMonitor) throws Exception {

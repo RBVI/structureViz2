@@ -19,10 +19,11 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory
                                        implements NetworkViewTaskFactory, NodeViewTaskFactory {
 
 	private StructureManager structureManager;
+	private ChimeraManager chimeraManager;
 	
 	public OpenStructuresTaskFactory(StructureManager structureManager, ChimeraManager chimeraManager) {
 		this.structureManager = structureManager;
-		// TODO: where is the chimera manager needed? 
+		this.chimeraManager = chimeraManager;
 	}
 
 	public TaskIterator createTaskIterator() {
@@ -41,7 +42,7 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory
 		List<CyNode> nodeList = new ArrayList<CyNode>();
 		// Get all of the selected nodes
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), "selected", true));
-		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager));
+		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager, chimeraManager));
 	}
 
 	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netView) {
@@ -49,6 +50,6 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory
 		nodeList.add(nodeView.getModel());
 		// Get all of the selected nodes
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), "selected", true));
-		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager));
+		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager, chimeraManager));
 	}
 }

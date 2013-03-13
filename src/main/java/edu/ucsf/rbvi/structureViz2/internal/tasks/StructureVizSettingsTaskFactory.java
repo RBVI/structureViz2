@@ -7,11 +7,12 @@ import org.cytoscape.work.TaskIterator;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
+
 public class StructureVizSettingsTaskFactory extends AbstractTaskFactory 
                                              implements NetworkTaskFactory {
 
 	StructureManager structureManager;
-
+	
 	public StructureVizSettingsTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
 	}

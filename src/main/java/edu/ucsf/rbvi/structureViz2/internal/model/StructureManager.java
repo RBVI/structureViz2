@@ -15,8 +15,6 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
-import org.cytoscape.work.Tunable;
-import org.cytoscape.work.util.ListMultipleSelection;
 
 /**
  * This object maintains the relationship between Chimera objects and Cytoscape
@@ -29,9 +27,12 @@ public class StructureManager {
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList" };
 
 	Map<CyNetwork,StructureSettings> settings = null;
-
+	// So far just a list, may become a map of CyIdentifiable <-> Structure?
+	List<Structure> currentStructures = null;
+	
 	public StructureManager() {
 		settings = new HashMap<CyNetwork, StructureSettings>();
+		currentStructures = new ArrayList<Structure>();
 	}
 
 	public void setStructureSettings(CyNetwork network, StructureSettings newSettings) {
@@ -75,13 +76,33 @@ public class StructureManager {
 		return hasStructures(idSet, nodeTable, attrsFound);
 	}
 
-	public List<String> getNodeStructures(CyNetwork network, Collection<CyNode> nodeSet) {
+	public Map<CyIdentifiable, List<String>> getNodeStructures(CyNetwork network, Collection<CyNode> nodeSet) {
 		if (network == null)
-			return new ArrayList<String>();
+			return null;
 		CyTable nodeTable = network.getDefaultNodeTable();
 		List<String> attrsFound = getMatchingAttributes(nodeTable, getStructureAttributes(network));
 		Collection idSet = nodeSet;
 		return getStructures(idSet, nodeTable, attrsFound);
+	}
+
+	public Structure getStructure(CyNetwork network, CyIdentifiable obj) {
+		for (Structure structure : currentStructures) {
+			if (network.equals(structure.getNetwork()) && obj.equals(structure.getCyIdentifiable())) {
+				return structure;
+			}
+		}
+		return null;
+	}
+	
+	public boolean addStructure(Structure newStructure) {
+		if (currentStructures.contains(newStructure)) {
+			return false;
+		}
+		return currentStructures.add(newStructure);
+	}
+
+	public void removeStructure(Structure oldStructure) {
+		currentStructures.remove(oldStructure);
 	}
 
 	public boolean hasEdgeStructures(CyNetwork network, Collection<CyEdge> edgeSet) {
@@ -120,19 +141,22 @@ public class StructureManager {
 	}
 
 	// TODO: duplicated code with hasStructures, do we need both?
-	private List<String> getStructures(Collection<CyIdentifiable> objs, CyTable table,
+	private Map<CyIdentifiable, List<String>> getStructures(Collection<CyIdentifiable> objs, CyTable table,
 			List<String> columns) {
-		List<String> structures = new ArrayList<String>();
 		if (columns == null || columns.size() == 0 || objs == null)
-			return structures;
-
+			return null;
+		Map<CyIdentifiable, List<String>> structures = new HashMap<CyIdentifiable, List<String>>();
 		for (CyIdentifiable obj : objs) {
 			if (table.rowExists(obj.getSUID())) {
 				CyRow row = table.getRow(obj.getSUID());
 				for (String column : columns) {
 					// TODO: consider attributes that contain lists?
-					if (row.getRaw(column) != null) {
-						structures.add(row.get(column, String.class));
+					String cell = row.get(column, String.class, "").trim();
+					if (!cell.equals("")) {
+						if (!structures.containsKey(obj)) {
+							structures.put(obj, new ArrayList<String>());
+						}
+						structures.get(obj).add(cell);
 					}
 				}
 			}

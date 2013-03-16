@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
 
@@ -65,11 +66,7 @@ public class CyActivator extends AbstractCyActivator {
 		// settings
 		StructureManager structureManager = new StructureManager();
 
-		// Create the Chimera interface
-		ChimeraManager chimeraManager = new ChimeraManager(structureManager);
-
-		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager,
-				chimeraManager);
+		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
 		Properties openStructuresProps = new Properties();
 		openStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		openStructuresProps.setProperty(TITLE, "Open Structures...");
@@ -77,29 +74,38 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		openStructuresProps.setProperty(IN_TOOL_BAR, "true");
-		// TODO: [bug] the order in the toolbar and context menu is
-		// different and the numbers do not seem to have an effect on
-		// the order.
 		openStructuresProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, openStructures, NodeViewTaskFactory.class, openStructuresProps);
 		registerService(bc, openStructures, NetworkViewTaskFactory.class,
 				openStructuresProps);
 
-		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager,
-				chimeraManager);
+		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();
 		closeStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		closeStructuresProps.setProperty(TITLE, "Close Structures");
-		openStructuresProps.setProperty(COMMAND, "closeStructures");
-		openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
-		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
-		openStructuresProps.setProperty(IN_TOOL_BAR, "true");
-		openStructuresProps.setProperty(MENU_GRAVITY, "5.0");
+		closeStructuresProps.setProperty(COMMAND, "closeStructures");
+		closeStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
+		closeStructuresProps.setProperty(IN_TOOL_BAR, "true");
+		closeStructuresProps.setProperty(MENU_GRAVITY, "6.0");
 		registerService(bc, closeStructures, NodeViewTaskFactory.class,
 				closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class,
 				closeStructuresProps);
-
+		
+		// TODO: What kind of taskfactory should this be?
+		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
+		Properties exitChimeraProps = new Properties();
+		exitChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		exitChimeraProps.setProperty(TITLE, "Exit Chimera");
+		exitChimeraProps.setProperty(COMMAND, "exitChimera");
+		exitChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		exitChimeraProps.setProperty(ENABLE_FOR, "network");
+		exitChimeraProps.setProperty(IN_TOOL_BAR, "true");
+		exitChimeraProps.setProperty(MENU_GRAVITY, "8.0");
+		registerService(bc, exitChimera, NetworkTaskFactory.class,
+				exitChimeraProps);		
+		
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(
 				structureManager);
 		Properties settingsProps = new Properties();
@@ -110,7 +116,7 @@ public class CyActivator extends AbstractCyActivator {
 		settingsProps.setProperty(IN_TOOL_BAR, "true");
 		settingsProps.setProperty(ENABLE_FOR, "network");
 		settingsProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
-		settingsProps.setProperty(MENU_GRAVITY, "9.9");
+		settingsProps.setProperty(MENU_GRAVITY, "10.0");
 		registerService(bc, settingsTask, NetworkTaskFactory.class, settingsProps);
 
 	}

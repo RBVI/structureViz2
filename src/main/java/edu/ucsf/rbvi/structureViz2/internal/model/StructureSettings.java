@@ -1,8 +1,5 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
@@ -39,4 +36,8 @@ public class StructureSettings {
 	}
 
 	public ListMultipleSelection<String> getStructureColumns() { return structureColumns; }
+
+	public ListMultipleSelection<String> getChemStructureColumns() { return chemColumns; }
+
+	public ListMultipleSelection<String> getResidueColumns() { return residueColumns; }
 }

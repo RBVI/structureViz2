@@ -12,35 +12,41 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+
 /***************************************************
-*                 Thread Classes                  *
-**************************************************/
+ *                 Thread Classes                  *
+ **************************************************/
 
 /**
  * Reply listener thread
  */
-public class ListenerThreads extends Thread 
-{
+public class ListenerThreads extends Thread {
 	private InputStream readChan = null;
 	private BufferedReader lineReader = null;
 	private Process chimera = null;
-	private Map<String,List<String>> replyLog = null;
+	private Map<String, List<String>> replyLog = null;
 	private Logger logger;
+	private StructureManager structureManager = null;
+
 	/**
 	 * Create a new listener thread to read the responses from Chimera
-	 *
-	 * @param chimera a handle to the Chimera Process
-	 * @param log a handle to a List to post the responses to
-	 * @param chimeraObject a handle to the Chimera Object
+	 * 
+	 * @param chimera
+	 *          a handle to the Chimera Process
+	 * @param log
+	 *          a handle to a List to post the responses to
+	 * @param chimeraObject
+	 *          a handle to the Chimera Object
 	 */
-	public ListenerThreads(Process chimera) {
+	public ListenerThreads(Process chimera, StructureManager structureManager) {
 		this.chimera = chimera;
+		this.structureManager = structureManager;
 		replyLog = new HashMap<String, List<String>>();
- 	 	// Get a line-oriented reader
+		// Get a line-oriented reader
 		readChan = chimera.getInputStream();
 		lineReader = new BufferedReader(new InputStreamReader(readChan));
-		logger = LoggerFactory
-				.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
+		logger = LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
 	}
 
 	/**
@@ -52,7 +58,7 @@ public class ListenerThreads extends Thread
 			try {
 				chimeraRead();
 			} catch (IOException e) {
-				logger.info("UCSF Chimera has exited: "+e.getMessage());
+				logger.info("UCSF Chimera has exited: " + e.getMessage());
 				return;
 			}
 		}
@@ -64,7 +70,8 @@ public class ListenerThreads extends Thread
 		while (!replyLog.containsKey(command)) {
 			try {
 				Thread.currentThread().sleep(100);
-			} catch (InterruptedException e) { }
+			} catch (InterruptedException e) {
+			}
 		}
 
 		synchronized (replyLog) {
@@ -78,20 +85,21 @@ public class ListenerThreads extends Thread
 	public void clearResponse(String command) {
 		try {
 			Thread.currentThread().sleep(100);
-		} catch (InterruptedException e) { }
+		} catch (InterruptedException e) {
+		}
 		if (replyLog.containsKey(command))
 			replyLog.remove(command);
 		return;
 	}
 
-  /**
+	/**
 	 * Read input from Chimera
-	 *
+	 * 
 	 * @return a List containing the replies from Chimera
-   */
-   private void chimeraRead() throws IOException {
- 	 	if (chimera == null)
- 	 		return;
+	 */
+	private void chimeraRead() throws IOException {
+		if (chimera == null)
+			return;
 
 		String line = null;
 		while ((line = lineReader.readLine()) != null) {
@@ -109,9 +117,9 @@ public class ListenerThreads extends Thread
 
 	private void chimeraCommandRead(String command) throws IOException {
 		// Generally -- looking for:
-		// 	CMD command
-		//   ........
-		//	END
+		// CMD command
+		// ........
+		// END
 		// We return the text in between
 		List<String> reply = new ArrayList<String>();
 		boolean updateModels = false;
@@ -122,7 +130,7 @@ public class ListenerThreads extends Thread
 			while ((line = lineReader.readLine()) != null) {
 				// System.out.println("From Chimera ("+command+") -->"+line);
 				if (line.startsWith("CMD")) {
-					logger.error("Got unexpected command from Chimera: "+line);
+					logger.error("Got unexpected command from Chimera: " + line);
 
 				} else if (line.startsWith("END")) {
 					break;
@@ -152,15 +160,16 @@ public class ListenerThreads extends Thread
 	 */
 	class ModelUpdater extends Thread {
 
-			public ModelUpdater() {}
+		public ModelUpdater() {
+		}
 
-			public void run() {
-				// System.out.println("Model updated");
-//				chimeraObject.refresh();
-//				chimeraObject.modelChanged();
-				// Now update our selection from Chimera
-				// (new SelectionUpdater()).start();
-			}
+		public void run() {
+			// System.out.println("Model updated");
+			// chimeraObject.refresh();
+			// chimeraObject.modelChanged();
+			// Now update our selection from Chimera
+			// (new SelectionUpdater()).start();
+		}
 	}
 
 	/**
@@ -168,13 +177,15 @@ public class ListenerThreads extends Thread
 	 */
 	class SelectionUpdater extends Thread {
 
-		public SelectionUpdater() { }
+		public SelectionUpdater() {
+		}
 
 		public void run() {
 			try {
 				// System.out.println("Calling updateSelection");
-//				chimeraObject.updateSelection();
-			} catch (Exception e) {}
+				// chimeraObject.updateSelection();
+			} catch (Exception e) {
+			}
 		}
 	}
 }

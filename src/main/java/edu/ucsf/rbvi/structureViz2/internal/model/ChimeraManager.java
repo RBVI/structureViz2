@@ -18,12 +18,11 @@ public class ChimeraManager {
 
 	static private Process chimera;
 	static private ListenerThreads chimeraListenerThreads;
-	static private List<ChimeraModel> currentModels;
-	static private Map<Integer, ChimeraModel> currentModelsMap;
+	static private Map<String, ChimeraModel> currentModelNamesMap;
+	static private Map<Integer, ChimeraModel> currentModelNumbersMap;
 
-	// TODO: can we just get the logger from Cytoscape or do we have to pass it as
-	// a context object?
 	static private Logger logger;
+
 	private StructureManager structureManager;
 
 	public ChimeraManager(StructureManager structureManager) {
@@ -31,14 +30,33 @@ public class ChimeraManager {
 		logger = LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
 		chimera = null;
 		chimeraListenerThreads = null;
-		currentModels = new ArrayList<ChimeraModel>();
-		currentModelsMap = new HashMap<Integer, ChimeraModel>();
+		currentModelNamesMap = new HashMap<String, ChimeraModel>();
+		currentModelNumbersMap = new HashMap<Integer, ChimeraModel>();
 	}
 
-	public void openStructure(String modelName, Structure structure, boolean update) {
-		if (!isChimeraLaunched()) {
-			launchChimera();
+	public ChimeraModel getModel(String modelName) {
+		if (currentModelNamesMap.containsKey(modelName)) {
+			return currentModelNamesMap.get(modelName);
 		}
+		return null;
+	}
+
+	public ChimeraModel getModel(Integer modelNumber) {
+		if (currentModelNumbersMap.containsKey(modelNumber)) {
+			return currentModelNumbersMap.get(modelNumber);
+		}
+		return null;
+	}
+
+	public boolean hasChimeraModel(String modelName) {
+		return currentModelNamesMap.containsKey(modelName);
+	}
+
+	public boolean hasChimeraModel(Integer modelNubmer) {
+		return currentModelNumbersMap.containsKey(modelNubmer);
+	}
+
+	public ChimeraModel openModel(String modelName) {
 		// if (structure.getType() == Structure.StructureType.MODBASE_MODEL)
 		// chimeraSend("listen stop models; listen stop selection; open "+structure.modelNumber()+" modbase:"+structure.name());
 		// else if (structure.getType() == Structure.StructureType.SMILES)
@@ -46,18 +64,61 @@ public class ChimeraManager {
 		// else
 		sendChimeraCommand("listen stop models; listen stop selection", false);
 		List<String> response = sendChimeraCommand("open " + modelName, true);
-		if (response != null) {
-			// get model number from chimera?
-			for (String info : response) {
-				System.out.println(info);
-			}
+		if (response == null) {
+			// something went wrong
+			return null;
 		}
+		// get model number from chimera?
+		int modelNumber = ChimUtils.parseModelNumber(response);
+		// use a method for this
+		System.out.println("model number for opened structure: " + modelNumber);
+		ChimeraModel newModel = new ChimeraModel(modelNumber, modelName);
+		currentModelNamesMap.put(modelName, newModel);
+		currentModelNumbersMap.put(modelNumber, newModel);
+		// get remaining model info and add it to object
+		return newModel;
+	}
+
+	public void closeModel(ChimeraModel model) {
+		// int model = structure.modelNumber();
+		// int subModel = structure.subModelNumber();
+		// Integer modelKey = makeModelKey(model, subModel);
+		System.out.println("chimera close mdoel " + model.getName());
+		if (currentModelNumbersMap.containsKey(model.getNumber())) {
+			sendChimeraCommand("listen stop models; listen stop select; close " + model.getSpecNumber(),
+					false);
+			currentModelNamesMap.remove(model.getName());
+			currentModelNumbersMap.remove(model.getNumber());
+			// selectionList.remove(chimeraModel);
+		} else {
+			System.out.println("chimera cannot find model");
+			// chimeraSend("listen stop models; listen stop select; close #" + model +
+			// "." + subModel);
+		}
+		sendChimeraCommand("listen start models; listen start select", false);
+	}
+
+	public void clearOnChimeraExit() {
+		chimera = null;
+		currentModelNamesMap.clear();
+		currentModelNumbersMap.clear();
+		chimeraListenerThreads = null;
+		// if (mnDialog != null)
+		// mnDialog.lostChimera();
+	}
+
+	public void exitChimera() {
+		if (isChimeraLaunched()) {
+			sendChimeraCommand("stop really", false);
+			chimera.destroy();
+		}
+		clearOnChimeraExit();
 	}
 
 	private List<String> sendChimeraCommand(String command, boolean reply) {
-		if (!isChimeraLaunched()) {
-			return null;
-		}
+		// if (!isChimeraLaunched()) {
+		// return null;
+		// }
 
 		chimeraListenerThreads.clearResponse(command);
 		String text = command.concat("\n");
@@ -67,12 +128,10 @@ public class ChimeraManager {
 			chimera.getOutputStream().write(text.getBytes());
 			chimera.getOutputStream().flush();
 		} catch (IOException e) {
-			logger.info("Unable to execute command: "+text);
+			logger.info("Unable to execute command: " + text);
 			logger.info("Exiting...");
-			chimera = null;
-			// TODO: clear objects
-			// if (mnDialog != null)
-			// mnDialog.lostChimera();
+			clearOnChimeraExit();
+			return null;
 		}
 		if (!reply) {
 			return null;
@@ -80,15 +139,15 @@ public class ChimeraManager {
 		return chimeraListenerThreads.getResponse(command);
 	}
 
-	private boolean isChimeraLaunched() {
-		if (chimera != null) {
+	public boolean isChimeraLaunched() {
+		// TODO: what is the best way to test if chimera is launched?
+		if (chimera != null && sendChimeraCommand("test", true) != null) {
 			return true;
 		}
 		return false;
 	}
 
-	// TODO: maybe this should be a private method
-	private boolean launchChimera() {
+	public boolean launchChimera() {
 		// Do nothing if Chimera is already launched
 		if (isChimeraLaunched()) {
 			return true;
@@ -118,7 +177,7 @@ public class ChimeraManager {
 		// If no error, then Chimera was launched successfully
 		if (error.length() == 0) {
 			// Initialize the listener threads
-			chimeraListenerThreads = new ListenerThreads(chimera);
+			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
 			// Ask Chimera to give us updates
 			sendChimeraCommand("listen start models; listen start selection", true);

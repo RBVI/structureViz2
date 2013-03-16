@@ -1,5 +1,6 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -8,55 +9,49 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.Tunable;
+import org.cytoscape.work.util.ListMultipleSelection;
 
-import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraManager;
-import edu.ucsf.rbvi.structureViz2.internal.model.Structure;
-import edu.ucsf.rbvi.structureViz2.internal.model.Structure.StructureType;
+import edu.ucsf.rbvi.structureViz2.internal.model.CyUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 public class OpenStructuresTask extends AbstractTask {
-	private List<CyNode> nodeList;
+	// private List<CyNode> nodeList;
 	private CyNetworkView netView;
 	private StructureManager structureManager;
-	private ChimeraManager chimeraManager;
+	private Map<CyIdentifiable, String> availableChimObjMap;
+
+	@Tunable(description = "Structures to be opened")
+	public ListMultipleSelection<String> availableChimObjTunable;
 
 	public OpenStructuresTask(List<CyNode> nodeList, CyNetworkView netView,
-			StructureManager structureManager, ChimeraManager chimeraManager) {
-		this.nodeList = nodeList;
+			StructureManager structureManager) {
+		// this.nodeList = nodeList;
 		this.netView = netView;
 		this.structureManager = structureManager;
-		this.chimeraManager = chimeraManager;
+		availableChimObjMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
+				structureManager.getNodeChimObjNames(netView.getModel(), nodeList));
+		initTunables();
 	}
 
 	public void run(TaskMonitor taskMonitor) {
-		System.out.println("open sturctures task for network view " + netView.getSUID());
-		System.out.println("selected nodes: " + nodeList.size());
-		if (structureManager.hasNodeStructures(netView.getModel(), nodeList)) {
-			// launch a dialog with list of structures to open
-			Map<CyIdentifiable, List<String>> nodeStructures = structureManager.getNodeStructures(
-					netView.getModel(), nodeList);
-			if (nodeStructures == null) {
-				// nothing found
-				return;
-			}
-			System.out.println("structures found: " + nodeStructures.size());
-			for (CyIdentifiable node : nodeStructures.keySet()) {
-				for (String structureName : nodeStructures.get(node)) {
-					Structure currentNodeStructure = structureManager.getStructure(netView.getModel(), node);
-					if (currentNodeStructure == null) {
-						// create new structure object for this node and network
-						currentNodeStructure = new Structure(netView.getModel(), node, StructureType.PDB_MODEL);
-						System.out.println("Node: " + node.getSUID() + "\tstructure: " + structureName);
-						structureManager.addStructure(currentNodeStructure);
-						chimeraManager.openStructure(structureName, currentNodeStructure, false);
-					} else {
-						// update current structure with the new information
-						System.out.println("Structures already exist");
-						//chimeraManager.openStructure(structureName, currentNodeStructure, true);
-					}
-				}
-			}
-		}
+		// get selected structures from tunable parameter
+		Map<CyIdentifiable, List<String>> selectedChimeraObjNames = CyUtils.getCyChimPairsToMap(
+				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
+		System.out.println("selectedChimObjMap: " + selectedChimeraObjNames.size());
+		// open structures
+		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames);
 	}
 
+	private void initTunables() {
+		List<String> availableObjs = new ArrayList<String>(availableChimObjMap.values());
+		if (availableObjs.size() > 0) {
+			availableChimObjTunable = new ListMultipleSelection<String>(availableObjs);
+			availableChimObjTunable.setSelectedValues(availableObjs);
+		} else {
+			// TODO: how to initialize a tunable if it is empty?
+			availableChimObjTunable = new ListMultipleSelection<String>("None");
+		}
+	}
+	
 }

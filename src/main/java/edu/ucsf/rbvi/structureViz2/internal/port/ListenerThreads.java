@@ -164,9 +164,9 @@ public class ListenerThreads extends Thread {
 		}
 
 		public void run() {
-			// System.out.println("Model updated");
-			// chimeraObject.refresh();
-			// chimeraObject.modelChanged();
+//			 System.out.println("Model updated");
+			 structureManager.refresh();
+			 structureManager.modelChanged();
 			// Now update our selection from Chimera
 			// (new SelectionUpdater()).start();
 		}
@@ -183,7 +183,7 @@ public class ListenerThreads extends Thread {
 		public void run() {
 			try {
 				// System.out.println("Calling updateSelection");
-				// chimeraObject.updateSelection();
+				structureManager.updateSelection();
 			} catch (Exception e) {
 			}
 		}

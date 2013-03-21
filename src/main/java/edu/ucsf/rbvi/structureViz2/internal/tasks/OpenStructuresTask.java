@@ -41,6 +41,9 @@ public class OpenStructuresTask extends AbstractTask {
 		System.out.println("selectedChimObjMap: " + selectedChimeraObjNames.size());
 		// open structures
 		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames);
+		if (structureManager.getModelNavigatorDialog() == null) {
+			structureManager.launchDialog();
+		}
 	}
 
 	private void initTunables() {
@@ -49,7 +52,7 @@ public class OpenStructuresTask extends AbstractTask {
 			availableChimObjTunable = new ListMultipleSelection<String>(availableObjs);
 			availableChimObjTunable.setSelectedValues(availableObjs);
 		} else {
-			// TODO: how to initialize a tunable if it is empty?
+			// TODO: How to initialize a tunable when it is empty?
 			availableChimObjTunable = new ListMultipleSelection<String>("None");
 		}
 	}

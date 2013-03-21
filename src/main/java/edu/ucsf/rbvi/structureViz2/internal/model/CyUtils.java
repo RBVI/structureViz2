@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 
@@ -26,27 +25,23 @@ public abstract class CyUtils {
 		return columnsFound;
 	}
 
-	// TODO: ugly code
+	// TODO: ugly code, temporary solution until we decide hot to show the node and pdbs to the user
 	public static Map<CyIdentifiable, String> getCyChimPiarsToStrings(CyNetwork network,
 			Map<CyIdentifiable, List<String>> pairs) {
 		Map<CyIdentifiable, String> pairsMap = new HashMap<CyIdentifiable, String>();
 		CyTable nodeTable = network.getDefaultNodeTable();
 		for (CyIdentifiable cyObj : pairs.keySet()) {
-			// TODO: Is there an easier way to get the node name??
-			if (pairs.get(cyObj).size() > 0 && nodeTable.rowExists(cyObj.getSUID())) {
-				CyRow row = nodeTable.getRow(cyObj.getSUID());
-				if (row.isSet("COMMON")) {
-					String nodeName = row.get("COMMON", String.class);
+			if (pairs.get(cyObj).size() > 0) {
+				String nodeName = nodeTable.getRow(cyObj.getSUID()).get(CyNetwork.NAME, String.class);
 					for (String name : pairs.get(cyObj)) {
 						pairsMap.put(cyObj, nodeName + ": " + name);
 					}
-				}
 			}
 		}
 		return pairsMap;
 	}
 
-	// TODO: ugly code
+	// TODO: ugly code, temporary solution until we decide hot to show the node and pdbs to the user
 	public static Map<CyIdentifiable, List<String>> getCyChimPairsToMap(List<String> selectedPairs,
 			Map<CyIdentifiable, String> allPairs) {
 		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();

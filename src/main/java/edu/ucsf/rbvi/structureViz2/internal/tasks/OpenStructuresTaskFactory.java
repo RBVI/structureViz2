@@ -19,7 +19,7 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory
 
 	private StructureManager structureManager;
 	
-	// TODO: too much duplicated code
+	// TODO: Can we get rid of the duplicated code?
 	public OpenStructuresTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
 	}

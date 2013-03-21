@@ -23,8 +23,8 @@ import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
@@ -41,8 +41,7 @@ public class CyActivator extends AbstractCyActivator {
 	public void start(BundleContext bc) {
 		// We'll need the CyApplication Manager to get current network,
 		// etc.
-		CyApplicationManager cyApplicationManager = getService(bc,
-				CyApplicationManager.class);
+		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
 
 		// We'll need the CyServiceRegistrar to register listeners
 		CyServiceRegistrar cyServiceRegistrar = getService(bc, CyServiceRegistrar.class);
@@ -51,6 +50,9 @@ public class CyActivator extends AbstractCyActivator {
 		boolean haveGUI = true;
 		ServiceReference ref = bc
 				.getServiceReference("org.cytoscape.application.swing.CySwingApplication");
+
+		// CySwingApplication cytoscapeDesktopService =
+		// getService(bc,CySwingApplication.class);
 
 		if (ref == null) {
 			haveGUI = false;
@@ -76,8 +78,23 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresProps.setProperty(IN_TOOL_BAR, "true");
 		openStructuresProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, openStructures, NodeViewTaskFactory.class, openStructuresProps);
-		registerService(bc, openStructures, NetworkViewTaskFactory.class,
-				openStructuresProps);
+		registerService(bc, openStructures, NetworkViewTaskFactory.class, openStructuresProps);
+
+		// TODO: Add a task for opening the molecular navigator dialog
+		
+		TaskFactory alignStructures = new AlignStructuresTaskFactory(structureManager);
+		Properties alignStructuresProps = new Properties();
+		alignStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		alignStructuresProps.setProperty(TITLE, "Align Structures");
+		alignStructuresProps.setProperty(COMMAND, "alignStructures");
+		alignStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		alignStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
+		alignStructuresProps.setProperty(IN_TOOL_BAR, "true");
+		alignStructuresProps.setProperty(MENU_GRAVITY, "3.0");
+		// registerService(bc, alignStructures, NodeViewTaskFactory.class,
+		// alignStructuresProps);
+		// registerService(bc, alignStructures, NetworkViewTaskFactory.class,
+		// alignStructuresProps);
 
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();
@@ -88,12 +105,10 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresProps.setProperty(IN_TOOL_BAR, "true");
 		closeStructuresProps.setProperty(MENU_GRAVITY, "6.0");
-		registerService(bc, closeStructures, NodeViewTaskFactory.class,
-				closeStructuresProps);
-		registerService(bc, closeStructures, NetworkViewTaskFactory.class,
-				closeStructuresProps);
-		
-		// TODO: What kind of taskfactory should this be?
+		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
+		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
+
+		// TODO: What type of TaskFactory should this be?
 		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
 		Properties exitChimeraProps = new Properties();
 		exitChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
@@ -103,9 +118,8 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(ENABLE_FOR, "network");
 		exitChimeraProps.setProperty(IN_TOOL_BAR, "true");
 		exitChimeraProps.setProperty(MENU_GRAVITY, "8.0");
-		registerService(bc, exitChimera, NetworkTaskFactory.class,
-				exitChimeraProps);		
-		
+		registerService(bc, exitChimera, NetworkTaskFactory.class, exitChimeraProps);
+
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(
 				structureManager);
 		Properties settingsProps = new Properties();

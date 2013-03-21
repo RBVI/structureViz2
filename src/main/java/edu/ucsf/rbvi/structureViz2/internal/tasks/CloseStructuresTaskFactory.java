@@ -56,12 +56,12 @@ public class CloseStructuresTaskFactory extends AbstractTaskFactory implements N
 		return new TaskIterator(new CloseStructuresTask(nodeList, netView, structureManager));
 	}
 
-	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netVeiw) {
+	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netView) {
 		// Get all of the selected nodes
 		List<CyNode> nodeList = new ArrayList<CyNode>();
 		nodeList.add(nodeView.getModel());
-		nodeList.addAll(CyTableUtil.getNodesInState(netVeiw.getModel(), "selected", true));
-		return new TaskIterator(new CloseStructuresTask(nodeList, netVeiw, structureManager));
+		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), "selected", true));
+		return new TaskIterator(new CloseStructuresTask(nodeList, netView, structureManager));
 	}
 
 }

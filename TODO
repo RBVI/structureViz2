@@ -12,3 +12,20 @@
 3) Complete prototype "Create network from structure" functionality
 
 
+Major design changes:
+-> structureManager and chimeraManager replace all classes that were 
+responsible for communication between Cytoscape and Chimera. Currently, they 
+have references to each other, but structureManager is the context object 
+moved around.
+-> structureManager has a mapping of cyObjects to Structure objects, 
+structure settings, dialogs, ...
+-> chimeraManager has a mapping of model numbers to open models, the Chimera 
+process, the listener threads (which get a reference to the StructureManager 
+to be able to pass changes).
+=> We need to decide how and if to divide the roles of the structureManager and 
+chimeraManager mainly in cases of selection, model changes (currently in the 
+StructureMaanger) and sending commands (currently only in the chimeraManaegr).  
+-> Structure is a container for two-directional mapping between Cytoscape and 
+Chimera objects.
+=> How to handle sub-models?
+=> Move code that parses CHimera output to one place.

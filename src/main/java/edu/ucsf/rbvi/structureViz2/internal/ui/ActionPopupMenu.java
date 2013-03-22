@@ -498,10 +498,7 @@ public class ActionPopupMenu extends JPopupMenu {
 				// Get the object
 				for (ChimeraStructuralObject obj : objectList) {
 					ChimeraModel model = obj.getChimeraModel();
-					// TODO: Close model using the structureManager and not the
-					// chimeraManager to keep track of mapping
-					// chimeraObject.close(model.getStructure());
-					structureManager.getChimeraManager().closeModel(model);
+					structureManager.closeModel(model);
 				}
 				structureManager.modelChanged();
 			} else if (postCommand == DELETE) {

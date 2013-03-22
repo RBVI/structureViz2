@@ -39,9 +39,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
@@ -166,7 +164,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			alignMenu.setEnabled(true);
 		else
 			alignMenu.setEnabled(false);
-		structureManager.updateSelection();
+		structureManager.chimeraSelectionUpdated();
 		ignoreSelection = false;
 		pack();
 	}
@@ -266,6 +264,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	public void valueChanged(TreeSelectionEvent e) {
 
 		// System.out.println("TreeSelectionEvent: "+e);
+		// TODO: Revise method with Scooter
 
 		// Get the paths that are changing
 		TreePath[] cPaths = e.getPaths();
@@ -299,20 +298,23 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 
 		String selSpec = "sel ";
 		boolean selected = false;
-		Map<ChimeraModel, ChimeraModel> modelsToSelect = new HashMap<ChimeraModel, ChimeraModel>();
+		// Map<ChimeraModel, ChimeraModel> modelsToSelect = new
+		// HashMap<ChimeraModel, ChimeraModel>();
 
 		List<ChimeraStructuralObject> selectedObjects = structureManager.getSelectionList();
+		// structureManager.clearSelectionList();
 
 		for (int i = 0; i < selectedObjects.size(); i++) {
-			ChimeraStructuralObject nodeInfo = (ChimeraStructuralObject) selectedObjects.get(i);
+			ChimeraStructuralObject nodeInfo = selectedObjects.get(i);
 			nodeInfo.setSelected(true);
 			selected = true;
-			ChimeraModel model = nodeInfo.getChimeraModel();
+			// we do not care about the model anymore
+			// ChimeraModel model = nodeInfo.getChimeraModel();
 			selSpec = selSpec.concat(nodeInfo.toSpec());
-			modelsToSelect.put(model, model);
+			// TODO: Why do we need a map of model <-> model?
+			// modelsToSelect.put(model, model);
 			if (i < selectedObjects.size() - 1)
 				selSpec.concat("|");
-
 		}
 
 		enableMenuItems(selectedObjects.size());
@@ -323,10 +325,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			chimeraManager.select("~sel");
 		}
 
-		// TODO: Support selection of Cytoscape nodes
-		// structureManager.selectCytoscapeNodes(chimeraObject.getNetworkView(),
-		// modelsToSelect,
-		// chimeraObject.getChimeraModels());
+		structureManager.updateCytoscapeSelection();
 
 	}
 
@@ -363,24 +362,31 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			return;
 		for (ChimeraModel m : models) {
 			m.setSelected(false);
+			// structureManager.removeSelection(m);
 			Collection<ChimeraChain> chains = m.getChains();
 			if (chains == null)
 				continue;
 			for (ChimeraChain c : chains) {
 				c.setSelected(false);
+				// structureManager.removeSelection(c);
 				Collection<ChimeraResidue> residues = c.getResidues();
 				if (residues == null)
 					continue;
 				for (ChimeraResidue r : residues) {
 					if (r != null) {
 						r.setSelected(false);
+						// structureManager.removeSelection(r);
 					}
 				}
 			}
 		}
 		// navigationTree.removeSelectionPaths(clearPaths.toArray(new TreePath[1]));
-		if (setPaths != null && setPaths.size() > 0)
+		if (setPaths != null && setPaths.size() > 0) {
 			navigationTree.addSelectionPaths(setPaths.toArray(new TreePath[1]));
+		} else {
+			// TODO: Collapse tree when nothing is selected?
+			collapseAll();
+		}
 	}
 
 	/**

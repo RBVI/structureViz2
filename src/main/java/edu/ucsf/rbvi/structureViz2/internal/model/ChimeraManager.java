@@ -286,6 +286,7 @@ public class ChimeraManager {
 				args.add("ReadStdin");
 				ProcessBuilder pb = new ProcessBuilder(args);
 				chimera = pb.start();
+				error = "";
 			} catch (Exception e) {
 				// Chimera could not be started
 				error = e.getMessage();
@@ -302,6 +303,7 @@ public class ChimeraManager {
 		}
 
 		// Tell the suer that Chimera could not be started because of an error
+		System.out.println(error);
 		logger.error(error);
 		return false;
 	}

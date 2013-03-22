@@ -17,6 +17,7 @@ import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
+import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -42,7 +43,8 @@ public class CyActivator extends AbstractCyActivator {
 		// We'll need the CyApplication Manager to get current network,
 		// etc.
 		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
-
+		CyNetworkViewManager cyNetworkViewManager = getService(bc, CyNetworkViewManager.class);
+		
 		// We'll need the CyServiceRegistrar to register listeners
 		CyServiceRegistrar cyServiceRegistrar = getService(bc, CyServiceRegistrar.class);
 
@@ -67,6 +69,7 @@ public class CyActivator extends AbstractCyActivator {
 		// register it as a TaskFactory since it also provides various
 		// settings
 		StructureManager structureManager = new StructureManager();
+		structureManager.setNetworkViewManager(cyNetworkViewManager);
 
 		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
 		Properties openStructuresProps = new Properties();

@@ -1,5 +1,8 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
@@ -18,6 +21,9 @@ public class StructureSettings {
 
 	@Tunable(description = "Columns to search for key or functional residue identifiers")
 	public ListMultipleSelection<String> residueColumns = null;
+
+	@Tunable(description = "Path to chimera executible")
+	public String chimeraPath = null;
 
 	public StructureSettings(CyNetwork network, StructureManager manager) {
 		structureColumns = new ListMultipleSelection<String>(manager.getAllStructureKeys(network));
@@ -40,4 +46,8 @@ public class StructureSettings {
 	public ListMultipleSelection<String> getChemStructureColumns() { return chemColumns; }
 
 	public ListMultipleSelection<String> getResidueColumns() { return residueColumns; }
+
+	public String getChimeraPath() {
+		return chimeraPath;
+	}
 }

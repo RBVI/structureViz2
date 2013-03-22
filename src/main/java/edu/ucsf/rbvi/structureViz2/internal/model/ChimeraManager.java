@@ -269,18 +269,13 @@ public class ChimeraManager {
 		return false;
 	}
 
-	public boolean launchChimera() {
+	public boolean launchChimera(List<String> chimeraPaths) {
 		// Do nothing if Chimera is already launched
 		if (isChimeraLaunched()) {
 			return true;
 		}
 
 		// Try to launch Chimera (eventually using one of the possible paths)
-		// TODO: Get the path from Tunable
-		// StructureManager
-		// String chiemraPath = structureManager.getChimeraPath();
-		List<String> chimeraPaths = new ArrayList<String>(1);
-		chimeraPaths.add("/usr/bin/chimera");
 		String error = "";
 		// iterate over possible paths for starting Chimera
 		for (String chimeraPath : chimeraPaths) {

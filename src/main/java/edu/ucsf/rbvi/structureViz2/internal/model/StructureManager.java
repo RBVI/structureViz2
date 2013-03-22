@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -85,6 +86,31 @@ public class StructureManager {
 		return chimeraManager;
 	}
 
+	public List<String> getChimeraPaths(CyNetwork network) {
+		List<String> pathList = new ArrayList<String>();
+
+		if (settings.containsKey(network)) {
+			String path = settings.get(network).getChimeraPath();
+			if (path != null) {
+				pathList.add(path);
+				return pathList;
+			}
+		}
+
+		String os = System.getProperty("os.name");
+		if (os.startsWith("Linux")) {
+			pathList.add("/usr/local/chimera/bin/chimera");
+			pathList.add("/usr/local/bin/chimera");
+			pathList.add("/usr/bin/chimera");
+		} else if (os.startsWith("Windows")) {
+			pathList.add("\\Program Files\\Chimera\\bin\\chimera");
+		} else if (os.startsWith("Mac")) {
+			pathList.add("/Applications/Chimera.app/Contents/MacOS/chimera");
+		}
+
+		return pathList;
+	}
+
 	/**
 	 * Return all open structures for a set of CyObjects. Invoked by
 	 * CloseStructuresTask.
@@ -150,7 +176,7 @@ public class StructureManager {
 
 	public void openStructures(CyNetwork network, Map<CyIdentifiable, List<String>> chimObjNames) {
 		if (!chimeraManager.isChimeraLaunched()) {
-			chimeraManager.launchChimera();
+			chimeraManager.launchChimera(getChimeraPaths(network));
 		}
 		for (CyIdentifiable cyObj : chimObjNames.keySet()) {
 			Structure currentStructure = null;
@@ -434,23 +460,37 @@ public class StructureManager {
 			CyRow row = table.getRow(cyObj.getSUID());
 			// iterate over attributes that contain structures
 			for (String column : columns) {
-				// TODO: Consider attributes that contain lists?
-				// TODO: Split by comma if more than one attribute?
-				String cell = row.get(column, String.class, "").trim();
-				// skip if the cell is empty
-				if (cell.equals("")) {
+				CyColumn col = table.getColumn(column);
+
+				Class colType = col.getType();
+				List<String> cellList = new ArrayList<String>();
+				if (colType == String.class) {
+					String cell = row.get(column, String.class, "").trim();
+					if (cell.equals("")) {
+						continue;
+					}
+					String[] cellArray = cell.split(",");
+					for (String str: cellArray)
+						cellList.add(str.trim());
+				} else if (colType == List.class && col.getListElementType() == String.class) {
+					for (String str: row.getList(column, String.class))
+						cellList.add(str.trim());
+				} else {
 					continue;
 				}
-				// skip if the structure is already open
-				if (currentStructuresMap.containsKey(cyObj)
-						&& currentStructuresMap.get(cyObj).hasChimeraModelName(cell)) {
-					continue;
+
+				for (String cell: cellList) {
+					// skip if the structure is already open
+					if (currentStructuresMap.containsKey(cyObj)
+							&& currentStructuresMap.get(cyObj).hasChimeraModelName(cell)) {
+						continue;
+					}
+					// add strcture name to map
+					if (!mapChimObjNames.containsKey(cyObj)) {
+						mapChimObjNames.put(cyObj, new ArrayList<String>());
+					}
+					mapChimObjNames.get(cyObj).add(cell);
 				}
-				// add strcture name to map
-				if (!mapChimObjNames.containsKey(cyObj)) {
-					mapChimObjNames.put(cyObj, new ArrayList<String>());
-				}
-				mapChimObjNames.get(cyObj).add(cell);
 			}
 		}
 		return mapChimObjNames;

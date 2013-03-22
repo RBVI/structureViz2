@@ -316,7 +316,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			if (i < selectedObjects.size() - 1)
 				selSpec.concat("|");
 		}
-
+		
 		enableMenuItems(selectedObjects.size());
 
 		if (!ignoreSelection && selected)

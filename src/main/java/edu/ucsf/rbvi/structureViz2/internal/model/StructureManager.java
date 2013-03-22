@@ -241,6 +241,9 @@ public class StructureManager {
 				currentCyMap.remove(cyObj);
 			}
 		}
+		if (mnDialog != null) {
+			mnDialog.modelChanged();
+		}
 	}
 
 	public void closeModel(ChimeraModel model) {

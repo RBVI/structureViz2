@@ -3,6 +3,7 @@ package edu.ucsf.rbvi.structureViz2.internal.tasks;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ContainsTunables;
+import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
@@ -22,6 +23,11 @@ public class StructureVizSettingsTask extends AbstractTask {
 	}
 
 	public void run(TaskMonitor taskMonitor) throws Exception {
+	}
+
+	@ProvidesTitle
+	public String getTitle() {
+		return "StructureViz Settings";
 	}
 
 }

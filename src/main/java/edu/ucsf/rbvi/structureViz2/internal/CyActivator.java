@@ -12,6 +12,8 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.util.Properties;
 
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
@@ -20,10 +22,10 @@ import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucsf.rbvi.structureViz2.internal.model.CySelectionListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
@@ -40,23 +42,21 @@ public class CyActivator extends AbstractCyActivator {
 	}
 
 	public void start(BundleContext bc) {
-		// We'll need the CyApplication Manager to get current network,
-		// etc.
+		// We'll need the CyApplication Manager to get current network, etc.
 		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
 		CyNetworkViewManager cyNetworkViewManager = getService(bc, CyNetworkViewManager.class);
-		
+
 		// We'll need the CyServiceRegistrar to register listeners
 		CyServiceRegistrar cyServiceRegistrar = getService(bc, CyServiceRegistrar.class);
 
 		// See if we have a graphics console or not
 		boolean haveGUI = true;
-		ServiceReference ref = bc
-				.getServiceReference("org.cytoscape.application.swing.CySwingApplication");
+		// TODO: OK to check for the service?
+		// ServiceReference ref =
+		// bc.getServiceReference("org.cytoscape.application.swing.CySwingApplication");
+		CySwingApplication cyApplication = getService(bc, CySwingApplication.class);
 
-		// CySwingApplication cytoscapeDesktopService =
-		// getService(bc,CySwingApplication.class);
-
-		if (ref == null) {
+		if (cyApplication == null) {
 			haveGUI = false;
 			// Issue error and return
 		}
@@ -70,6 +70,11 @@ public class CyActivator extends AbstractCyActivator {
 		// settings
 		StructureManager structureManager = new StructureManager();
 		structureManager.setNetworkViewManager(cyNetworkViewManager);
+		structureManager.setCyApplication(cyApplication);
+		CySelectionListener selectionListener = new CySelectionListener(structureManager);
+		registerService(bc, selectionListener, RowsSetListener.class, new Properties());
+		structureManager.setCySelectionListener(selectionListener);
+		// TODO: Do we need to register with CyServiceRegistrar?
 
 		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
 		Properties openStructuresProps = new Properties();
@@ -84,7 +89,6 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, openStructures, NetworkViewTaskFactory.class, openStructuresProps);
 
 		// TODO: Add a task for opening the molecular navigator dialog
-		
 		TaskFactory alignStructures = new AlignStructuresTaskFactory(structureManager);
 		Properties alignStructuresProps = new Properties();
 		alignStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");

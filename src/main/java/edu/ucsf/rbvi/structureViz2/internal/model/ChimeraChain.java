@@ -138,9 +138,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	 *          the ChimeraResidue to add to the chain.
 	 */
 	public void addResidue(ChimeraResidue residue) {
-		// Get the value of the index (should be an int!)
-		// TODO: Is it ok for the residue index to be a string?
-		// Integer index = new Integer(residue.getIndex());
+		// TODO: If performance issues, change back to string
 		String index = residue.getIndex();
 		// Put it in our map so that we can return it in order
 		residueList.put(index, residue);

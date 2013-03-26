@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
@@ -22,8 +23,7 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import edu.ucsf.rbvi.structureViz2.internal.ui.ModelNavigatorDialog;
 
 /**
- * This object maintains the relationship between Chimera objects and Cytoscape
- * objects.
+ * This object maintains the relationship between Chimera objects and Cytoscape objects.
  */
 // TODO: check proper use of chimMap and cyMap
 public class StructureManager {
@@ -36,8 +36,9 @@ public class StructureManager {
 		PDB_MODEL, MODBASE_MODEL, SMILES
 	};
 
-	// TODO: Is there a more elegant way to update the network view?
 	private CyNetworkViewManager cyNetViewManager = null;
+	private CySwingApplication cyApplication = null;
+	private CySelectionListener cySelectionListener = null;
 	private ChimeraManager chimeraManager = null;
 	private Map<CyNetwork, StructureSettings> settings = null;
 	private Map<CyIdentifiable, Structure> currentCyMap = null;
@@ -121,8 +122,7 @@ public class StructureManager {
 	}
 
 	/**
-	 * Return all open structures for a set of CyObjects. Invoked by
-	 * CloseStructuresTask.
+	 * Return all open structures for a set of CyObjects. Invoked by CloseStructuresTask.
 	 * 
 	 * @param cyObjSet
 	 * @return
@@ -155,8 +155,8 @@ public class StructureManager {
 	}
 
 	/**
-	 * Return the names of structures or smiles that can be opened in Chimera from
-	 * the selected attribute. Invoked by openStructuresTask.
+	 * Return the names of structures or smiles that can be opened in Chimera from the selected
+	 * attribute. Invoked by openStructuresTask.
 	 * 
 	 * @param network
 	 * @param nodeSet
@@ -248,7 +248,6 @@ public class StructureManager {
 
 	public void closeModel(ChimeraModel model) {
 		if (currentChimMap.containsKey(model)) {
-			// TODO: Close submodels too?
 			Structure currentStructure = currentChimMap.get(model);
 			// get all other models that might have the same name?
 			List<ChimeraModel> associatedModels = currentStructure.getChimeraModels(model.getModelName());
@@ -281,8 +280,10 @@ public class StructureManager {
 		// clear structures
 		currentCyMap.clear();
 		currentChimMap.clear();
-		if (mnDialog != null) {
+		if (mnDialog != null && mnDialog.isVisible()) {
 			mnDialog.lostChimera();
+			mnDialog.setVisible(false);
+			mnDialog = null;
 		}
 	}
 
@@ -316,9 +317,9 @@ public class StructureManager {
 						.set(CyNetwork.SELECTED, true);
 				networks.add(network);
 			}
-		}
-
-		// TODO: Update network views
+		}		
+		
+		// Update network views
 		for (CyNetwork network : networks) {
 			Collection<CyNetworkView> views = cyNetViewManager.getNetworkViews(network);
 			for (CyNetworkView view : views) {
@@ -328,10 +329,14 @@ public class StructureManager {
 		// enableNodeSelection = true;
 	}
 
+	public void cytoscapeSelectionUpdated(Map<CyRow, Boolean> selectedRows) {
+		// TODO: What to do with these rows?
+	}
+
 	/**
-	 * This is called by the selectionListener to let us know that the user has
-	 * changed their selection in Chimera. We need to go back to Chimera to find
-	 * out what is currently selected and update our list.
+	 * This is called by the selectionListener to let us know that the user has changed their
+	 * selection in Chimera. We need to go back to Chimera to find out what is currently selected and
+	 * update our list.
 	 */
 	// TODO: Move code to ChimeraManager?
 	public void chimeraSelectionUpdated() {
@@ -390,27 +395,30 @@ public class StructureManager {
 	}
 
 	/**
-	 * Add a selection to the selection list. This is called primarily by the
-	 * Model Navigator Dialog to keep the selections in sync
+	 * Add a selection to the selection list. This is called primarily by the Model Navigator Dialog
+	 * to keep the selections in sync
 	 * 
 	 * @param selectionToAdd
 	 *          the selection to add to our list
 	 */
 	public void addSelection(ChimeraStructuralObject selectionToAdd) {
-		if (selectionToAdd != null && !selectionList.contains(selectionToAdd))
+		if (selectionToAdd != null && !selectionList.contains(selectionToAdd)) {
 			selectionList.add(selectionToAdd);
+		}
 	}
 
 	/**
-	 * Remove a selection from the selection list. This is called primarily by the
-	 * Model Navigator Dialog to keep the selections in sync
+	 * Remove a selection from the selection list. This is called primarily by the Model Navigator
+	 * Dialog to keep the selections in sync
 	 * 
 	 * @param selectionToRemove
 	 *          the selection to remove from our list
 	 */
 	public void removeSelection(ChimeraStructuralObject selectionToRemove) {
-		if (selectionToRemove != null && selectionList.contains(selectionToRemove))
+		if (selectionToRemove != null && selectionList.contains(selectionToRemove)) {
 			selectionList.remove(selectionToRemove);
+		}
+		// TODO: This method should change the state of the object
 	}
 
 	/**
@@ -471,8 +479,6 @@ public class StructureManager {
 			// add new model to ChimeraManager
 			chimeraManager.addChimeraModel(modelNumber, subModelNumber, model);
 
-			// TODO: Why check the Structure?
-			// model.getStructure() != null
 			if (model.getModelType() != ModelType.SMILES) {
 				// Get the residue information
 				chimeraManager.getResidueInfo(model);
@@ -504,7 +510,7 @@ public class StructureManager {
 
 	public void launchDialog() {
 		if (mnDialog == null) {
-			mnDialog = ModelNavigatorDialog.LaunchModelNavigator(null, this);
+			mnDialog = ModelNavigatorDialog.LaunchModelNavigator(cyApplication.getJFrame(), this);
 		}
 		mnDialog.setVisible(true);
 	}
@@ -517,6 +523,23 @@ public class StructureManager {
 		this.cyNetViewManager = manager;
 	}
 
+	public CyNetworkViewManager getNetworkViewManager() {
+		return cyNetViewManager;
+	}
+
+	public void setCyApplication(CySwingApplication cyApp) {
+		this.cyApplication = cyApp;
+	}
+
+	public CySwingApplication getCyApplication() {
+		return cyApplication;
+	}
+
+	public void setCySelectionListener(CySelectionListener listener) {
+		this.cySelectionListener = listener;
+	}
+	
+	
 	private boolean hasChimObjNames(Collection<CyIdentifiable> objs, CyTable table,
 			List<String> columns) {
 		if (getChimObjNames(objs, table, columns).size() > 0) {

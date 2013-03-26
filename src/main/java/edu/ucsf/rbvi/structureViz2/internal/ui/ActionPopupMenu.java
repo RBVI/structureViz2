@@ -477,12 +477,7 @@ public class ActionPopupMenu extends JPopupMenu {
 				} else {
 					message = "Are you sure you want to delete " + objectList.get(0).toString() + "?";
 				}
-				// TODO: Need Cytoscape desktop
-				// int answer = JOptionPane.showConfirmDialog(chimeraObject.getDialog(),
-				// message,
-				// "Confirm",
-				// JOptionPane.YES_NO_OPTION);
-				int answer = JOptionPane.showConfirmDialog(null, message, "Confirm",
+				int answer = JOptionPane.showConfirmDialog(structureManager.getCyApplication().getJFrame(), message, "Confirm",
 						JOptionPane.YES_NO_OPTION);
 				if (answer == JOptionPane.NO_OPTION) {
 					return;

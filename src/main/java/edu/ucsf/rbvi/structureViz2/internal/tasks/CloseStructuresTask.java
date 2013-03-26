@@ -51,7 +51,6 @@ public class CloseStructuresTask extends AbstractTask {
 			openChimObjTunable = new ListMultipleSelection<String>(availableObjs);
 			openChimObjTunable.setSelectedValues(availableObjs);
 		} else {
-			// TODO: How to initialize a tunable when it is empty?
 			openChimObjTunable = new ListMultipleSelection<String>("None");
 		}
 	}

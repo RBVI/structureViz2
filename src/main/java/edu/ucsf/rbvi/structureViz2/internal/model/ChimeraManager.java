@@ -55,7 +55,7 @@ public class ChimeraManager {
 
 	public Collection<ChimeraModel> getChimeraModels() {
 		// TODO: How should we handle sub-models in this case?
-		// this method is invokes by the model navigator dialog
+		// this method is invoked by the model navigator dialog
 		return currentModelsMap.values();
 	}
 
@@ -122,8 +122,6 @@ public class ChimeraManager {
 					continue;
 				}
 				ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0], modelNumbers[1]);
-				// TODO: Submodels have the same names, so what to do in this case?
-				// currentModelNamesMap.put(modelName, newModel);
 				currentModelsMap.put(modelNumber, newModel);
 				models.add(newModel);
 
@@ -167,8 +165,6 @@ public class ChimeraManager {
 	}
 
 	public void startListening() {
-		// TODO: Is there a difference between "start select" and "start selection"?
-		// sendChimeraCommand("listen start models; listen start selection", false);
 		sendChimeraCommand("listen start models; listen start select", false);
 	}
 

@@ -109,7 +109,7 @@ public class ChimeraTreeModel extends DefaultTreeModel {
 	}
 
 	/**
-	 * build the tree from the current chimera data
+	 * Build the tree from the current Chimera data
 	 *
 	 * @return DefaultMutableTreeNode that represents the currently loaded Chimera models
 	 */

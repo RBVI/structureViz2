@@ -13,13 +13,13 @@ import org.cytoscape.work.util.ListMultipleSelection;
  */
 public class StructureSettings {
 	// Add Tunables to get the column names to search
-	@Tunable(description = "Columns to search for PDB identifiers")
+	@Tunable(description = "Columns to search for PDB identifiers",groups="PDB Identifiers")
 	public ListMultipleSelection<String> structureColumns = null;
 
-	@Tunable(description = "Columns to search for Compound (small molecule) identifiers")
+	@Tunable(description = "Columns to search for Compound (small molecule) identifiers",groups="Compound Identifiers")
 	public ListMultipleSelection<String> chemColumns = null;
 
-	@Tunable(description = "Columns to search for key or functional residue identifiers")
+	@Tunable(description = "Columns to search for key or functional residue identifiers", groups="Functional residues")
 	public ListMultipleSelection<String> residueColumns = null;
 
 	@Tunable(description = "Path to chimera executible")

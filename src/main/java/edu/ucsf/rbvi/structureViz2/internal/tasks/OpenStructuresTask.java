@@ -8,6 +8,7 @@ import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
@@ -55,5 +56,9 @@ public class OpenStructuresTask extends AbstractTask {
 			availableChimObjTunable = new ListMultipleSelection<String>("None");
 		}
 	}
-	
+
+	@ProvidesTitle
+	public String getTitle() {
+		return "Open Structures";
+	}
 }

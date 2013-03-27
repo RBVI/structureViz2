@@ -36,67 +36,76 @@ import java.lang.String;
 import java.util.List;
 
 /**
- * This interface provides a common set of methods that are implemented
- * by the ChimeraModel, ChimeraChain, and ChimeraResidue classes.
+ * This interface provides a common set of methods that are implemented by the ChimeraModel,
+ * ChimeraChain, and ChimeraResidue classes.
  * 
  * @author scooter
- *
+ * 
  */
 
 public interface ChimeraStructuralObject {
-		
+
 	/**
 	 * Return the Chimera selection specification for this object
-	 *
+	 * 
 	 * @return a String representing a Chimera atom-spec
 	 */
 	public String toSpec();
 
 	/**
 	 * Return a String representation for this object
-	 *
+	 * 
 	 * @return a String representing the object name
 	 */
 	public String toString();
 
 	/**
 	 * Return the userData for this object
-	 *
+	 * 
 	 * @return an Object representing the userData (usually TreePath)
 	 */
 	public Object getUserData();
 
 	/**
 	 * Set the userData for this object
-	 *
-	 * @param userData the Object representing the userData (usually TreePath)
+	 * 
+	 * @param userData
+	 *          the Object representing the userData (usually TreePath)
 	 */
 	public void setUserData(Object userData);
 
 	/**
 	 * Return the ChimeraModel for this object
-	 *
+	 * 
 	 * @return the ChimeraModel this object is part of
 	 */
 	public ChimeraModel getChimeraModel();
 
 	/**
 	 * Set the "selected" state of this object
-	 *
-	 * @param selected boolean value as to whether this object is selected
+	 * 
+	 * @param selected
+	 *          boolean value as to whether this object is selected
 	 */
 	public void setSelected(boolean selected);
 
 	/**
 	 * Get the "selected" state of this object
-	 *
+	 * 
 	 * @return the selected state of this object
 	 */
 	public boolean isSelected();
 
 	/**
+	 * Get the selected state of this object and its children.
+	 * 
+	 * @return true if any child is selected.
+	 */
+	public boolean hasSelectedChildren();
+
+	/**
 	 * Get the children of this object (if any)
-	 *
+	 * 
 	 * @return the children of the object
 	 */
 	public List<ChimeraStructuralObject> getChildren();

@@ -37,7 +37,6 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -63,7 +62,6 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraChain;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraModel;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraResidue;
@@ -157,7 +155,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			alignMenu.setEnabled(true);
 		else
 			alignMenu.setEnabled(false);
-		structureManager.chimeraSelectionUpdated();
+		structureManager.chimeraSelectionChanged();
 		ignoreSelection = false;
 		pack();
 	}
@@ -214,7 +212,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		// Is the object we're collapsing already selected?
 		if (!nodeInfo.isSelected()) {
 			// No, see if it has selected children
-			if (hasSelectedChildren(nodeInfo)) {
+			if (nodeInfo.hasSelectedChildren()) {
 				// It does, we need to disable selection
 				isCollapsing = true;
 			}
@@ -254,7 +252,6 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	public void valueChanged(TreeSelectionEvent e) {
 
 		// System.out.println("TreeSelectionEvent: "+e);
-		// TODO: Revise method
 
 		// Get the paths that are changing
 		TreePath[] cPaths = e.getPaths();
@@ -270,48 +267,30 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			return;
 		}
 
+		System.out.println("dialog selection changed");
 		for (int i = 0; i < cPaths.length; i++) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) cPaths[i].getLastPathComponent();
 			if (!ChimeraStructuralObject.class.isInstance(node.getUserObject()))
 				continue;
 			ChimeraStructuralObject nodeInfo = (ChimeraStructuralObject) node.getUserObject();
 			if (!e.isAddedPath(cPaths[i])) {
-				nodeInfo.setSelected(false);
-				structureManager.removeSelection(nodeInfo);
+				// nodeInfo.setSelected(false);
+				structureManager.removeChimSelection(nodeInfo);
 			} else {
-				nodeInfo.setSelected(true);
-				structureManager.addSelection(nodeInfo);
+				// nodeInfo.setSelected(true);
+				structureManager.addChimSelection(nodeInfo);
 			}
 			// System.out.println("  Path: "+((DefaultMutableTreeNode)
 			// cPaths[i].getLastPathComponent()));
 		}
-
-		String selSpec = "sel ";
-		boolean selected = false;
-
-		List<ChimeraStructuralObject> selectedObjects = structureManager.getSelectionList();
-		// structureManager.clearSelectionList();
-
-		for (int i = 0; i < selectedObjects.size(); i++) {
-			ChimeraStructuralObject nodeInfo = selectedObjects.get(i);
-			nodeInfo.setSelected(true);
-			selected = true;
-			// we do not care about the model anymore
-			selSpec = selSpec.concat(nodeInfo.toSpec());
-			// TODO: save models in a HashMap/Set for better performance?
-			if (i < selectedObjects.size() - 1)
-				selSpec.concat("|");
+		// Update selection in Chimera
+		if (!ignoreSelection) {
+			structureManager.updateChimeraSelection();
+			// Update selection in Cytoscape
+			structureManager.updateCytoscapeSelection();
 		}
-
-		enableMenuItems(selectedObjects.size());
-
-		if (!ignoreSelection && selected)
-			chimeraManager.select(selSpec);
-		else if (!ignoreSelection && selectedObjects.size() == 0) {
-			chimeraManager.select("~sel");
-		}
-
-		structureManager.updateCytoscapeSelection();
+		// enable only menu items if at least one Chimera object is selected
+		enableMenuItems(structureManager.getChimSelectionCount());
 
 	}
 
@@ -340,60 +319,15 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	 * accomplished by iterating over all models and recursively decending through the chains to the
 	 * residues.
 	 */
-	// TODO: Move code to chimeraManager?
 	private void resetSelectionState(List<TreePath> setPaths) {
 		navigationTree.removeSelectionPaths(navigationTree.getSelectionPaths());
-		Collection<ChimeraModel> models = chimeraManager.getChimeraModels();
-		if (models == null)
-			return;
-		for (ChimeraModel m : models) {
-			m.setSelected(false);
-			// structureManager.removeSelection(m);
-			Collection<ChimeraChain> chains = m.getChains();
-			if (chains == null)
-				continue;
-			for (ChimeraChain c : chains) {
-				c.setSelected(false);
-				// structureManager.removeSelection(c);
-				Collection<ChimeraResidue> residues = c.getResidues();
-				if (residues == null)
-					continue;
-				for (ChimeraResidue r : residues) {
-					if (r != null) {
-						r.setSelected(false);
-						// structureManager.removeSelection(r);
-					}
-				}
-			}
-		}
+		structureManager.clearSelectionList();
 		// navigationTree.removeSelectionPaths(clearPaths.toArray(new TreePath[1]));
 		if (setPaths != null && setPaths.size() > 0) {
 			navigationTree.addSelectionPaths(setPaths.toArray(new TreePath[1]));
 		} else {
 			collapseAll();
 		}
-	}
-
-	/**
-	 * This method determines if a given ChimeraStructuralObject has any selected children.
-	 * 
-	 * @param obj
-	 *          the ChimeraStructuralObject to test
-	 * @return "true" if <b>obj</b> is selected itself or has any selected children
-	 */
-	// TODO: Move code to chimeraManager?
-	public boolean hasSelectedChildren(ChimeraStructuralObject obj) {
-		if (obj.isSelected()) {
-			return true;
-		}
-		if (obj.getClass() == ChimeraResidue.class)
-			return false;
-
-		for (ChimeraStructuralObject child : (List<ChimeraStructuralObject>) obj.getChildren()) {
-			if (hasSelectedChildren(child))
-				return true;
-		}
-		return false;
 	}
 
 	/*************************************************
@@ -664,7 +598,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		 *          the ActionEvent for this
 		 */
 		public void actionPerformed(ActionEvent ev) {
-			List<ChimeraStructuralObject> selectedObjects = structureManager.getSelectionList();
+			final int selectedObjectsCount = structureManager.getChimSelectionCount();
 			if (type == COMMAND) {
 				// System.out.println("Command: "+command);
 				chimeraManager.sendChimeraCommand(command, false);
@@ -672,6 +606,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				chimeraManager.select(command);
 			} else if (type == CLEAR) {
 				chimeraManager.select("~select");
+				collapseAll();
 				navigationTree.removeSelectionPaths(navigationTree.getSelectionPaths());
 			} else if (type == EXIT) {
 				structureManager.exitChimera();
@@ -719,21 +654,21 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				launchAlignDialog(true);
 				modelChanged();
 			} else if (type == FINDCLASH) {
-				if (selectedObjects.size() > 0) {
+				if (selectedObjectsCount > 0) {
 					chimeraManager.select(command);
 				} else {
 					JOptionPane.showMessageDialog(dialog, "You must select something to find clashes",
 							"Nothing Selected", JOptionPane.ERROR_MESSAGE);
 				}
 			} else if (type == FINDHBOND) {
-				if (selectedObjects.size() > 0) {
+				if (selectedObjectsCount > 0) {
 					chimeraManager.select(command);
 				} else {
 					JOptionPane.showMessageDialog(dialog, "You must select something to find hydrogen bonds",
 							"Nothing Selected", JOptionPane.ERROR_MESSAGE);
 				}
 			} else if (type == CREATENETWORK) {
-				if (selectedObjects.size() > 0) {
+				if (selectedObjectsCount > 0) {
 					launchNewNetworkDialog();
 				} else {
 					JOptionPane.showMessageDialog(dialog, "You must select something to create a network",
@@ -835,7 +770,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				// System.out.println("Sel = "+sel+", "+chimeraObj+".isSelected = "+chimeraObj.isSelected());
 				// Finally, if we're selected, but the underlying object
 				// isn't selected, change the background paint
-				if (sel == false && hasSelectedChildren(chimeraObj) && expanded == false) {
+				if (sel == false && chimeraObj.hasSelectedChildren() && expanded == false) {
 					Color bg = Color.blue;
 					setForeground(bg);
 				}

@@ -183,7 +183,7 @@ public class ListenerThreads extends Thread {
 		public void run() {
 			try {
 				// System.out.println("Calling updateSelection");
-				structureManager.chimeraSelectionUpdated();
+				structureManager.chimeraSelectionChanged();
 			} catch (Exception e) {
 			}
 		}

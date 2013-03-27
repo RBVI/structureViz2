@@ -113,6 +113,18 @@ public class ChimeraChain implements ChimeraStructuralObject {
 		return selected;
 	}
 
+	public boolean hasSelectedChildren() {
+		if (selected) {
+			return true;
+		} else {
+			for (ChimeraResidue residue : getResidues()) {
+				if (residue.isSelected())
+					return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Return the list of selected residues
 	 * 
@@ -227,8 +239,8 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Return a string representation of this chain as follows: Chain
-	 * <i>chainId</i> (<i>residue_count</i> residues)
+	 * Return a string representation of this chain as follows: Chain <i>chainId</i>
+	 * (<i>residue_count</i> residues)
 	 * 
 	 * @return String representation of chain
 	 */
@@ -241,8 +253,8 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Return a string representation of this chain as follows: Node xxx [Model
-	 * yyyy Chain <i>chainId</i>]
+	 * Return a string representation of this chain as follows: Node xxx [Model yyyy Chain
+	 * <i>chainId</i>]
 	 * 
 	 * @return String representation of chain
 	 */

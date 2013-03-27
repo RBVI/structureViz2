@@ -43,7 +43,7 @@ public class OpenStructuresTask extends AbstractTask {
 		// open structures
 		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames);
 		if (structureManager.getModelNavigatorDialog() == null) {
-			structureManager.launchDialog();
+			structureManager.launchModelNavigatorDialog();
 		}
 	}
 

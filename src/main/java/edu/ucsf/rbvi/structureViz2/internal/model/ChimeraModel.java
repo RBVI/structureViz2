@@ -322,6 +322,19 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		return null;
 	}
 
+	public boolean hasSelectedChildren() {
+		if (selected) {
+			return true;
+		} else {
+			for (ChimeraChain chain : getChains()) {
+				if (chain.hasSelectedChildren()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Return the list of selected residues
 	 * 

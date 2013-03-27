@@ -3,6 +3,7 @@ package edu.ucsf.rbvi.structureViz2.internal.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.task.NetworkViewTaskFactory;
@@ -24,10 +25,23 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 	}
 	
 	public boolean isReady(CyNetworkView netView) {
+		// Get all of the selected nodes
+		List<CyNode> nodeList = new ArrayList<CyNode>();
+		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		if (structureManager.getNodeChimObjNames(netView.getModel(), nodeList).size() > 1) {
+			return true;
+		}
 		return false;
 	}
 
 	public boolean isReady(View<CyNode> nodeView, CyNetworkView netView) {
+		// Get all of the selected nodes
+		List<CyNode> nodeList = new ArrayList<CyNode>();
+		nodeList.add(nodeView.getModel());
+		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		if (structureManager.getNodeChimObjNames(netView.getModel(), nodeList).size() > 1) {
+			return true;
+		}
 		return false;
 	}
 
@@ -38,7 +52,7 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 	public TaskIterator createTaskIterator(CyNetworkView netView) {
 		// Get all of the selected nodes
 		List<CyNode> nodeList = new ArrayList<CyNode>();
-		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), "selected", true));
+		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
 		return new TaskIterator(new AlignStructuresTask(nodeList, netView, structureManager));
 	}
 
@@ -46,7 +60,7 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		// Get all of the selected nodes
 		List<CyNode> nodeList = new ArrayList<CyNode>();
 		nodeList.add(nodeView.getModel());
-		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), "selected", true));
+		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
 		return new TaskIterator(new AlignStructuresTask(nodeList, netView, structureManager));
 	}
 

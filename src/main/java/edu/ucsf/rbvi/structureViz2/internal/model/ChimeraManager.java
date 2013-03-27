@@ -54,13 +54,11 @@ public class ChimeraManager {
 	}
 
 	public Collection<ChimeraModel> getChimeraModels() {
-		// TODO: How should we handle sub-models in this case?
 		// this method is invoked by the model navigator dialog
 		return currentModelsMap.values();
 	}
 
 	public int getChimeraModelsCount(boolean smiles) {
-		// TODO: How should we handle sub-models in this case?
 		// this method is invokes by the model navigator dialog
 		int counter = currentModelsMap.size();
 		if (smiles) {
@@ -182,6 +180,10 @@ public class ChimeraManager {
 		sendChimeraCommand("listen stop select; " + command + "; listen start select", false);
 	}
 
+	public void focus() {
+		sendChimeraCommand("focus", false);
+	}
+
 	public void clearOnChimeraExit() {
 		chimera = null;
 		currentModelsMap.clear();
@@ -239,9 +241,8 @@ public class ChimeraManager {
 	}
 
 	/**
-	 * Return the list of depiction presets available from within Chimera. Chimera
-	 * will return the list as a series of lines with the format: Preset type
-	 * number "description"
+	 * Return the list of depiction presets available from within Chimera. Chimera will return the
+	 * list as a series of lines with the format: Preset type number "description"
 	 * 
 	 * @return list of presets
 	 */
@@ -322,9 +323,8 @@ public class ChimeraManager {
 
 	/**
 	 * 
-	 * Get information about the residues associated with a model. This uses the
-	 * Chimera listr command. We don't return the resulting residues, but we add
-	 * the residues to the model.
+	 * Get information about the residues associated with a model. This uses the Chimera listr
+	 * command. We don't return the resulting residues, but we add the residues to the model.
 	 * 
 	 * @param model
 	 *          the ChimeraModel to get residue information for

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.events.RowSetRecord;
@@ -19,15 +20,15 @@ public class CySelectionListener implements RowsSetListener {
 	}
 
 	public void handleEvent(RowsSetEvent e) {
-		Map<CyRow, Boolean> selectedRows = new HashMap<CyRow, Boolean>();
+		Map<Long, Boolean> selectedRows = new HashMap<Long, Boolean>();
 		if (e.containsColumn(CyNetwork.SELECTED)) {
 			Collection<RowSetRecord> records = e.getColumnRecords(CyNetwork.SELECTED);
 			for (RowSetRecord record : records) {
-				selectedRows.put(record.getRow(), (Boolean)record.getValue());
+				selectedRows.put(record.getRow().get(CyIdentifiable.SUID, Long.class), (Boolean)record.getValue());
 			}
 		}
 		if (selectedRows.size() != 0) {
-			structureManager.cytoscapeSelectionUpdated(selectedRows);
+			structureManager.cytoscapeSelectionChanged(selectedRows);
 		}
 	}
 }

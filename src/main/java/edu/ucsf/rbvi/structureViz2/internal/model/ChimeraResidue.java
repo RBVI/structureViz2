@@ -464,4 +464,8 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 			return null;
 		return ids[3];
 	}
+
+	public boolean hasSelectedChildren() {
+		return false;
+	}
 }

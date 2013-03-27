@@ -62,10 +62,10 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	private static final String[] columnNames = { "Match Structures", "Aligned Pairs", "RMSD",
 			"Score" };
 
-	private String referenceStructure = null;
-	private List matchStructures = null;
-	private List allStructures = null;
-	private List selectedStructures = null;
+	private String referenceModel = null;
+	private List<ChimeraStructuralObject> matchModels = null;
+	private List<ChimeraStructuralObject> allModels = null;
+	private List<ChimeraStructuralObject> selectedModels = null;
 	private HashMap resultsMap;
 	private int state = NOREFERENCE;
 	AlignStructuresDialog asDialog = null;
@@ -81,7 +81,7 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 *          a back-pointer to the dialog itself
 	 */
 	public AlignmentTableModel(List<ChimeraStructuralObject> models, AlignStructuresDialog asDialog) {
-		this.allStructures = models;
+		this.allModels = models;
 		this.asDialog = asDialog;
 	}
 
@@ -91,9 +91,9 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * @return number of rows as an integer
 	 */
 	public int getRowCount() {
-		if (referenceStructure == null)
+		if (referenceModel == null)
 			return 0;
-		return matchStructures.size();
+		return matchModels.size();
 	}
 
 	/**
@@ -116,20 +116,16 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * @return an Object which represents the value at the requested row and column
 	 */
 	public Object getValueAt(int row, int col) {
-		if (referenceStructure == null)
+		if (referenceModel == null)
 			return null;
 
-		Object match = matchStructures.get(row);
-		String matchStruct;
-		if (match instanceof ChimeraModel)
-			matchStruct = ((ChimeraModel) match).toString();
-		else
-			matchStruct = ((ChimeraStructuralObject) match).toString();
+		ChimeraStructuralObject match = matchModels.get(row);
+		String matchValue = match.toString();
 		if (col == 0) {
-			return matchStruct;
+			return matchValue;
 		} else {
-			if (resultsMap.containsKey(matchStruct)) {
-				float[] results = (float[]) resultsMap.get(matchStruct);
+			if (resultsMap.containsKey(matchValue)) {
+				float[] results = (float[]) resultsMap.get(matchValue);
 				if (col == 1) {
 					return new Integer((int) results[AlignManager.PAIRS]);
 				} else if (col == 2) {
@@ -184,39 +180,27 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	/**
 	 * Set the reference structure to use for the alignments
 	 * 
-	 * @param refStruct
+	 * @param refModel
 	 *          the name of the structure
 	 */
-	public void setReferenceStruct(Object refStruct) {
-		if (refStruct == null) {
-			this.matchStructures = null;
+	// TODO: check if correct
+	public void setReferenceModel(ChimeraStructuralObject refModel) {
+		if (refModel == null) {
+			this.matchModels = null;
 			this.resultsMap = null;
-			this.referenceStructure = null;
+			this.referenceModel = null;
 		} else {
-			String refName = null;
-			String matchName = null;
-			if (refStruct instanceof Structure)
-				refName = ((Structure) refStruct).toString();
-			else if (refStruct instanceof ChimeraChain) {
-				refName = refStruct.toString();
-				matchName = ((ChimeraChain) refStruct).getChimeraModel().getModelName();
-			}
+			String refName = refModel.toString();
+			String matchName = refModel.getChimeraModel().getModelName();
 
-			this.referenceStructure = refName;
-
-			this.matchStructures = new ArrayList();
+			this.referenceModel = refName;
+			this.matchModels = new ArrayList<ChimeraStructuralObject>();
 			this.resultsMap = new HashMap();
-			for (Object structure : allStructures) {
-				if (structure instanceof Structure && ((Structure) structure).toString().equals(refName))
+			for (ChimeraStructuralObject chimObject : allModels) {
+				if (chimObject.toString().equals(refName) || chimObject.getChimeraModel().getModelName().equals(matchName)) {
 					continue;
-				else if (structure instanceof ChimeraChain) {
-					if (structure.toString().equals(refName))
-						continue;
-					if (matchName.equals(((ChimeraChain) structure).getChimeraModel().getModelName()))
-						continue;
 				}
-
-				matchStructures.add(structure);
+				matchModels.add(chimObject);
 			}
 		}
 		// Update the table
@@ -247,8 +231,8 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * 
 	 * @return a List of selected structures
 	 */
-	public List getSelectedStructures() {
-		return selectedStructures;
+	public List<ChimeraStructuralObject> getSelectedModels() {
+		return selectedModels;
 	}
 
 	/**
@@ -263,13 +247,13 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 		// Get the list of selected structures
 		if (lsm.isSelectionEmpty()) {
 			// Tell the dialog
-			selectedStructures = null;
+			selectedModels = null;
 			asDialog.setAlignEnabled(false);
 		} else {
-			selectedStructures = new ArrayList();
-			for (int i = 0; i < matchStructures.size(); i++) {
+			selectedModels = new ArrayList<ChimeraStructuralObject>();
+			for (int i = 0; i < matchModels.size(); i++) {
 				if (lsm.isSelectedIndex(i)) {
-					selectedStructures.add(matchStructures.get(i));
+					selectedModels.add(matchModels.get(i));
 				}
 			}
 			asDialog.setAlignEnabled(true);

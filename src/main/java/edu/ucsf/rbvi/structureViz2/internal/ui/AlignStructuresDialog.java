@@ -69,10 +69,10 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 public class AlignStructuresDialog extends JDialog implements ActionListener {
 	// Instance variables
 	ChimeraManager chimeraManager;
-	List<ChimeraStructuralObject> models;
+	List<ChimeraStructuralObject> chimObjects;
 	boolean status;
-	boolean useChains;
-	Object referenceStruct;
+	// boolean useChains;
+	ChimeraStructuralObject referenceModel;
 
 	// Dialog components
 	private JLabel titleLabel;
@@ -93,17 +93,14 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	 *          the Frame acting as the parent of this Dialog
 	 * @param object
 	 *          the Chimera interface object
-	 * @param structures
-	 *          the List of structures open in Chimera
+	 * @param chimObjects
+	 *          the List of models (or chains) open in Chimera
 	 */
-	public AlignStructuresDialog(JDialog parent, ChimeraManager chimeraManager, List<ChimeraStructuralObject> models) {
-		// public AlignStructuresDialog(JDialog parent, Chimera object, List structures) {
+	public AlignStructuresDialog(JDialog parent, ChimeraManager chimeraManager,
+			List<ChimeraStructuralObject> chimObjects) {
 		super(parent, false);
 		this.chimeraManager = chimeraManager;
-		this.models = models;
-		useChains = true;
-		// if (structures.size() > 0 && structures.get(0) instanceof Structure)
-		// useChains = false;
+		this.chimObjects = chimObjects;
 		initComponents();
 		status = false;
 	}
@@ -114,14 +111,10 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	 * @param ref
 	 *          the reference structure
 	 */
-	public void setReferenceStruct(Object ref) {
-		this.referenceStruct = ref;
+	public void setReferenceModel(ChimeraStructuralObject ref) {
+		this.referenceModel = ref;
 		// update the table model
-		tableModel.setReferenceStruct(ref);
-		/*
-		 * if (ref instanceof Structure) tableModel.setReferenceStruct(((Structure)ref).name()); else if
-		 * (ref instanceof ChimeraChain) { tableModel.setReferenceStruct(referenceStruct.toString()); }
-		 */
+		tableModel.setReferenceModel(ref);
 	}
 
 	/**
@@ -152,8 +145,8 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 
 		// Create the menu for the reference structure
 		JPanel refBox = new JPanel();
-		JComboBox refStruct = new JComboBox(structureList(models));
-		refStruct.addActionListener(new setRefStruct());
+		JComboBox refStruct = new JComboBox(structureList(chimObjects));
+		refStruct.addActionListener(new setRefModel());
 		refBox.add(refStruct);
 
 		Border refBorder = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
@@ -166,7 +159,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 		dataPanel.add(refBox);
 
 		// Create the results table
-		tableModel = new AlignmentTableModel(models, this);
+		tableModel = new AlignmentTableModel(chimObjects, this);
 
 		TableSorter sorter = new TableSorter(tableModel);
 		JTable results = new JTable(sorter);
@@ -245,57 +238,27 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 				alignment.setCreateEdges(true);
 			}
 
-			if (!useChains) {
-				// TODO: handle this case
-				// Structure rStruct = (Structure) referenceStruct;
-				// if (chimeraObject.getModel(rStruct.name()) == null) {
-				// chimeraObject.open(rStruct);
-				// }
-				//
-				// List<Structure> matchList = tableModel.getSelectedStructures();
-				// for (Structure match : matchList) {
-				// if (chimeraObject.getModel(match.name()) == null) {
-				// chimeraObject.open(match);
-				// }
-				// }
-				// chimeraObject.modelChanged();
-				//
-				// // Align them
-				// alignment.align(rStruct, matchList);
-				//
-				// // Display the results
-				// for (Structure structure : matchList) {
-				// float[] results = alignment.getResults(structure.name());
-				// tableModel.setResults(structure.name(), results);
-				// }
-				// tableModel.updateTable();
-			} else {
-				ChimeraStructuralObject refChain = (ChimeraStructuralObject) referenceStruct;
-				List<ChimeraStructuralObject> matchList = tableModel.getSelectedStructures();
+			// Align them
+			alignment.align(referenceModel, tableModel.getSelectedModels());
 
-				// Align them
-				alignment.align(refChain, matchList);
-
-				// Display the results
-				for (ChimeraStructuralObject chain : matchList) {
-					float[] results = alignment.getResults(chain.toString());
-					tableModel.setResults(chain.toString(), results);
-				}
-				tableModel.updateTable();
+			// Display the results
+			for (ChimeraStructuralObject chimObject : tableModel.getSelectedModels()) {
+				float[] results = alignment.getResults(chimObject.toString());
+				tableModel.setResults(chimObject.toString(), results);
 			}
+			tableModel.updateTable();
 		}
 	}
 
-	private class setRefStruct implements ActionListener {
+	private class setRefModel implements ActionListener {
+
 		public void actionPerformed(ActionEvent e) {
 			JComboBox cb = (JComboBox) e.getSource();
 			Object sel = cb.getSelectedItem();
 			if (sel instanceof ChimeraStructuralObject) {
-				setReferenceStruct((ChimeraStructuralObject) sel);
-				// } else if (sel instanceof ChimeraChain) {
-				// setReferenceStruct((ChimeraChain) sel);
+				setReferenceModel((ChimeraStructuralObject) sel);
 			} else {
-				setReferenceStruct(null);
+				setReferenceModel(null);
 			}
 		}
 	}

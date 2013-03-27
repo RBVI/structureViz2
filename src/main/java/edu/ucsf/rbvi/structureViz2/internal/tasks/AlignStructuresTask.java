@@ -41,6 +41,11 @@ public class AlignStructuresTask extends AbstractTask {
 				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
 		// open structures
 		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames);
+		if (structureManager.getModelNavigatorDialog() == null) {
+			structureManager.launchModelNavigatorDialog();
+		} else if (!structureManager.getModelNavigatorDialog().isVisible()) {
+			structureManager.getModelNavigatorDialog().setVisible(true);
+		}
 		structureManager.launchAlignDialog(false);
 	}
 

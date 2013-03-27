@@ -155,9 +155,11 @@ public class AlignManager {
 		results = new HashMap<String, float[]>();
 
 		for (ChimeraStructuralObject match : models) {
-			// TODO: getMOdel for match?
+			// TODO: getModel for match?
 			List<String> matchResult = singleAlign(reference, match);
-			results.put(match.toString(), parseResults(matchResult));
+			if (matchResult != null) {
+				results.put(match.toString(), parseResults(matchResult));
+			}
 		}
 		chimeraManager.focus();
 		if (createEdges)
@@ -180,7 +182,7 @@ public class AlignManager {
 		if (showSequence) {
 			command = command + " show true";
 		}
-		return chimeraManager.sendChimeraCommand(command, false);
+		return chimeraManager.sendChimeraCommand(command, true);
 	}
 
 	/**
@@ -248,7 +250,7 @@ public class AlignManager {
 	 */
 	private void setEdgeAttributes(float[] results, ChimeraModel from, ChimeraModel to) {
 		// System.out.println("From: "+from+" To: "+to+" results: "+results);
-		// TODO:
+		// TODO: Save attributes
 		// CyNetwork network = chimeraObject.getNetworkView().getNetwork();
 		// CyNode source = from.getStructure().node();
 		// CyNode target = to.getStructure().node();

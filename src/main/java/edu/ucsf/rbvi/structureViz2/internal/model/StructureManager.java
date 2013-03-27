@@ -270,10 +270,10 @@ public class StructureManager {
 			mnDialog.setVisible(false);
 			mnDialog = null;
 		}
+		if (alDialog != null) {
+			alDialog.setVisible(false);
+		}
 		chimeraManager.exitChimera();
-		// if (alDialog != null)
-		// alDialog.setVisible(false);
-
 	}
 
 	// invoked by ChimeraManager whenever Chimera exits
@@ -283,6 +283,7 @@ public class StructureManager {
 		currentChimMap.clear();
 		if (mnDialog != null && mnDialog.isVisible()) {
 			mnDialog.lostChimera();
+			alDialog.setVisible(false);
 			mnDialog.setVisible(false);
 			mnDialog = null;
 		}
@@ -579,20 +580,17 @@ public class StructureManager {
 			alDialog.setVisible(false);
 			alDialog.dispose();
 		}
-		 List<ChimeraStructuralObject> objectList = new ArrayList<ChimeraStructuralObject>();
-		 if (!useChains) {
-			 for (ChimeraModel model : chimeraManager.getChimeraModels()) {
-				 objectList.add(model);
-			 }
-		 } else {
-		 for (ChimeraModel model : chimeraManager.getChimeraModels()) {
-			 for (ChimeraChain chain : model.getChains()) {
-				 objectList.add(chain);
-			 }
-		 }
-		 }
+		List<ChimeraStructuralObject> chimObjectList = new ArrayList<ChimeraStructuralObject>();
+		for (ChimeraModel model : chimeraManager.getChimeraModels()) {
+			chimObjectList.add(model);
+			if (useChains) {
+				for (ChimeraChain chain : model.getChains()) {
+					chimObjectList.add(chain);
+				}
+			}
+		}
 		// Bring up the dialog
-		alDialog = new AlignStructuresDialog(mnDialog, chimeraManager, objectList);
+		alDialog = new AlignStructuresDialog(mnDialog, chimeraManager, chimObjectList);
 		alDialog.pack();
 		alDialog.setVisible(true);
 	}

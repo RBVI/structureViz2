@@ -98,10 +98,8 @@ public class CyActivator extends AbstractCyActivator {
 		alignStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		alignStructuresProps.setProperty(IN_TOOL_BAR, "true");
 		alignStructuresProps.setProperty(MENU_GRAVITY, "3.0");
-		// registerService(bc, alignStructures, NodeViewTaskFactory.class,
-		// alignStructuresProps);
-		// registerService(bc, alignStructures, NetworkViewTaskFactory.class,
-		// alignStructuresProps);
+		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
+		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
 
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();

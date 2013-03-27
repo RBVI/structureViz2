@@ -610,10 +610,6 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				navigationTree.removeSelectionPaths(navigationTree.getSelectionPaths());
 			} else if (type == EXIT) {
 				structureManager.exitChimera();
-				// TODO: Support aligning
-				// setVisible(false);
-				// if (chimeraObject.getAlignDialog() != null)
-				// chimeraObject.getAlignDialog().setVisible(false);
 			} else if (type == FUNCTIONALRESIDUES) {
 				String command = null;
 				// TODO: Handle functional residues
@@ -648,10 +644,10 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				expandModels();
 				expandChains();
 			} else if (type == ALIGNBYMODEL) {
-				launchAlignDialog(false);
+				structureManager.launchAlignDialog(false);
 				modelChanged();
 			} else if (type == ALIGNBYCHAIN) {
-				launchAlignDialog(true);
+				structureManager.launchAlignDialog(true);
 				modelChanged();
 			} else if (type == FINDCLASH) {
 				if (selectedObjectsCount > 0) {
@@ -688,38 +684,6 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		// chimeraObject);
 		// dialog.pack();
 		// dialog.setVisible(true);
-	}
-
-	/**
-	 * Create and instantiate the align dialog
-	 */
-	private void launchAlignDialog(boolean useChains) {
-		// TODO: Support aligning
-		// AlignStructuresDialog alDialog;
-		// if (chimeraObject.getAlignDialog() != null) {
-		// alDialog = chimeraObject.getAlignDialog();
-		// alDialog.setVisible(false);
-		// alDialog.dispose();
-		// }
-		// List objectList = new ArrayList();
-		// if (!useChains) {
-		// for (ChimeraModel model : chimeraObject.getChimeraModels()) {
-		// objectList.add(model.getStructure());
-		// }
-		// } else {
-		// for (ChimeraModel model : chimeraObject.getChimeraModels()) {
-		// for (ChimeraChain chain : model.getChildren()) {
-		// objectList.add(chain);
-		// }
-		// }
-		// }
-		// // Bring up the dialog
-		// alDialog = new AlignStructuresDialog(chimeraObject.getDialog(),
-		// chimeraObject, objectList);
-		// alDialog.pack();
-		// alDialog.setVisible(true);
-		// chimeraObject.setAlignDialog(alDialog);
-		// }
 	}
 
 	/**

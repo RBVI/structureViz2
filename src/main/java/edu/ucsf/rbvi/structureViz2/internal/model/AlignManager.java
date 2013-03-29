@@ -63,6 +63,7 @@ public class AlignManager {
 	 * results
 	 */
 	public static final String structureInteraction = "structuralSimilarity";
+	private StructureManager structureManager = null;
 	private ChimeraManager chimeraManager = null;
 	private HashMap results = null;
 	private boolean createEdges = false;
@@ -75,8 +76,9 @@ public class AlignManager {
 	 * @param chimeraManager
 	 *          the Chimera interface object that provides our link to Chimera
 	 */
-	public AlignManager(ChimeraManager chimeraManager) {
-		this.chimeraManager = chimeraManager;
+	public AlignManager(StructureManager structureManager) {
+		this.structureManager = structureManager;
+		chimeraManager = structureManager.getChimeraManager();
 	}
 
 	/**
@@ -228,11 +230,11 @@ public class AlignManager {
 		for (ChimeraStructuralObject target : targetList) {
 			// If our target is a ChimeraModel, we want the model name, otherwise
 			// we want the toString
-			String modelKey = null;
-			if (target instanceof ChimeraModel)
-				modelKey = ((ChimeraModel) target).getModelName();
-			else
-				modelKey = ((ChimeraStructuralObject) target).toString();
+			// String modelKey = null;
+			// if (target instanceof ChimeraModel)
+			// modelKey = ((ChimeraModel) target).getModelName();
+			// else
+			String modelKey = target.toString();
 			ChimeraModel targetModel = target.getChimeraModel();
 			float[] results = getResults(modelKey);
 			setEdgeAttributes(results, sourceModel, targetModel);

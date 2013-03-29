@@ -13,6 +13,8 @@ import java.util.Properties;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.model.CyNetworkFactory;
+import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -29,6 +31,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.CySelectionListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
@@ -45,7 +48,9 @@ public class CyActivator extends AbstractCyActivator {
 		// We'll need the CyApplication Manager to get current network, etc.
 		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
 		CyNetworkViewManager cyNetworkViewManager = getService(bc, CyNetworkViewManager.class);
-
+		CyNetworkFactory cyNetworkFactory = getService(bc, CyNetworkFactory.class);
+		CyNetworkManager cyNetworkManager = getService(bc, CyNetworkManager.class);
+		
 		// We'll need the CyServiceRegistrar to register listeners
 		CyServiceRegistrar cyServiceRegistrar = getService(bc, CyServiceRegistrar.class);
 
@@ -73,7 +78,6 @@ public class CyActivator extends AbstractCyActivator {
 		structureManager.setCyApplication(cyApplication);
 		CySelectionListener selectionListener = new CySelectionListener(structureManager);
 		registerService(bc, selectionListener, RowsSetListener.class, new Properties());
-		structureManager.setCySelectionListener(selectionListener);
 		// TODO: Do we need to register with CyServiceRegistrar?
 
 		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
@@ -101,6 +105,17 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
 		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
 
+		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager, cyNetworkFactory, cyNetworkManager);
+		Properties createStructureNetProps = new Properties();
+		createStructureNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		createStructureNetProps.setProperty(TITLE, "Create Networks");
+		createStructureNetProps.setProperty(COMMAND, "createStructureNetworks");
+		createStructureNetProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		createStructureNetProps.setProperty(ENABLE_FOR, "network");
+		createStructureNetProps.setProperty(IN_TOOL_BAR, "true");
+		createStructureNetProps.setProperty(MENU_GRAVITY, "5.0");
+		registerService(bc, createStructureNet, NetworkTaskFactory.class, createStructureNetProps);
+
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();
 		closeStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
@@ -109,7 +124,7 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresProps.setProperty(IN_TOOL_BAR, "true");
-		closeStructuresProps.setProperty(MENU_GRAVITY, "6.0");
+		closeStructuresProps.setProperty(MENU_GRAVITY, "7.0");
 		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
 
@@ -122,7 +137,7 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		exitChimeraProps.setProperty(ENABLE_FOR, "network");
 		exitChimeraProps.setProperty(IN_TOOL_BAR, "true");
-		exitChimeraProps.setProperty(MENU_GRAVITY, "8.0");
+		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
 		registerService(bc, exitChimera, NetworkTaskFactory.class, exitChimeraProps);
 
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(

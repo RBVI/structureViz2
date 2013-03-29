@@ -3,6 +3,7 @@ package edu.ucsf.rbvi.structureViz2.internal.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
@@ -30,9 +31,9 @@ public class CloseStructuresTaskFactory extends AbstractTaskFactory implements N
 
 	public boolean isReady(CyNetworkView netView) {
 		// Get all of the selected nodes
-		List<CyNode> nodeList = new ArrayList<CyNode>();
+		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getNodeOpenChimObjNames(nodeList).size() > 0) {
+		if (structureManager.getOpenChimObjNames(nodeList).size() > 0) {
 			return true;
 		}
 		return false;
@@ -40,10 +41,10 @@ public class CloseStructuresTaskFactory extends AbstractTaskFactory implements N
 
 	public boolean isReady(View<CyNode> nodeView, CyNetworkView netView) {
 		// Get all of the selected nodes
-		List<CyNode> nodeList = new ArrayList<CyNode>();
+		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.add(nodeView.getModel());
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getNodeOpenChimObjNames(nodeList).size() > 0) {
+		if (structureManager.getOpenChimObjNames(nodeList).size() > 0) {
 			return true;
 		}
 		return false;
@@ -51,14 +52,14 @@ public class CloseStructuresTaskFactory extends AbstractTaskFactory implements N
 
 	public TaskIterator createTaskIterator(CyNetworkView netView) {
 		// Get all of the selected nodes
-		List<CyNode> nodeList = new ArrayList<CyNode>();
+		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
 		return new TaskIterator(new CloseStructuresTask(nodeList, netView, structureManager));
 	}
 
 	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netView) {
 		// Get all of the selected nodes
-		List<CyNode> nodeList = new ArrayList<CyNode>();
+		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.add(nodeView.getModel());
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
 		return new TaskIterator(new CloseStructuresTask(nodeList, netView, structureManager));

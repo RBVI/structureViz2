@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.cytoscape.model.CyIdentifiable;
-import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
@@ -15,6 +14,7 @@ import org.cytoscape.work.util.ListMultipleSelection;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.CyUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
 public class AlignStructuresTask extends AbstractTask {
 
@@ -25,12 +25,12 @@ public class AlignStructuresTask extends AbstractTask {
 	@Tunable(description = "Structures to be availavle for aligning")
 	public ListMultipleSelection<String> availableChimObjTunable;
 
-	public AlignStructuresTask(List<CyNode> nodeList, CyNetworkView netView,
+	public AlignStructuresTask(List<CyIdentifiable> nodeList, CyNetworkView netView,
 			StructureManager structureManager) {
 		this.netView = netView;
 		this.structureManager = structureManager;
 		availableChimObjMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
-				structureManager.getNodeChimObjNames(netView.getModel(), nodeList));
+				structureManager.getChimObjNames(netView.getModel(), nodeList));
 		initTunables();
 	}
 
@@ -40,7 +40,7 @@ public class AlignStructuresTask extends AbstractTask {
 		Map<CyIdentifiable, List<String>> selectedChimeraObjNames = CyUtils.getCyChimPairsToMap(
 				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
 		// open structures
-		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames);
+		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames, ModelType.PDB_MODEL);
 		if (structureManager.getModelNavigatorDialog() == null) {
 			structureManager.launchModelNavigatorDialog();
 		} else if (!structureManager.getModelNavigatorDialog().isVisible()) {

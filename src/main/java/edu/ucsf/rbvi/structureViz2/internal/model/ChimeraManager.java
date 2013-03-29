@@ -35,10 +35,10 @@ public class ChimeraManager {
 		currentModelsMap = new HashMap<Integer, ChimeraModel>();
 	}
 
-	public List<ChimeraModel> getChimeraModels(String modelName) {
+	public List<ChimeraModel> getChimeraModels(String modelName, ModelType modelType) {
 		List<ChimeraModel> models = new ArrayList<ChimeraModel>();
 		for (ChimeraModel model : currentModelsMap.values()) {
-			if (modelName.equals(model.getModelName())) {
+			if (modelName.equals(model.getModelName()) && modelType.equals(model.getModelType())) {
 				models.add(model);
 			}
 		}

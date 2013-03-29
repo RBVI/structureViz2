@@ -58,8 +58,8 @@ import javax.swing.border.TitledBorder;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.AlignManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.AlignmentTableModel;
-import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
+import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 /**
  * The AlignStructuresDialog is the dialog displayed to the user to allow them to select a reference
@@ -68,7 +68,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
  */
 public class AlignStructuresDialog extends JDialog implements ActionListener {
 	// Instance variables
-	ChimeraManager chimeraManager;
+	private StructureManager structureManager;
 	List<ChimeraStructuralObject> chimObjects;
 	boolean status;
 	// boolean useChains;
@@ -96,10 +96,10 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	 * @param chimObjects
 	 *          the List of models (or chains) open in Chimera
 	 */
-	public AlignStructuresDialog(JDialog parent, ChimeraManager chimeraManager,
+	public AlignStructuresDialog(JDialog parent, StructureManager structureManager,
 			List<ChimeraStructuralObject> chimObjects) {
 		super(parent, false);
-		this.chimeraManager = chimeraManager;
+		this.structureManager = structureManager;
 		this.chimObjects = chimObjects;
 		initComponents();
 		status = false;
@@ -228,7 +228,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 		if ("done".equals(e.getActionCommand())) {
 			setVisible(false);
 		} else if ("align".equals(e.getActionCommand())) {
-			AlignManager alignment = new AlignManager(chimeraManager);
+			AlignManager alignment = new AlignManager(structureManager);
 
 			if (showSequence.isSelected()) {
 				alignment.setShowSequence(true);

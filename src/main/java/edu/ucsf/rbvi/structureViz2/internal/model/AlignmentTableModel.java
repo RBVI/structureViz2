@@ -52,7 +52,6 @@ import edu.ucsf.rbvi.structureViz2.internal.ui.AlignStructuresDialog;
  * @author scooter
  * @see AlignStructuresDialog
  */
-// TODO: change
 public class AlignmentTableModel extends AbstractTableModel implements ListSelectionListener {
 
 	public static final int NOREFERENCE = 0;
@@ -183,7 +182,7 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * @param refModel
 	 *          the name of the structure
 	 */
-	// TODO: check if correct
+	// TODO: Check with Scooter
 	public void setReferenceModel(ChimeraStructuralObject refModel) {
 		if (refModel == null) {
 			this.matchModels = null;
@@ -191,13 +190,14 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 			this.referenceModel = null;
 		} else {
 			String refName = refModel.toString();
-			String matchName = refModel.getChimeraModel().getModelName();
+			String refModelName = refModel.getChimeraModel().toString();
 
 			this.referenceModel = refName;
 			this.matchModels = new ArrayList<ChimeraStructuralObject>();
 			this.resultsMap = new HashMap();
 			for (ChimeraStructuralObject chimObject : allModels) {
-				if (chimObject.toString().equals(refName) || chimObject.getChimeraModel().getModelName().equals(matchName)) {
+				if (refName.equals(chimObject.toString())
+						|| refModelName.equals(chimObject.getChimeraModel().toString())) {
 					continue;
 				}
 				matchModels.add(chimObject);

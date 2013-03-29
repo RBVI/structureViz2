@@ -3,14 +3,18 @@ package edu.ucsf.rbvi.structureViz2.internal.model;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
+
+import org.cytoscape.model.CyIdentifiable;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
 /**
- * This class provides the implementation for the ChimeraModel, ChimeraChain,
- * and ChimeraResidue objects
+ * This class provides the implementation for the ChimeraModel, ChimeraChain, and ChimeraResidue
+ * objects
  * 
  * @author scooter
  * 
@@ -28,6 +32,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 
 	private TreeMap<String, ChimeraChain> chainMap; // The list of chains
 	private TreeMap<String, ChimeraResidue> residueMap; // The list of residues
+	private Set<CyIdentifiable> cyObjects;
 
 	/**
 	 * Constructor to create a model
@@ -49,6 +54,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 
 		this.chainMap = new TreeMap<String, ChimeraChain>();
 		this.residueMap = new TreeMap<String, ChimeraResidue>();
+		this.cyObjects = new HashSet<CyIdentifiable>();
 	}
 
 	/**
@@ -85,8 +91,8 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Add a residue to a chain in this model. If the chain associated with
-	 * chainId doesn't exist, it will be created.
+	 * Add a residue to a chain in this model. If the chain associated with chainId doesn't exist, it
+	 * will be created.
 	 * 
 	 * @param chainId
 	 *          to add the residue to
@@ -103,10 +109,6 @@ public class ChimeraModel implements ChimeraStructuralObject {
 			chain = chainMap.get(chainId);
 		}
 		chain.addResidue(residue);
-	}
-
-	public String displayName() {
-		return toString();
 	}
 
 	/**
@@ -353,6 +355,31 @@ public class ChimeraModel implements ChimeraStructuralObject {
 
 	}
 
+	public Set<CyIdentifiable> getCyObjects() {
+		return cyObjects;
+	}
+
+	public boolean hasCyObjects() {
+		if (cyObjects.size() > 0) {
+			return true;
+		}
+		return false;
+	}
+
+	public void addCyObject(CyIdentifiable newObj) {
+		cyObjects.add(newObj);
+	}
+
+	public void addCyObjects(Collection<CyIdentifiable> newObjs) {
+		cyObjects.addAll(newObjs);
+	}
+
+	public void removeCyObject(CyIdentifiable cyObj) {
+		if (cyObjects.contains(cyObj)) {
+			cyObjects.remove(cyObj);
+		}
+	}
+
 	/**
 	 * Return the Chimera specification for this model
 	 */
@@ -366,40 +393,15 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Return a string representation for the model.
 	 */
 	public String toString() {
-		// TODO: String representation of the model? -> Show associated nodes in Cytoscape as a tooltip?
-		// String nodeName = " {none}";
-		// if (structure != null && structure.getIdentifier() != null) {
-		// nodeName = structure.getIdentifier();
-		// if (structure.getGraphObjectList().size() > 1)
-		// nodeName = "s {"+nodeName+"}";
-		// else
-		// nodeName = " "+nodeName;
-		// }
-		// String displayName = name;
-		// if (name.length() > 14)
-		// displayName = name.substring(0, 13) + "...";
-		// if (getChainCount() > 0) {
-		// return ("Node" + nodeName + " [Model " + toSpec() + " " + displayName +
-		// " ("
-		// + getChainCount() + " chains, " + getResidueCount() + " residues)]");
-		// } else if (getResidueCount() > 0) {
-		// return ("Node" + nodeName + " [Model " + toSpec() + " " + displayName +
-		// " ("
-		// + getResidueCount() + " residues)]");
-		// } else {
-		// return ("Node" + nodeName + " [Model " + toSpec() + " " + displayName +
-		// "]");
-		// }
+		String nodeName = "Node {none} ";
 		String displayName = name;
-		if (name.length() > 14)
-			displayName = name.substring(0, 13) + "...";
 		if (getChainCount() > 0) {
-			return ("[Model " + toSpec() + " " + displayName + " (" + getChainCount() + " chains, "
+			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getChainCount() + " chains, "
 					+ getResidueCount() + " residues)]");
 		} else if (getResidueCount() > 0) {
-			return ("[Model " + toSpec() + " " + displayName + " (" + getResidueCount() + " residues)]");
+			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getResidueCount() + " residues)]");
 		} else {
-			return ("[Model " + toSpec() + " " + displayName + "]");
+			return (nodeName + "[Model " + toSpec() + " " + displayName + "]");
 		}
 
 	}

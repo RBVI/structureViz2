@@ -1,6 +1,7 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
 import java.awt.Color;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -276,6 +277,9 @@ public class ChimeraManager {
 		String error = "";
 		// iterate over possible paths for starting Chimera
 		for (String chimeraPath : chimeraPaths) {
+			File path = new File(chimeraPath);
+			if (!path.canExecute())
+				continue;
 			try {
 				List<String> args = new ArrayList<String>();
 				args.add(chimeraPath);
@@ -283,7 +287,7 @@ public class ChimeraManager {
 				args.add("ReadStdin");
 				ProcessBuilder pb = new ProcessBuilder(args);
 				chimera = pb.start();
-				error = "";
+				break;
 			} catch (Exception e) {
 				// Chimera could not be started
 				error = e.getMessage();
@@ -291,6 +295,7 @@ public class ChimeraManager {
 		}
 		// If no error, then Chimera was launched successfully
 		if (error.length() == 0) {
+				System.out.println("Starting listener threads");
 			// Initialize the listener threads
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();

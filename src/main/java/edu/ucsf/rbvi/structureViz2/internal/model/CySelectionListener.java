@@ -24,7 +24,11 @@ public class CySelectionListener implements RowsSetListener {
 		if (e.containsColumn(CyNetwork.SELECTED)) {
 			Collection<RowSetRecord> records = e.getColumnRecords(CyNetwork.SELECTED);
 			for (RowSetRecord record : records) {
-				selectedRows.put(record.getRow().get(CyIdentifiable.SUID, Long.class), (Boolean)record.getValue());
+				CyRow row = record.getRow();
+				// This is a hack to avoid double selection...
+				if (row.toString().indexOf("FACADE") >= 0)
+					continue;
+				selectedRows.put(row.get(CyIdentifiable.SUID, Long.class), (Boolean)record.getValue());
 			}
 		}
 		if (selectedRows.size() != 0) {

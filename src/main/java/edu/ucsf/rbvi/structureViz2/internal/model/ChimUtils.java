@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
+import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
+
 public abstract class ChimUtils {
 
 	static int MAX_SUB_MODELS = 1000;
@@ -135,8 +137,7 @@ public abstract class ChimUtils {
 		// System.out.println("Getting residue from: "+atomSpec);
 		ChimeraModel model = getModel(atomSpec, chimeraManager); // Get the model
 		if (model == null) {
-			// TODO: change this
-			model = chimeraManager.getChimeraModel(0, 0);
+			model = chimeraManager.getChimeraModel();
 		}
 		return getResidue(atomSpec, model);
 	}
@@ -198,7 +199,7 @@ public abstract class ChimUtils {
 		// 0 = model; 1 = Residue and Chain; 2 = Atom
 		if (split[0].length() == 0) {
 			// No model specified...
-			model = chimeraManager.getChimeraModel(0, 0);
+			model = chimeraManager.getChimeraModel();
 		} else {
 			int modelNumber = 0;
 			int submodelNumber = 0;
@@ -243,6 +244,7 @@ public abstract class ChimUtils {
 	 *          the Chimera object we're currently using
 	 * @return a ChimeraStructuralObject of the lowest type
 	 */
+	// TODO: Revise method
 	public static ChimeraStructuralObject fromAttribute(String attrSpec, ChimeraManager chimeraManager) {
 		if (attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
@@ -258,7 +260,7 @@ public abstract class ChimUtils {
 		ChimeraResidue chimeraResidue = null;
 
 		// System.out.println("Getting object from attribute: "+attrSpec);
-
+		try {
 		String[] split = attrSpec.split("#|\\.");
 		if (split.length == 1) {
 			// Residue only
@@ -281,9 +283,9 @@ public abstract class ChimUtils {
 		// System.out.println("model = "+model+" chain = "+chain+" residue = "+residue);
 
 		if (model != null) {
-			chimeraModel = chimeraManager.getChimeraModel(0, 0);
+			chimeraModel = chimeraManager.getChimeraModels(model, ModelType.PDB_MODEL).get(0);
 		} else {
-			chimeraModel = chimeraManager.getChimeraModel(0, 0);
+			chimeraModel = chimeraManager.getChimeraModel();
 		}
 		// System.out.println("ChimeraModel = "+chimeraModel);
 
@@ -291,7 +293,11 @@ public abstract class ChimUtils {
 			chimeraChain = chimeraModel.getChain(chain);
 			// System.out.println("ChimeraChain = "+chimeraChain);
 		}
-
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
 		if (residue != null) {
 			chimeraResidue = null;
 			if (chimeraChain != null)
@@ -321,7 +327,6 @@ public abstract class ChimUtils {
 		if (residueList == null)
 			return null;
 		String[] residues = residueList.split(",");
-		String structures = new String();
 		Map<String, String> structureNameMap = new HashMap<String, String>();
 		for (int i = 0; i < residues.length; i++) {
 			String[] components = residues[i].split("#");

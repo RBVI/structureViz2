@@ -10,6 +10,9 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.CyNetworkViewFactory;
+import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
@@ -44,7 +47,10 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	public ListSingleSelection<String> includeInteracions;
 
 	private static final String[] interactionArray = { "Between models",
-			"Between selection & other models", "Between selection and all atoms" };
+			"Between selection & other models", "Between selection and all atoms", "For selection only" };
+
+	@Tunable(description = "Name of new structure network")
+	public String networkName;
 
 	static final String DISTANCE_ATTR = "MinimumDistance";
 	static final String OVERLAP_ATTR = "MaximumOverlap";
@@ -58,12 +64,17 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	private ChimeraManager chimeraManager;
 	private CyNetworkFactory cyNetworkFactory;
 	private CyNetworkManager cyNetworkManager;
+	private CyNetworkViewFactory cyNetworkViewFactory;
+	private CyNetworkViewManager cyNetworkViewManager;
 
 	public CreateStructureNetworkTask(StructureManager structureManager,
-			CyNetworkFactory cyNetworkFactory, CyNetworkManager cyNetworkManager) {
+			CyNetworkFactory cyNetworkFactory, CyNetworkManager cyNetworkManager,
+			CyNetworkViewFactory cyNetworkViewFactory, CyNetworkViewManager cyNetworkViewManager) {
 		this.structureManager = structureManager;
 		this.cyNetworkFactory = cyNetworkFactory;
 		this.cyNetworkManager = cyNetworkManager;
+		this.cyNetworkViewFactory = cyNetworkViewFactory;
+		this.cyNetworkViewManager = cyNetworkViewManager;
 		this.chimeraManager = structureManager.getChimeraManager();
 		includeContacts = false;
 		includeClashes = false;
@@ -71,6 +82,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		includeConnectivity = false;
 		includeConnectivityDistance = false;
 		includeInteracions = new ListSingleSelection<String>(interactionArray);
+		includeInteracions.setSelectedValue(interactionArray[3]);
+		// TODO: create name dynamically
+		networkName = "New RIN";
 	}
 
 	@Override
@@ -79,16 +93,16 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		Map<String, CyNode> nodeMap = new HashMap<String, CyNode>();
 		// Create the network
 		CyNetwork rin = cyNetworkFactory.createNetwork();
-		rin.getRow(rin).set(CyNetwork.NAME, "rin");
+		rin.getRow(rin).set(CyNetwork.NAME, networkName);
 		// create new attributes
 		rin.getDefaultEdgeTable().createColumn(DISTANCE_ATTR, Double.class, false);
-		rin.getDefaultEdgeTable().createColumn(OVERLAP_ATTR, Double.class, false);		
+		rin.getDefaultEdgeTable().createColumn(OVERLAP_ATTR, Double.class, false);
 		rin.getDefaultNodeTable().createColumn(RESIDUE_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SMILES_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SEED_ATTR, Boolean.class, false);
 		rin.getDefaultNodeTable().createColumn(BACKBONE_ATTR, Boolean.class, false);
 		rin.getDefaultNodeTable().createColumn(SIDECHAIN_ATTR, Boolean.class, false);
-		
+
 		String cutoff = "";
 		String type = "Clashes";
 		if (includeContacts) {
@@ -99,35 +113,56 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			System.out.println("Getting clashes");
 		}
 		if (includeClashes || includeContacts) {
-			String command = "findclash sel makePseudobonds false log true namingStyle command " + cutoff;
+			String atomspec1 = "";
+			String atomspec2 = "";
 			if (includeInteracions.getSelectedValue() == interactionArray[0]) {
-				// Get the first model
-				ChimeraModel model = chimeraManager.getChimeraModel(0, 0);
-				int modelNumber = model.getModelNumber();
-				// Create the command
-				command = "findclash #" + modelNumber
-						+ " makePseudobonds false log true namingStyle command test other " + cutoff;
+				// between the specified atoms and all other atoms
+				atomspec1 = "#" + chimeraManager.getChimeraModel().getModelNumber();
+				atomspec2 = "test other";
 			} else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
-				command = command.concat(" test other");
-			} else if (includeInteracions.getSelectedValue() == interactionArray[2])
-				command = command.concat(" test model");
-
+				// between the specified atoms and all other atoms
+				atomspec1 = "sel";
+				atomspec2 = "test other";
+			} else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
+				// intra-model interactions between the specified atoms and all other atoms
+				atomspec1 = "sel";
+				atomspec2 = "test model";
+			} else {
+				// among the specified atoms
+				atomspec1 = "sel";
+				atomspec2 = "test self";
+			}
+			// Create the command
+			String command = "findclash " + atomspec1
+					+ " makePseudobonds false log true namingStyle command " + cutoff + " " + atomspec2;
 			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
 			parseClashReplies(replyList, rin, nodeMap, type);
 		}
 		if (includeHBonds) {
 			System.out.println("Getting Hydrogen Bonds");
-			// Get the first model
-			ChimeraModel model = chimeraManager.getChimeraModel(0, 0);
-			int modelNumber = model.getModelNumber();
-			String command = "findhbond spec #" + modelNumber
-					+ " intramodel false intermodel true makePseudobonds false log true namingStyle command";
+			String atomspec = "";
+			// intermodel: whether to look for H-bonds between models
+			// intramodel: whether to look for H-bonds within models. 
+			String modelrestr = "";
 			if (includeInteracions.getSelectedValue() == interactionArray[0]) {
-				command = "findhbond selRestrict any intermodel true makePseudobonds false log true namingStyle command";
+				// Limit H-bond detection to H-bonds with at least one atom selected 
+				atomspec = "selRestrict any";
+				modelrestr = "intermodel true";
 			} else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
-				command = command.concat(" intramodel false");
-			} else if (includeInteracions.getSelectedValue() == interactionArray[2])
-				command = command.concat(" intramodel true");
+				// Restrict H-bond detection to the specified model
+				atomspec = "spec #" + chimeraManager.getChimeraModel().getModelNumber();
+				modelrestr = " intramodel false intermodel true";
+			} else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
+			// Restrict H-bond detection to the specified model
+				atomspec = "spec #" + chimeraManager.getChimeraModel().getModelNumber();
+				modelrestr = " intramodel true intermodel true";
+			} else {
+				// between selected atoms?
+				atomspec = "";
+				modelrestr = "intramodel true intermodel false";
+			}
+			String command = "findhbond " + atomspec + " " + modelrestr
+					+ " makePseudobonds false log true namingStyle command";
 			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
 			parseHBondReplies(replyList, rin, nodeMap);
 		}
@@ -141,9 +176,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		// add entwork to manager
 		cyNetworkManager.addNetwork(rin);
 		// Create a network view
-
+		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(rin);
+		cyNetworkViewManager.addNetworkView(rinView);
 		// Set vizmap
-
 		// Do a layout
 
 		// Activate structureViz for all of our nodes
@@ -346,7 +381,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		boolean singleModel = false;
 		ChimeraModel model = ChimUtils.getModel(alias, chimeraManager);
 		if (model == null) {
-			model = chimeraManager.getChimeraModel(0, 0);
+			model = chimeraManager.getChimeraModel();
 			singleModel = true;
 		}
 		ChimeraResidue residue = ChimUtils.getResidue(alias, model);

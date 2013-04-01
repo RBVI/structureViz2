@@ -148,7 +148,7 @@ public class StructureManager {
 						currentChimMap.put(currentModel, new HashSet<CyIdentifiable>());
 					}
 					currentChimMap.get(currentModel).add(cyObj);
-					currentModel.addCyObject(cyObj);
+					currentModel.addCyObject(cyObj, network);
 				}
 			}
 		}
@@ -172,6 +172,7 @@ public class StructureManager {
 					chimeraManager.closeModel((ChimeraModel) currentModel);
 					currentCyMap.get(cyObj).remove(currentModel);
 					currentChimMap.remove(currentModel);
+					// TODO: Remove all residues from this model
 				}
 			}
 			// remove structure when empty
@@ -207,7 +208,10 @@ public class StructureManager {
 		for (CyNode node : rin.getNodeList()) {
 			networkMap.put(node, rin);
 			String residueSpec = rin.getRow(node).get(residueAttr, String.class);
-			ChimeraStructuralObject chimObj = ChimUtils.getResidue(residueSpec, chimeraManager);
+			ChimeraResidue chimObj = (ChimeraResidue) ChimUtils
+					.fromAttribute(residueSpec, chimeraManager);
+			//chimObj.getChimeraModel().addCyObject(node, rin);
+			chimObj.getChimeraModel().addCyObject(rin, rin);
 			if (!currentCyMap.containsKey(node)) {
 				currentCyMap.put(node, new HashSet<ChimeraStructuralObject>());
 			}
@@ -216,7 +220,7 @@ public class StructureManager {
 				currentChimMap.put(chimObj, new HashSet<CyIdentifiable>());
 			}
 			currentChimMap.get(chimObj).add(node);
-			
+
 			// TODO: add rin network to model?
 			// TODO: add residues to model? see Structure.setResidueList
 
@@ -239,7 +243,6 @@ public class StructureManager {
 			// }
 			// }
 		}
-
 	}
 
 	public void exitChimera() {
@@ -272,7 +275,7 @@ public class StructureManager {
 	// selected and some might not. Our selection model (unfortunately) only tells
 	// us that something has changed, not what...
 	public void updateCytoscapeSelection() {
-		// TODO: way too long...
+		// TODO: Shorten if possible
 		// List<ChimeraStructuralObject> selectedChimObj
 		ignoreSelection = true;
 		System.out.println("update Cytoscape selection");
@@ -299,7 +302,8 @@ public class StructureManager {
 			ChimeraModel currentSelModel = chimObj.getChimeraModel();
 			if (currentChimMap.containsKey(currentSelModel)) {
 				currentCyObjs.addAll(currentChimMap.get(currentSelModel));
-			} else if (currentChimMap.containsKey(chimObj)) {
+			}
+			if (currentChimMap.containsKey(chimObj)) {
 				currentCyObjs.addAll(currentChimMap.get(chimObj));
 			}
 		}
@@ -381,7 +385,6 @@ public class StructureManager {
 		clearSelectionList();
 		// Execute the command to get the list of models with selections
 		Map<Integer, ChimeraModel> selectedModelsMap = chimeraManager.getSelectedModels();
-		System.out.println("selected models: " + selectedModelsMap.size());
 		// Now get the residue-level data
 		chimeraManager.getSelectedResidues(selectedModelsMap);
 		// Get the selected objects
@@ -422,7 +425,6 @@ public class StructureManager {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		System.out.println("selected elements: " + chimSelectionList.size());
 		// Finally, update the navigator panel
 		selectionChanged();
 		updateCytoscapeSelection();
@@ -478,7 +480,6 @@ public class StructureManager {
 	/**
 	 * Dump and refresh all of our model/chain/residue info
 	 */
-	// TODO: Move code to ChimeraManager?
 	public void refresh() {
 		// Get a new model list
 		// HashMap<Integer, ChimeraModel> newHash = new HashMap<Integer,
@@ -507,9 +508,9 @@ public class StructureManager {
 					model.setModelName(oldModel.getModelName());
 				}
 				// re-assign associations to cytoscape objects
-				Set<CyIdentifiable> oldModelCyObjs = oldModel.getCyObjects();
-				for (CyIdentifiable cyObj : oldModelCyObjs) {
-					model.addCyObject(cyObj);
+				Map<CyIdentifiable, CyNetwork> oldModelCyObjs = oldModel.getCyObjects();
+				for (CyIdentifiable cyObj : oldModelCyObjs.keySet()) {
+					model.addCyObject(cyObj, oldModelCyObjs.get(cyObj));
 					if (currentCyMap.containsKey(cyObj)) {
 						currentCyMap.get(cyObj).add(model);
 						if (currentCyMap.get(cyObj).contains(oldModel)) {
@@ -530,7 +531,7 @@ public class StructureManager {
 			// add new model to ChimeraManager
 			chimeraManager.addChimeraModel(modelNumber, subModelNumber, model);
 			// add new model to the chimera objects map
-			currentChimMap.put(model, model.getCyObjects());
+			currentChimMap.put(model, model.getCyObjects().keySet());
 
 			if (model.getModelType() != ModelType.SMILES) {
 				// Get the residue information
@@ -676,7 +677,7 @@ public class StructureManager {
 			for (String column : attrsFound) {
 				CyColumn col = table.getColumn(column);
 
-				Class colType = col.getType();
+				Class<?> colType = col.getType();
 				List<String> cellList = new ArrayList<String>();
 				if (colType == String.class) {
 					String cell = row.get(column, String.class, "").trim();

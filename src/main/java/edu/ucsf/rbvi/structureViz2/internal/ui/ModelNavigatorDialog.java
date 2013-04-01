@@ -68,6 +68,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraResidue;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraTreeModel;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTask;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 
 /**
  * The ModelNavigatorDialog class is the class that implements the main interface for structureViz.
@@ -680,10 +682,6 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 
 	private void launchNewNetworkDialog() {
 		// TODO: Support RIN generation
-		// CreateNetworkDialog dialog = new CreateNetworkDialog(null,
-		// chimeraObject);
-		// dialog.pack();
-		// dialog.setVisible(true);
 	}
 
 	/**

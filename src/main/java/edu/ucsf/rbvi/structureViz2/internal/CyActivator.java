@@ -21,6 +21,7 @@ import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
+import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
@@ -47,10 +48,11 @@ public class CyActivator extends AbstractCyActivator {
 	public void start(BundleContext bc) {
 		// We'll need the CyApplication Manager to get current network, etc.
 		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
+		CyNetworkViewFactory cyNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
 		CyNetworkViewManager cyNetworkViewManager = getService(bc, CyNetworkViewManager.class);
 		CyNetworkFactory cyNetworkFactory = getService(bc, CyNetworkFactory.class);
 		CyNetworkManager cyNetworkManager = getService(bc, CyNetworkManager.class);
-		
+
 		// We'll need the CyServiceRegistrar to register listeners
 		CyServiceRegistrar cyServiceRegistrar = getService(bc, CyServiceRegistrar.class);
 
@@ -105,7 +107,9 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
 		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
 
-		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager, cyNetworkFactory, cyNetworkManager);
+		// TODO: Figure out a better way to pass all these objects
+		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager,
+				cyNetworkFactory, cyNetworkManager, cyNetworkViewFactory, cyNetworkViewManager);
 		Properties createStructureNetProps = new Properties();
 		createStructureNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		createStructureNetProps.setProperty(TITLE, "Create Networks");
@@ -128,7 +132,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
 
-		// TODO: What type of TaskFactory should this be?
+		// TODO: Is there a general not network related task?
 		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
 		Properties exitChimeraProps = new Properties();
 		exitChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
@@ -138,7 +142,7 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(ENABLE_FOR, "network");
 		exitChimeraProps.setProperty(IN_TOOL_BAR, "true");
 		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
-		registerService(bc, exitChimera, NetworkTaskFactory.class, exitChimeraProps);
+		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
 
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(
 				structureManager);

@@ -54,6 +54,11 @@ public class ChimeraManager {
 		return null;
 	}
 
+	public ChimeraModel getChimeraModel() {
+		return currentModelsMap.values().iterator().next();
+	}
+	
+	
 	public Collection<ChimeraModel> getChimeraModels() {
 		// this method is invoked by the model navigator dialog
 		return currentModelsMap.values();
@@ -269,6 +274,7 @@ public class ChimeraManager {
 
 	public boolean launchChimera(List<String> chimeraPaths) {
 		// Do nothing if Chimera is already launched
+		System.out.println("launchChimera method");
 		if (isChimeraLaunched()) {
 			return true;
 		}

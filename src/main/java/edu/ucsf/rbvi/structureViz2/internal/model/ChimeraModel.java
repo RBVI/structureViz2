@@ -3,12 +3,13 @@ package edu.ucsf.rbvi.structureViz2.internal.model;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.cytoscape.model.CyIdentifiable;
+import org.cytoscape.model.CyNetwork;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
@@ -32,7 +33,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 
 	private TreeMap<String, ChimeraChain> chainMap; // The list of chains
 	private TreeMap<String, ChimeraResidue> residueMap; // The list of residues
-	private Set<CyIdentifiable> cyObjects;
+	private Map<CyIdentifiable, CyNetwork> cyObjects; // The list of Cytoscape objects
 
 	/**
 	 * Constructor to create a model
@@ -54,7 +55,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 
 		this.chainMap = new TreeMap<String, ChimeraChain>();
 		this.residueMap = new TreeMap<String, ChimeraResidue>();
-		this.cyObjects = new HashSet<CyIdentifiable>();
+		this.cyObjects = new HashMap<CyIdentifiable, CyNetwork>();
 	}
 
 	/**
@@ -324,6 +325,9 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		return null;
 	}
 
+	/**
+	 * Checks if this model has selected children.
+	 */
 	public boolean hasSelectedChildren() {
 		if (selected) {
 			return true;
@@ -355,10 +359,18 @@ public class ChimeraModel implements ChimeraStructuralObject {
 
 	}
 
-	public Set<CyIdentifiable> getCyObjects() {
+	/**
+	 * Returns the map of {@link CyIdentifiable} associated with this model.
+	 * 
+	 * @return Map of {@link CyIdentifiable} and their respective network.
+	 */
+	public Map<CyIdentifiable, CyNetwork> getCyObjects() {
 		return cyObjects;
 	}
 
+	/**
+	 * Checks if this model has any {@link CyIdentifiable} associated with it.
+	 */
 	public boolean hasCyObjects() {
 		if (cyObjects.size() > 0) {
 			return true;
@@ -366,22 +378,32 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		return false;
 	}
 
-	public void addCyObject(CyIdentifiable newObj) {
-		cyObjects.add(newObj);
+	/**
+	 * Add a new Cytoscape object associated with this model and the network it belongs to.
+	 * 
+	 * @param newObj
+	 *          {@link CyIdentifiable} associated with this model.
+	 * @param network
+	 *          Network the {@link CyIdentifiable} belongs to.
+	 */
+	public void addCyObject(CyIdentifiable newObj, CyNetwork network) {
+		cyObjects.put(newObj, network);
 	}
 
-	public void addCyObjects(Collection<CyIdentifiable> newObjs) {
-		cyObjects.addAll(newObjs);
-	}
-
-	public void removeCyObject(CyIdentifiable cyObj) {
-		if (cyObjects.contains(cyObj)) {
+	/**
+	 * Remove Cytoscape object associated with this model.
+	 * 
+	 * @param cyObj
+	 *          {@link CyIdentifiable} associated with this model.
+	 */
+	public void removeCyObjectName(CyIdentifiable cyObj) {
+		if (cyObjects.containsKey(cyObj)) {
 			cyObjects.remove(cyObj);
 		}
 	}
 
 	/**
-	 * Return the Chimera specification for this model
+	 * Return the Chimera specification for this model.
 	 */
 	public String toSpec() {
 		if (subModelNumber == 0)
@@ -393,11 +415,25 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Return a string representation for the model.
 	 */
 	public String toString() {
-		String nodeName = "Node {none} ";
+		String nodeName = "Cytoscape";
+		if (cyObjects.size() == 0) {
+			nodeName += " {none}";
+		} else if (cyObjects.size() == 1) {
+			CyIdentifiable cyObj = cyObjects.keySet().iterator().next();
+			nodeName += " " + cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class);
+		} else {
+			nodeName += "s {";
+			for (CyIdentifiable cyObj : cyObjects.keySet()) {
+				nodeName += cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
+			}
+			nodeName = nodeName.substring(0, nodeName.length() - 1) + "}";
+		}
 		String displayName = name;
+		if (name.length() > 14)
+			displayName = name.substring(0, 13) + "...";
 		if (getChainCount() > 0) {
-			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getChainCount() + " chains, "
-					+ getResidueCount() + " residues)]");
+			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getChainCount()
+					+ " chains, " + getResidueCount() + " residues)]");
 		} else if (getResidueCount() > 0) {
 			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getResidueCount() + " residues)]");
 		} else {
@@ -405,5 +441,4 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		}
 
 	}
-
 }

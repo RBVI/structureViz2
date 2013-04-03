@@ -30,7 +30,7 @@ public class StructureManager {
 	static final String[] defaultStructureKeys = { "Structure", "pdb", "pdbFileName", "PDB ID",
 			"structure", "biopax.xref.PDB", "pdb_ids" };
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
-	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList" };
+	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList" , "Residues"};
 
 	public enum ModelType {
 		PDB_MODEL, MODBASE_MODEL, SMILES
@@ -50,6 +50,8 @@ public class StructureManager {
 	static private List<ChimeraStructuralObject> chimSelectionList;
 	private boolean ignoreSelection = false;
 
+	// TODO: Implement something similar to CyChimera.findStructuresForModel()
+	
 	public StructureManager() {
 		settings = new HashMap<CyNetwork, StructureSettings>();
 		currentCyMap = new HashMap<CyIdentifiable, Set<ChimeraStructuralObject>>();
@@ -122,7 +124,7 @@ public class StructureManager {
 
 		return pathList;
 	}
-
+ 
 	public void openStructures(CyNetwork network, Map<CyIdentifiable, List<String>> chimObjNames,
 			ModelType type) {
 		if (!chimeraManager.isChimeraLaunched()
@@ -221,7 +223,7 @@ public class StructureManager {
 			}
 			currentChimMap.get(chimObj).add(node);
 
-			// TODO: add rin network to model?
+			// TODO: add rin network to model in currentChimMap?
 			// TODO: add residues to model? see Structure.setResidueList
 
 			// String structure = ChimUtils.findStructures(residueSpec);
@@ -229,19 +231,6 @@ public class StructureManager {
 			// ModelType.PDB_MODEL);
 			// Structure s = Structure.getStructure(structure, node, StructureType.PDB_MODEL);
 			// s.setResidueList(node, residueSpec);
-			// if (residueSpec.indexOf('-') < 0 && residueSpec.indexOf(',') < 0) {
-			// String[] r = node.getIdentifier().split(" ");
-			// String smiles = ChimeraResidue.toSMILES(r[0].toUpperCase());
-			// if (smiles != null) {
-			// if (nodeAttributes.getType(SMILES_ATTR) == CyAttributes.TYPE_SIMPLE_LIST) {
-			// List l = new ArrayList();
-			// l.add(smiles);
-			// nodeAttributes.setListAttribute(node.getIdentifier(), SMILES_ATTR, l);
-			// } else {
-			// nodeAttributes.setAttribute(node.getIdentifier(), SMILES_ATTR, smiles);
-			// }
-			// }
-			// }
 		}
 	}
 
@@ -265,9 +254,11 @@ public class StructureManager {
 		networkMap.clear();
 		if (mnDialog != null && mnDialog.isVisible()) {
 			mnDialog.lostChimera();
-			alDialog.setVisible(false);
 			mnDialog.setVisible(false);
 			mnDialog = null;
+			if (alDialog != null) {
+				alDialog.setVisible(false);
+			}
 		}
 	}
 
@@ -363,7 +354,7 @@ public class StructureManager {
 			selected = true;
 			// we do not care about the model anymore
 			selSpec = selSpec.concat(nodeInfo.toSpec());
-			// TODO: save models in a HashMap/Set for better performance?
+			// TODO: Save models in a HashMap/Set for better performance?
 			if (i < chimSelectionList.size() - 1)
 				selSpec.concat("|");
 		}
@@ -526,7 +517,7 @@ public class StructureManager {
 				chimeraManager.removeChimeraModel(oldModel.getModelNumber(), oldModel.getSubModelNumber());
 			} else {
 				// TODO: Associate new model with the correct structure
-				// ...
+				// It happens automatically for protein structures bun not for RINs
 			}
 			// add new model to ChimeraManager
 			chimeraManager.addChimeraModel(modelNumber, subModelNumber, model);
@@ -648,6 +639,7 @@ public class StructureManager {
 	 */
 	public Map<CyIdentifiable, List<String>> getChimObjNames(CyNetwork network,
 			List<CyIdentifiable> cyObjSet) {
+		// TODO: add smiles
 		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
 		if (network == null || cyObjSet.size() == 0)
 			return mapChimObjNames;

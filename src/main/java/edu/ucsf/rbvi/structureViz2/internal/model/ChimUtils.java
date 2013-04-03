@@ -117,7 +117,6 @@ public abstract class ChimUtils {
 		// System.out.println("model = "+split[0].substring(1));
 		int model = 0;
 		int submodel = 0;
-		// TODO: check
 		try {
 			String[] subSplit = split[0].substring(1).split("\\.");
 			if (subSplit.length > 0)
@@ -128,7 +127,7 @@ public abstract class ChimUtils {
 			if (subSplit.length > 1)
 				submodel = Integer.parseInt(subSplit[1]);
 		} catch (Exception e) {
-
+			// ignore
 		}
 		return chimeraManager.getChimeraModel(model, submodel);
 	}
@@ -177,6 +176,14 @@ public abstract class ChimUtils {
 				|| atom.equals("O"))
 			return true;
 		return false;
+	}
+
+	public static String getAtomType(String atomSpec) {
+		String[] split = atomSpec.split("@");
+		if (split.length > 1) {
+			return split[1];			
+		}
+		return atomSpec;
 	}
 
 	/**
@@ -261,40 +268,39 @@ public abstract class ChimUtils {
 
 		// System.out.println("Getting object from attribute: "+attrSpec);
 		try {
-		String[] split = attrSpec.split("#|\\.");
-		if (split.length == 1) {
-			// Residue only
-			residue = split[0];
-		} else if (split.length == 3) {
-			// We have all three
-			model = split[0];
-			residue = split[1];
-			chain = split[2];
-		} else if (split.length == 2 && attrSpec.indexOf('#') > 0) {
-			// Model and Residue
-			model = split[0];
-			residue = split[1];
-		} else {
-			// Residue and Chain
-			residue = split[0];
-			chain = split[1];
-		}
+			String[] split = attrSpec.split("#|\\.");
+			if (split.length == 1) {
+				// Residue only
+				residue = split[0];
+			} else if (split.length == 3) {
+				// We have all three
+				model = split[0];
+				residue = split[1];
+				chain = split[2];
+			} else if (split.length == 2 && attrSpec.indexOf('#') > 0) {
+				// Model and Residue
+				model = split[0];
+				residue = split[1];
+			} else {
+				// Residue and Chain
+				residue = split[0];
+				chain = split[1];
+			}
 
-		// System.out.println("model = "+model+" chain = "+chain+" residue = "+residue);
+			// System.out.println("model = "+model+" chain = "+chain+" residue = "+residue);
 
-		if (model != null) {
-			chimeraModel = chimeraManager.getChimeraModels(model, ModelType.PDB_MODEL).get(0);
-		} else {
-			chimeraModel = chimeraManager.getChimeraModel();
-		}
-		// System.out.println("ChimeraModel = "+chimeraModel);
+			if (model != null) {
+				chimeraModel = chimeraManager.getChimeraModels(model, ModelType.PDB_MODEL).get(0);
+			} else {
+				chimeraModel = chimeraManager.getChimeraModel();
+			}
+			// System.out.println("ChimeraModel = "+chimeraModel);
 
-		if (chain != null) {
-			chimeraChain = chimeraModel.getChain(chain);
-			// System.out.println("ChimeraChain = "+chimeraChain);
-		}
-		}
-		catch (Exception ex) {
+			if (chain != null) {
+				chimeraChain = chimeraModel.getChain(chain);
+				// System.out.println("ChimeraChain = "+chimeraChain);
+			}
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;
 		}

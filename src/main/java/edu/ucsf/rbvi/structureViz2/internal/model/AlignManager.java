@@ -228,6 +228,7 @@ public class AlignManager {
 			List<ChimeraStructuralObject> targetList) {
 		ChimeraModel sourceModel = source.getChimeraModel();
 		for (ChimeraStructuralObject target : targetList) {
+			// TODO: Still so?
 			// If our target is a ChimeraModel, we want the model name, otherwise
 			// we want the toString
 			// String modelKey = null;

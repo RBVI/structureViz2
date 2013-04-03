@@ -25,7 +25,6 @@ public abstract class CyUtils {
 		return columnsFound;
 	}
 
-	// TODO: ugly code, temporary solution until we decide hot to show the node and pdbs to the user
 	public static Map<CyIdentifiable, String> getCyChimPiarsToStrings(CyNetwork network,
 			Map<CyIdentifiable, List<String>> pairs) {
 		Map<CyIdentifiable, String> pairsMap = new HashMap<CyIdentifiable, String>();
@@ -41,7 +40,6 @@ public abstract class CyUtils {
 		return pairsMap;
 	}
 
-	// TODO: ugly code, temporary solution until we decide hot to show the node and pdbs to the user
 	public static Map<CyIdentifiable, List<String>> getCyChimPairsToMap(List<String> selectedPairs,
 			Map<CyIdentifiable, String> allPairs) {
 		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();

@@ -182,7 +182,6 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * @param refModel
 	 *          the name of the structure
 	 */
-	// TODO: Check with Scooter
 	public void setReferenceModel(ChimeraStructuralObject refModel) {
 		if (refModel == null) {
 			this.matchModels = null;

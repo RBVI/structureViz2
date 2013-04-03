@@ -76,7 +76,6 @@ public class TableSorter extends AbstractTableModel {
             return ((Comparable) o1).compareTo(o2);
         }
     };
-    // TODO: We may have to change this one.
     public static final Comparator LEXICAL_COMPARATOR = new Comparator() {
         public int compare(Object o1, Object o2) {
             return o1.toString().compareTo(o2.toString());

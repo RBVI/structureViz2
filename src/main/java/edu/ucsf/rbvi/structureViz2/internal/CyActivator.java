@@ -41,11 +41,14 @@ public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
 
+	private BundleContext bc = null;
+
 	public CyActivator() {
 		super();
 	}
 
 	public void start(BundleContext bc) {
+		this.bc = bc;
 		// We'll need the CyApplication Manager to get current network, etc.
 		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
 		CyNetworkViewFactory cyNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
@@ -108,8 +111,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
 
 		// TODO: Figure out a better way to pass all these objects
-		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager,
-				cyNetworkFactory, cyNetworkManager, cyNetworkViewFactory, cyNetworkViewManager);
+		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager, this);
 		Properties createStructureNetProps = new Properties();
 		createStructureNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		createStructureNetProps.setProperty(TITLE, "Create Networks");
@@ -158,4 +160,9 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, settingsTask, NetworkTaskFactory.class, settingsProps);
 
 	}
+
+	public Object getService(Class<?> serviceClass) {
+		return getService(bc, serviceClass);
+	}
+
 }

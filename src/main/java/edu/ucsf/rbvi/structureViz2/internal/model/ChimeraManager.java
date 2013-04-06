@@ -36,6 +36,12 @@ public class ChimeraManager {
 		currentModelsMap = new HashMap<Integer, ChimeraModel>();
 	}
 
+	public List<ChimeraModel> getChimeraModels(String modelName) {
+		List<ChimeraModel> models = getChimeraModels(modelName, ModelType.PDB_MODEL);
+		models.addAll(getChimeraModels(modelName, ModelType.SMILES));
+		return models;
+	}
+
 	public List<ChimeraModel> getChimeraModels(String modelName, ModelType modelType) {
 		List<ChimeraModel> models = new ArrayList<ChimeraModel>();
 		for (ChimeraModel model : currentModelsMap.values()) {
@@ -57,8 +63,7 @@ public class ChimeraManager {
 	public ChimeraModel getChimeraModel() {
 		return currentModelsMap.values().iterator().next();
 	}
-	
-	
+
 	public Collection<ChimeraModel> getChimeraModels() {
 		// this method is invoked by the model navigator dialog
 		return currentModelsMap.values();
@@ -99,6 +104,7 @@ public class ChimeraManager {
 	}
 
 	public List<ChimeraModel> openModel(String modelName, ModelType type) {
+		System.out.println("open model " + modelName);
 		stopListening();
 		List<String> response = null;
 		if (type == StructureManager.ModelType.MODBASE_MODEL) {
@@ -301,7 +307,7 @@ public class ChimeraManager {
 		}
 		// If no error, then Chimera was launched successfully
 		if (error.length() == 0) {
-				System.out.println("Starting listener threads");
+			System.out.println("Starting listener threads");
 			// Initialize the listener threads
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();

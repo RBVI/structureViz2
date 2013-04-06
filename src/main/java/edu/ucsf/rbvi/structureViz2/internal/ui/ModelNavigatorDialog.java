@@ -68,8 +68,6 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraResidue;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraTreeModel;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
-import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTask;
-import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 
 /**
  * The ModelNavigatorDialog class is the class that implements the main interface for structureViz.
@@ -613,31 +611,11 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			} else if (type == EXIT) {
 				structureManager.exitChimera();
 			} else if (type == FUNCTIONALRESIDUES) {
-				String command = null;
-				// TODO: Handle functional residues
-				// For all open structures, select the functional residues
-				// for (Structure structure : chimeraObject.getOpenStructs()) {
-				// List<String> residueL = structure.getResidueList();
-				// if (residueL == null)
-				// continue;
-				// // The residue list is of the form RRRnnn,RRRnnn. We want
-				// // to reformat this to nnn,nnn
-				// String residues = "";
-				// for (String residue : residueL) {
-				// residues = residues.concat(residue + ",");
-				// }
-				// if (residues.length() == 0)
-				// return;
-				// residues = residues.substring(0, residues.length() - 1);
-				// if (command == null)
-				// command = "select #" + structure.modelNumber() + ":" + residues;
-				// else
-				// command += "| #" + structure.modelNumber() + ":" + residues;
-				// }
-				chimeraManager.select(command);
-				modelChanged();
+				structureManager.selectFunctResidues(chimeraManager.getChimeraModels());
+				// TODO: Necessary?
+				//modelChanged();
 			} else if (type == REFRESH) {
-				structureManager.refresh();
+				structureManager.updateModels();
 			} else if (type == COLLAPSEALL) {
 				collapseAll();
 			} else if (type == EXPANDMODELS) {
@@ -667,7 +645,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				}
 			} else if (type == CREATENETWORK) {
 				if (selectedObjectsCount > 0) {
-					launchNewNetworkDialog();
+					structureManager.launchStructureNetworkDialog();
 				} else {
 					JOptionPane.showMessageDialog(dialog, "You must select something to create a network",
 							"Nothing Selected", JOptionPane.ERROR_MESSAGE);
@@ -678,10 +656,6 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				modelChanged();
 			}
 		}
-	}
-
-	private void launchNewNetworkDialog() {
-		// TODO: Support RIN generation
 	}
 
 	/**

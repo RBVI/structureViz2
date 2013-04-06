@@ -169,6 +169,7 @@ public abstract class ChimUtils {
 		return model.getChain(residueChain[1]);
 	}
 
+	// TODO: How to figure out if this is a backbone atom?
 	public static boolean isBackbone(String atomSpec) {
 		String[] split = atomSpec.split("@");
 		String atom = split[1];
@@ -253,7 +254,7 @@ public abstract class ChimUtils {
 	 */
 	// TODO: Revise method
 	public static ChimeraStructuralObject fromAttribute(String attrSpec, ChimeraManager chimeraManager) {
-		if (attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
+		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
 			return null;
 		}

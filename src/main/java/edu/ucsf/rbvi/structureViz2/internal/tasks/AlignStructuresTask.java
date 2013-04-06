@@ -30,7 +30,7 @@ public class AlignStructuresTask extends AbstractTask {
 		this.netView = netView;
 		this.structureManager = structureManager;
 		availableChimObjMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
-				structureManager.getChimObjNames(netView.getModel(), nodeList));
+				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL));
 		initTunables();
 	}
 
@@ -40,7 +40,8 @@ public class AlignStructuresTask extends AbstractTask {
 		Map<CyIdentifiable, List<String>> selectedChimeraObjNames = CyUtils.getCyChimPairsToMap(
 				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
 		// open structures
-		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames, ModelType.PDB_MODEL);
+		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames,
+				ModelType.PDB_MODEL);
 		if (structureManager.getModelNavigatorDialog() == null) {
 			structureManager.launchModelNavigatorDialog();
 		} else if (!structureManager.getModelNavigatorDialog().isVisible()) {

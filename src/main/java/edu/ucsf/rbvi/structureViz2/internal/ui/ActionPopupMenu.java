@@ -36,8 +36,10 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -46,6 +48,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.JTree;
 
+import org.cytoscape.application.swing.CySwingApplication;
+
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraChain;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraModel;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraResidue;
@@ -53,9 +57,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 /**
- * This class implements all of the actions for the popup menu as well as
- * providing the MouseListener itself. This is used to implement the context
- * menu in the ModelNavigatorDialog.
+ * This class implements all of the actions for the popup menu as well as providing the
+ * MouseListener itself. This is used to implement the context menu in the ModelNavigatorDialog.
  */
 
 public class ActionPopupMenu extends JPopupMenu {
@@ -233,16 +236,14 @@ public class ActionPopupMenu extends JPopupMenu {
 	}
 
 	/**
-	 * Create the chain menu (at this point, there aren't any special chain menu
-	 * items)
+	 * Create the chain menu (at this point, there aren't any special chain menu items)
 	 */
 	private void createChainMenu() {
 		return;
 	}
 
 	/**
-	 * Create the residue menu (at this point, there aren't any special residue
-	 * menu items)
+	 * Create the residue menu (at this point, there aren't any special residue menu items)
 	 */
 	private void createResidueMenu() {
 		return;
@@ -285,8 +286,8 @@ public class ActionPopupMenu extends JPopupMenu {
 	}
 
 	/**
-	 * Add a color menu to a menu. This is essentially a special version of
-	 * addMenuItem that puts up a color list to choose from.
+	 * Add a color menu to a menu. This is essentially a special version of addMenuItem that puts up a
+	 * color list to choose from.
 	 * 
 	 * @param menu
 	 *          the menu to add the color list to
@@ -340,8 +341,7 @@ public class ActionPopupMenu extends JPopupMenu {
 	}
 
 	/**
-	 * This ActionListener is used to listen for commands selected from the
-	 * ModelNavigator popup menu
+	 * This ActionListener is used to listen for commands selected from the ModelNavigator popup menu
 	 */
 	private class PopupActionListener implements ActionListener {
 		String[] commandList;
@@ -451,24 +451,11 @@ public class ActionPopupMenu extends JPopupMenu {
 				return;
 			} else if (postCommand == FUNCTIONAL_RESIDUES) {
 				// Get the object
+				Set<ChimeraModel> models = new HashSet<ChimeraModel>();
 				for (ChimeraStructuralObject obj : objectList) {
-					ChimeraModel model = obj.getChimeraModel();
-					List<String> residueL = null;
-					// TODO: Handle functional residues
-					// model.getStructure().getResidueList();
-					if (residueL == null)
-						return;
-					// The residue list may be of the form RRRnnn,RRRnnn. We want
-					// to reformat this to nnn,nnn
-					String residues = new String();
-					for (String residue : residueL) {
-						residues = residues.concat(residue + ",");
-					}
-					residues = residues.substring(0, residues.length() - 1);
-					String command = "select #" + model.getModelNumber() + ":" + residues;
-					structureManager.getChimeraManager().select(command);
+					models.add(obj.getChimeraModel());
 				}
-				structureManager.modelChanged();
+				structureManager.selectFunctResidues(models);
 				return;
 			} else if (postCommand == DELETE) {
 				String message;
@@ -477,7 +464,8 @@ public class ActionPopupMenu extends JPopupMenu {
 				} else {
 					message = "Are you sure you want to delete " + objectList.get(0).toString() + "?";
 				}
-				int answer = JOptionPane.showConfirmDialog(structureManager.getCyApplication().getJFrame(), message, "Confirm",
+				int answer = JOptionPane.showConfirmDialog(((CySwingApplication) structureManager
+						.getService(CySwingApplication.class)).getJFrame(), message, "Confirm",
 						JOptionPane.YES_NO_OPTION);
 				if (answer == JOptionPane.NO_OPTION) {
 					return;
@@ -503,7 +491,7 @@ public class ActionPopupMenu extends JPopupMenu {
 				} catch (java.lang.InterruptedException e) {
 				}
 				// System.out.println("Chain delete -- calling refresh");
-				structureManager.refresh();
+				structureManager.updateModels();
 				try {
 					Thread.sleep(200);
 				} catch (java.lang.InterruptedException e) {

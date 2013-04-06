@@ -2,23 +2,28 @@ package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.view.vizmap.VisualStyle;
+import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
-import edu.ucsf.rbvi.structureViz2.internal.CyActivator;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraChain;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraManager;
@@ -67,7 +72,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	// Node attributes
 	static final String SMILES_ATTR = "SMILES";
 	static final String STRUCTURE_ATTR = "pdbFileName";
-	static final String RESIDUE_ATTR = "Residues";
+	static final String RESIDUE_ATTR = "ChimeraResidue";
 	static final String SEED_ATTR = "SeedResidues";
 	// TODO: Why do ne need these?
 	static final String BACKBONE_ATTR = "BackboneInteraction";
@@ -75,11 +80,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	private StructureManager structureManager;
 	private ChimeraManager chimeraManager;
-	private CyActivator structureViz;
 
-	public CreateStructureNetworkTask(StructureManager structureManager, CyActivator structureViz) {
+	public CreateStructureNetworkTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
-		this.structureViz = structureViz;
 		this.chimeraManager = structureManager.getChimeraManager();
 		includeContacts = true;
 		includeHBonds = false;
@@ -122,6 +125,75 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		structureManager.addStructureNetwork(rin, RESIDUE_ATTR);
 	}
 
+	private String getContactCommand() {
+		String atomspec1 = "";
+		String atomspec2 = "";
+		// "Within selection"
+		if (includeInteracions.getSelectedValue() == interactionArray[0]) {
+			// among the specified atoms
+			atomspec1 = "sel";
+			atomspec2 = "test self";
+		}
+		// "Between selection and all atoms"
+		else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
+			// between the specified atoms and all other atoms
+			atomspec1 = "sel";
+			atomspec2 = "test other";
+		}
+		// "Within selection and all atoms"
+		else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
+			// intra-model interactions between the specified atoms and all other atoms
+			atomspec1 = "sel";
+			atomspec2 = "test model";
+		}
+		// "Between models"
+		else {
+			// between the specified atoms and all other atoms
+			atomspec1 = "#" + chimeraManager.getChimeraModel().getModelNumber();
+			atomspec2 = "test other";
+		}
+		// Create the command
+		String command = "findclash " + atomspec1
+				+ " makePseudobonds false log true namingStyle command overlapCutoff " + overlapCutoff
+				+ " hbondAllowance " + hbondAllowance + " " + atomspec2;
+		return command;
+	}
+
+	private String getHBondCommand() {
+		// for which atoms to find hydrogen bonds
+		String atomspec = "";
+		// intermodel: whether to look for H-bonds between models
+		// intramodel: whether to look for H-bonds within models.
+		String modelrestr = "";
+		// "Within selection"
+		if (includeInteracions.getSelectedValue() == interactionArray[0]) {
+			// Limit H-bond detection to H-bonds with both atoms selected
+			atomspec = "selRestrict both";
+			modelrestr = "intramodel true intermodel true";
+		}
+		// "Between selection and all atoms"
+		else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
+			// Limit H-bond detection to H-bonds with at least one atom selected
+			atomspec = "selRestrict any";
+			modelrestr = "intramodel false intermodel true";
+		}
+		// "Within selection and all atoms"
+		else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
+			// Limit H-bond detection to H-bonds with at least one atom selected
+			atomspec = "selRestrict any";
+			modelrestr = "intramodel true intermodel true";
+		}
+		// "Between models"
+		else {
+			// Restrict H-bond detection to the specified model
+			atomspec = "spec #" + chimeraManager.getChimeraModel().getModelNumber();
+			modelrestr = "intramodel false intermodel true";
+		}
+		String command = "findhbond " + atomspec + " " + modelrestr
+				+ " makePseudobonds false log true namingStyle command";
+		return command;
+	}
+
 	/**
 	 * Clash replies look like: *preamble* *header line* *clash lines* where preamble is: Allowed
 	 * overlap: -0.4 H-bond overlap reduction: 0 Ignore contacts between atoms separated by 4 bonds or
@@ -135,7 +207,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		int index = 0;
 		for (index = 0; index < replyLog.size(); index++) {
 			String str = replyLog.get(index);
-			
+
 			if (str.trim().startsWith("atom1")) {
 				foundHeader = true;
 				break;
@@ -272,8 +344,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			String targetAlias, String type) {
 		// Create our two nodes. Note that makeResidueNode also adds three attributes:
 		// 1) FunctionalResidues; 2) Seed; 3) SideChainOnly
-		CyNode source = makeResidueNode(rin, nodeMap, sourceAlias);
-		CyNode target = makeResidueNode(rin, nodeMap, targetAlias);
+		CyNode source = createResidueNode(rin, nodeMap, sourceAlias);
+		CyNode target = createResidueNode(rin, nodeMap, targetAlias);
 		String interactionSubtype = ChimUtils.getAtomType(sourceAlias) + "_"
 				+ ChimUtils.getAtomType(targetAlias);
 
@@ -315,7 +387,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		return edge;
 	}
 
-	private CyNode makeResidueNode(CyNetwork rin, Map<String, CyNode> nodeMap, String alias) {
+	private CyNode createResidueNode(CyNetwork rin, Map<String, CyNode> nodeMap, String alias) {
 		// alias is a atomSpec of the form [#model]:residueNumber@atom
 		// We want to convert that to a node identifier of [pdbid#]ABC nnn
 		// and add FunctionalResidues and BackboneOnly attributes
@@ -357,18 +429,18 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			rin.getRow(node).set(SIDECHAIN_ATTR, Boolean.TRUE);
 
 		// Add structureViz attributes
-		 String smiles = ChimeraResidue.toSMILES(residue.getType());
-		 if (smiles != null) {
-			 // TODO: Add to smiles attribute 
-			 // structureManager.getCurrentChemStructKeys(rin).get(0)
-			 // Check if attribute is a list?
-			 rin.getRow(node).set(SMILES_ATTR, smiles);
-		 }
-		 // TODO: check the same as above
-		 // structureManager.getCurrentStructureKeys(rin).get(0)
-		 rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
-		 
-		 return node;
+		String smiles = ChimeraResidue.toSMILES(residue.getType());
+		if (smiles != null) {
+			// TODO: Add to smiles attribute
+			// structureManager.getCurrentChemStructKeys(rin).get(0)
+			// Check if attribute is a list?
+			rin.getRow(node).set(SMILES_ATTR, smiles);
+		}
+		// TODO: check the same as above
+		// structureManager.getCurrentStructureKeys(rin).get(0)
+		rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
+
+		return node;
 	}
 
 	private void updateMap(Map<CyEdge, Double> map, CyEdge edge, String value, int comparison) {
@@ -450,9 +522,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	private CyNetwork createNetwork() {
 		// get factories, etc.
-		CyNetworkFactory cyNetworkFactory = (CyNetworkFactory) structureViz
+		CyNetworkFactory cyNetworkFactory = (CyNetworkFactory) structureManager
 				.getService(CyNetworkFactory.class);
-		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureViz
+		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureManager
 				.getService(CyNetworkManager.class);
 
 		// Create the network
@@ -480,84 +552,47 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	private void finalizeNetwork(CyNetwork network) {
 		// get factories, etc.
-		CyNetworkViewFactory cyNetworkViewFactory = (CyNetworkViewFactory) structureViz
+		CyNetworkViewFactory cyNetworkViewFactory = (CyNetworkViewFactory) structureManager
 				.getService(CyNetworkViewFactory.class);
-		CyNetworkViewManager cyNetworkViewManager = (CyNetworkViewManager) structureViz
+		CyNetworkViewManager cyNetworkViewManager = (CyNetworkViewManager) structureManager
 				.getService(CyNetworkViewManager.class);
 		// Create a network view
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
 		cyNetworkViewManager.addNetworkView(rinView);
-		// Set vizmap
 		// Do a layout
+		// CyLayoutAlgorithmManager cyLayoutManager = (CyLayoutAlgorithmManager) structureViz
+		// .getService(CyLayoutAlgorithmManager.class);
+		// CyLayoutAlgorithm layout = cyLayoutManager.getDefaultLayout();
+		// insertTasksAfterCurrentTask(layout.createTaskIterator(rinView,
+		// layout.getDefaultLayoutContext(), layout.ALL_NODE_VIEWS, null));
+		ApplyPreferredLayoutTaskFactory test = (ApplyPreferredLayoutTaskFactory) structureManager
+				.getService(ApplyPreferredLayoutTaskFactory.class);
+		Set<CyNetworkView> views = new HashSet<CyNetworkView>();
+		views.add(rinView);
+		insertTasksAfterCurrentTask(test.createTaskIterator(views));
+		// Set vizmap
+		VisualMappingManager cyVmManager = (VisualMappingManager) structureManager
+				.getService(VisualMappingManager.class);
+		VisualStyleFactory cyVsFactory = (VisualStyleFactory) structureManager
+				.getService(VisualStyleFactory.class);
+		VisualStyle rinStyle = null;
+		for (VisualStyle vs : cyVmManager.getAllVisualStyles()) {
+			if (vs.getTitle().equals("RIN style")) {
+				rinStyle = vs;
+			}
+		}
+		if (rinStyle == null) {
+			rinStyle = cyVsFactory.createVisualStyle(cyVmManager.getDefaultVisualStyle());
+			rinStyle.setTitle("RIN style");
+			cyVmManager.addVisualStyle(rinStyle);
+		}
+		cyVmManager.setVisualStyle(rinStyle, rinView);
+		rinStyle.apply(rinView);
+		rinView.updateView();
+		// CySwingApplication application = (CySwingApplication) structureViz
+		// .getService(CySwingApplication.class);
+		// application.getJFrame().repaint();
 
 	}
 
-	private String getHBondCommand() {
-		// for which atoms to find hydrogen bonds
-		String atomspec = "";
-		// intermodel: whether to look for H-bonds between models
-		// intramodel: whether to look for H-bonds within models.
-		String modelrestr = "";
-		// "Within selection"
-		if (includeInteracions.getSelectedValue() == interactionArray[0]) {
-			// Limit H-bond detection to H-bonds with both atoms selected
-			atomspec = "selRestrict both";
-			modelrestr = "intramodel true intermodel true";
-		}
-		// "Between selection and all atoms"
-		else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
-			// Limit H-bond detection to H-bonds with at least one atom selected
-			atomspec = "selRestrict any";
-			modelrestr = "intramodel false intermodel true";
-		}
-		// "Within selection and all atoms"
-		else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
-			// Limit H-bond detection to H-bonds with at least one atom selected
-			atomspec = "selRestrict any";
-			modelrestr = "intramodel true intermodel true";
-		}
-		// "Between models"
-		else {
-			// Restrict H-bond detection to the specified model
-			atomspec = "spec #" + chimeraManager.getChimeraModel().getModelNumber();
-			modelrestr = "intramodel false intermodel true";
-		}
-		String command = "findhbond " + atomspec + " " + modelrestr
-				+ " makePseudobonds false log true namingStyle command";
-		return command;
-	}
-
-	private String getContactCommand() {
-		String atomspec1 = "";
-		String atomspec2 = "";
-		// "Within selection"
-		if (includeInteracions.getSelectedValue() == interactionArray[0]) {
-			// among the specified atoms
-			atomspec1 = "sel";
-			atomspec2 = "test self";
-		}
-		// "Between selection and all atoms"
-		else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
-			// between the specified atoms and all other atoms
-			atomspec1 = "sel";
-			atomspec2 = "test other";
-		}
-		// "Within selection and all atoms"
-		else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
-			// intra-model interactions between the specified atoms and all other atoms
-			atomspec1 = "sel";
-			atomspec2 = "test model";
-		}
-		// "Between models"
-		else {
-			// between the specified atoms and all other atoms
-			atomspec1 = "#" + chimeraManager.getChimeraModel().getModelNumber();
-			atomspec2 = "test other";
-		}
-		// Create the command
-		String command = "findclash " + atomspec1
-				+ " makePseudobonds false log true namingStyle command overlapCutoff " + overlapCutoff
-				+ " hbondAllowance " + hbondAllowance + " " + atomspec2;
-		return command;
-	}
 }

@@ -11,18 +11,12 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.util.Properties;
 
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.model.CyNetworkFactory;
-import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
-import org.cytoscape.view.model.CyNetworkViewFactory;
-import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -41,23 +35,11 @@ public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
 
-	private BundleContext bc = null;
-
 	public CyActivator() {
 		super();
 	}
 
 	public void start(BundleContext bc) {
-		this.bc = bc;
-		// We'll need the CyApplication Manager to get current network, etc.
-		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
-		CyNetworkViewFactory cyNetworkViewFactory = getService(bc, CyNetworkViewFactory.class);
-		CyNetworkViewManager cyNetworkViewManager = getService(bc, CyNetworkViewManager.class);
-		CyNetworkFactory cyNetworkFactory = getService(bc, CyNetworkFactory.class);
-		CyNetworkManager cyNetworkManager = getService(bc, CyNetworkManager.class);
-
-		// We'll need the CyServiceRegistrar to register listeners
-		CyServiceRegistrar cyServiceRegistrar = getService(bc, CyServiceRegistrar.class);
 
 		// See if we have a graphics console or not
 		boolean haveGUI = true;
@@ -71,16 +53,12 @@ public class CyActivator extends AbstractCyActivator {
 			// Issue error and return
 		}
 
-		// We'll need two context objects to manage everything: the
-		// Chimera interface itself, and a structure manager that helps
-		// map from Chimera objects to Cytoscape objects
+		// We'll need two context objects to manage everything: the Chimera interface itself, and a
+		// structure manager that helps map from Chimera objects to Cytoscape objects
 
-		// Create the structure manager. Note that later on, we'll
-		// register it as a TaskFactory since it also provides various
-		// settings
-		StructureManager structureManager = new StructureManager();
-		structureManager.setNetworkViewManager(cyNetworkViewManager);
-		structureManager.setCyApplication(cyApplication);
+		// Create the structure manager. Note that later on, we'll register it as a TaskFactory since it
+		// also provides various settings
+		StructureManager structureManager = new StructureManager(bc);
 		CySelectionListener selectionListener = new CySelectionListener(structureManager);
 		registerService(bc, selectionListener, RowsSetListener.class, new Properties());
 		// TODO: Do we need to register with CyServiceRegistrar?
@@ -110,8 +88,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
 		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
 
-		// TODO: Figure out a better way to pass all these objects
-		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager, this);
+		CreateStructureNetworkTaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(
+				structureManager);
 		Properties createStructureNetProps = new Properties();
 		createStructureNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		createStructureNetProps.setProperty(TITLE, "Create Networks");
@@ -120,7 +98,8 @@ public class CyActivator extends AbstractCyActivator {
 		createStructureNetProps.setProperty(ENABLE_FOR, "network");
 		createStructureNetProps.setProperty(IN_TOOL_BAR, "true");
 		createStructureNetProps.setProperty(MENU_GRAVITY, "5.0");
-		registerService(bc, createStructureNet, NetworkTaskFactory.class, createStructureNetProps);
+		registerService(bc, createStructureNet, TaskFactory.class, createStructureNetProps);
+		structureManager.setCreateStructureNetFactory(createStructureNet);
 
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();
@@ -134,14 +113,12 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
 
-		// TODO: Is there a general not network related task?
 		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
 		Properties exitChimeraProps = new Properties();
 		exitChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		exitChimeraProps.setProperty(TITLE, "Exit Chimera");
 		exitChimeraProps.setProperty(COMMAND, "exitChimera");
 		exitChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
-		exitChimeraProps.setProperty(ENABLE_FOR, "network");
 		exitChimeraProps.setProperty(IN_TOOL_BAR, "true");
 		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
 		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
@@ -159,10 +136,6 @@ public class CyActivator extends AbstractCyActivator {
 		settingsProps.setProperty(MENU_GRAVITY, "10.0");
 		registerService(bc, settingsTask, NetworkTaskFactory.class, settingsProps);
 
-	}
-
-	public Object getService(Class<?> serviceClass) {
-		return getService(bc, serviceClass);
 	}
 
 }

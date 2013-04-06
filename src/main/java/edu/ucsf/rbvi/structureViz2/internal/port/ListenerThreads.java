@@ -165,7 +165,7 @@ public class ListenerThreads extends Thread {
 
 		public void run() {
 			// System.out.println("Model updated");
-			structureManager.refresh();
+			structureManager.updateModels();
 			structureManager.modelChanged();
 			// Now update our selection from Chimera
 			// (new SelectionUpdater()).start();

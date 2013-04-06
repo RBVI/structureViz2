@@ -1,26 +1,20 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.work.AbstractTaskFactory;
+import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
 
-import edu.ucsf.rbvi.structureViz2.internal.CyActivator;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-public class CreateStructureNetworkTaskFactory extends AbstractTaskFactory implements
-		NetworkTaskFactory {
+public class CreateStructureNetworkTaskFactory extends AbstractTaskFactory implements TaskFactory {
 
 	private StructureManager structureManager;
-	private CyActivator structureViz;
 
-	public CreateStructureNetworkTaskFactory(StructureManager structureManager,
-			CyActivator structureViz) {
+	public CreateStructureNetworkTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
-		this.structureViz = structureViz;
 	}
 
-	public boolean isReady(CyNetwork arg0) {
+	public boolean isReady() {
 		if (structureManager.getChimeraManager().getChimeraModelsCount(false) > 0) {
 			return true;
 		}
@@ -29,11 +23,7 @@ public class CreateStructureNetworkTaskFactory extends AbstractTaskFactory imple
 	}
 
 	public TaskIterator createTaskIterator() {
-		return null;
-	}
-
-	public TaskIterator createTaskIterator(CyNetwork arg0) {
-		return new TaskIterator(new CreateStructureNetworkTask(structureManager, structureViz));
+		return new TaskIterator(new CreateStructureNetworkTask(structureManager));
 	}
 
 }

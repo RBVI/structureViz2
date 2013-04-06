@@ -1,6 +1,5 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
-import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
@@ -15,8 +14,8 @@ public class ExitChimeraTaskFactory extends AbstractTaskFactory implements TaskF
 		this.structureManager = structureManager;
 	}
 
-	public boolean isReady(CyNetwork network) {
-		System.out.println("isReady exit chimera");
+	public boolean isReady() {
+		// System.out.println("isReady exit chimera");
 		if (structureManager.getChimeraManager().isChimeraLaunched()) {
 			return true;
 		}

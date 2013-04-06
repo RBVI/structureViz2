@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,6 +35,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	private TreeMap<String, ChimeraChain> chainMap; // The list of chains
 	private TreeMap<String, ChimeraResidue> residueMap; // The list of residues
 	private Map<CyIdentifiable, CyNetwork> cyObjects; // The list of Cytoscape objects
+	private HashSet<ChimeraResidue> funcResidues; // List of functional residues
 
 	/**
 	 * Constructor to create a model
@@ -56,6 +58,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		this.chainMap = new TreeMap<String, ChimeraChain>();
 		this.residueMap = new TreeMap<String, ChimeraResidue>();
 		this.cyObjects = new HashMap<CyIdentifiable, CyNetwork>();
+		this.funcResidues = new HashSet<ChimeraResidue>();
 	}
 
 	/**
@@ -68,8 +71,10 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		this.name = ChimUtils.parseModelName(inputLine);
 		this.modelNumber = ChimUtils.parseModelNumber(inputLine)[0];
 		this.subModelNumber = ChimUtils.parseModelNumber(inputLine)[1];
+
 		this.chainMap = new TreeMap<String, ChimeraChain>();
 		this.residueMap = new TreeMap<String, ChimeraResidue>();
+		this.cyObjects = new HashMap<CyIdentifiable, CyNetwork>();
 	}
 
 	/**
@@ -203,6 +208,68 @@ public class ChimeraModel implements ChimeraStructuralObject {
 
 	public void setModelType(ModelType type) {
 		this.type = type;
+	}
+
+	public HashSet<ChimeraResidue> getFuncResidues() {
+		return funcResidues;
+	}
+
+	// TODO: Rewrite parsing functional residues with Scooter
+	public void setFuncResidues(List<String> residues) {
+		for (int i = 0; i < residues.size(); i++) {
+			String residue = residues.get(i);
+			// Parse out the structure, if there is one
+			String[] components = residue.split("#");
+			if (components.length > 1 && !name.equals(components[0])) {
+				continue;
+			} else if (components.length > 1) {
+				residue = components[1];
+			} else if (components.length == 1) {
+				residue = components[0];
+			}
+			// Check to see if we have a range-spec
+			String resRange = "";
+			if (residue == null || residue.equals("") || residue.length() == 0) {
+				continue;
+			}
+			String[] range = residue.split("-", 2);
+			String chain = null;
+			for (int res = 0; res < range.length; res++) {
+				if (res == 1) {
+					resRange = resRange.concat("-");
+					if (chain != null && range[res].indexOf('.') == -1)
+						range[res] = range[res].concat("." + chain);
+				}
+
+				if (res == 0 && range.length >= 2 && range[res].indexOf('.') > 0) {
+					// This is a range spec with the leading residue containing a chain spec
+					String[] resChain = range[res].split("\\.");
+					chain = resChain[1];
+					range[res] = resChain[0];
+				}
+				// Fix weird SFLD syntax...
+				if (range[res].indexOf('|') > 0 && Character.isDigit(range[res].charAt(0))) {
+					int offset = range[res].indexOf('|');
+					String str = range[res].substring(offset + 1) + range[res].substring(0, offset);
+					range[res] = str;
+				}
+
+				// Convert to legal atom-spec
+				if (Character.isDigit(range[res].charAt(0))) {
+					resRange = resRange.concat(range[res]);
+				} else if (Character.isDigit(range[res].charAt(1))) {
+					resRange = resRange.concat(range[res].substring(1));
+				} else if (range[res].charAt(0) == '.') {
+					// Do we have a chain spec?
+					resRange = resRange.concat(range[res]);
+				} else {
+					resRange = resRange.concat(range[res].substring(3));
+				}
+			}
+			if (residueMap.containsKey(resRange)) {
+				funcResidues.add(residueMap.get(resRange));
+			}
+		}
 	}
 
 	/**

@@ -15,21 +15,22 @@ import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
 public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		NetworkViewTaskFactory, NodeViewTaskFactory {
 
 	private StructureManager structureManager;
-	
+
 	public AlignStructuresTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
 	}
-	
+
 	public boolean isReady(CyNetworkView netView) {
 		// Get all of the selected nodes
 		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList).size() > 1) {
+		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL).size() > 1) {
 			return true;
 		}
 		return false;
@@ -40,7 +41,7 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.add(nodeView.getModel());
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList).size() > 1) {
+		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL).size() > 1) {
 			return true;
 		}
 		return false;

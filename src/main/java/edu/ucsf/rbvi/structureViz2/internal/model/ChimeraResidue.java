@@ -33,7 +33,6 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.LoggerFactory;
@@ -60,8 +59,8 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	private int subModelNumber; // sub-model number for this residue
 	private ChimeraModel chimeraModel; // ChimeraModel thie residue is part of
 	private Object userData; // user data to associate with this residue
-	private static HashMap<String, String> aaNames = null; // a map of amino acid
-																													// names
+	// public static HashMap<String, String> aaNames = null; // a map of amino acid
+	// names
 	private static int displayType = THREE_LETTER; // the current display type
 	private boolean selected = false; // the selection state
 
@@ -96,8 +95,9 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 		this.index = index;
 		this.modelNumber = modelNumber;
 		this.subModelNumber = subModelNumber;
-		if (aaNames == null)
-			initNames();
+		// if (aaNames == null) {
+		// initNames();
+		// }
 	}
 
 	/**
@@ -106,12 +106,12 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	 * @param chimeraInputLine
 	 *          a Chimera residue description
 	 */
+	// TODO: This should be merged with the parse line code in ChimeraModel
+	// invoked when listing (selected) residues: listr spec #0; lists level residue
+	// Line: residue id #0:37.A type MET
 	public ChimeraResidue(String chimeraInputLine) {
-		initNames();
-
+		// initNames();
 		String[] split1 = chimeraInputLine.split(":");
-
-		// TODO: This should be merged with the parse line code in ChimeraModel
 
 		// First half has model number -- get the number
 		int numberOffset = split1[0].indexOf('#');
@@ -168,8 +168,7 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Return an array made up of this residue (required for
-	 * ChimeraStructuralObject interface
+	 * Return an array made up of this residue (required for ChimeraStructuralObject interface
 	 * 
 	 * @return a List with this residue as its sole member
 	 */
@@ -180,10 +179,9 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Return the string representation of this residue as follows:
-	 * "<i>residue_name</i> <i>index</i>" where <i>residue_name</i> could be
-	 * either the single letter, three letter, or full name representation of the
-	 * amino acid.
+	 * Return the string representation of this residue as follows: "<i>residue_name</i> <i>index</i>"
+	 * where <i>residue_name</i> could be either the single letter, three letter, or full name
+	 * representation of the amino acid.
 	 * 
 	 * @return the string representation
 	 */
@@ -192,20 +190,19 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Return the string representation of this residue as follows:
-	 * "<i>residue_name</i> <i>index</i>" where <i>residue_name</i> could be
-	 * either the single letter, three letter, or full name representation of the
-	 * amino acid.
+	 * Return the string representation of this residue as follows: "<i>residue_name</i> <i>index</i>"
+	 * where <i>residue_name</i> could be either the single letter, three letter, or full name
+	 * representation of the amino acid.
 	 * 
 	 * @return the string representation
 	 */
 	public String toString() {
 		if (displayType == FULL_NAME) {
-			return (toFullName(type) + " " + index);
+			return (ChimUtils.toFullName(type) + " " + index);
 		} else if (displayType == SINGLE_LETTER) {
-			return (toSingleLetter(type) + " " + index);
+			return (ChimUtils.toSingleLetter(type) + " " + index);
 		} else if (displayType == THREE_LETTER) {
-			return (toThreeLetter(type) + " " + index);
+			return (ChimUtils.toThreeLetter(type) + " " + index);
 		} else {
 			return (type + " " + index);
 		}
@@ -230,48 +227,49 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	 *          the Chimera atom spec
 	 * @return true if this residue is addressed by this atom spec
 	 */
-	public boolean matchesAtomSpec(String atomSpec) {
-		// We need to parse the atom spec to see if it includes this residue
-		// Possibilities:
-		// 1) Atom spec is just a residue -- compare and return result
-		// 2) Atom spec is a range, need to see if this residue is in that range
-		// 3) Atom spec is a chain -- see if this residue is part of that chain
-		if (atomSpec.charAt(0) == '.') {
-			// System.out.println("Chain match: chainId = "+chainId+" atomSpec = "+atomSpec);
-			// We have a chain
-			if (atomSpec.substring(1).equalsIgnoreCase(chainId))
-				return true;
-		} else if (atomSpec.indexOf("-") > 0) {
-			// We have a range
-			String range[] = atomSpec.split("-");
-			if (range[1].indexOf('.') > 0) {
-				String chainSpec[] = range[1].split("\\.");
-				if (!chainSpec[1].equalsIgnoreCase(chainId))
-					return false;
-				range[1] = chainSpec[0];
-			}
-			// System.out.println("Residue match: index = "+index+" range = "+range[0]+"-"+range[1]);
-			int thisResidue = Integer.parseInt(index);
-			int rangeStart = Integer.parseInt(range[0]);
-			int rangeEnd = Integer.parseInt(range[1]);
-			if (rangeStart <= thisResidue && rangeEnd >= thisResidue)
-				return true;
-		} else {
-			// Residue
-			if (atomSpec.indexOf('.') > 0) {
-				// We've got a chain -- make sure it's our chain
-				// System.out.println("Chain match: chainId = "+chainId+" atomSpec = "+atomSpec);
-				String chainSpec[] = atomSpec.split("\\.");
-				if (!chainSpec[1].equalsIgnoreCase(chainId))
-					return false;
-				atomSpec = chainSpec[0];
-			}
-			// System.out.println("Residue match: index = "+index+" atomSpec = "+atomSpec);
-			if (index.equals(atomSpec))
-				return true;
-		}
-		return false;
-	}
+	// TODO: Delete if we really do not need it anymore
+	// public boolean matchesAtomSpec(String atomSpec) {
+	// // We need to parse the atom spec to see if it includes this residue
+	// // Possibilities:
+	// // 1) Atom spec is just a residue -- compare and return result
+	// // 2) Atom spec is a range, need to see if this residue is in that range
+	// // 3) Atom spec is a chain -- see if this residue is part of that chain
+	// if (atomSpec.charAt(0) == '.') {
+	// // System.out.println("Chain match: chainId = "+chainId+" atomSpec = "+atomSpec);
+	// // We have a chain
+	// if (atomSpec.substring(1).equalsIgnoreCase(chainId))
+	// return true;
+	// } else if (atomSpec.indexOf("-") > 0) {
+	// // We have a range
+	// String range[] = atomSpec.split("-");
+	// if (range[1].indexOf('.') > 0) {
+	// String chainSpec[] = range[1].split("\\.");
+	// if (!chainSpec[1].equalsIgnoreCase(chainId))
+	// return false;
+	// range[1] = chainSpec[0];
+	// }
+	// // System.out.println("Residue match: index = "+index+" range = "+range[0]+"-"+range[1]);
+	// int thisResidue = Integer.parseInt(index);
+	// int rangeStart = Integer.parseInt(range[0]);
+	// int rangeEnd = Integer.parseInt(range[1]);
+	// if (rangeStart <= thisResidue && rangeEnd >= thisResidue)
+	// return true;
+	// } else {
+	// // Residue
+	// if (atomSpec.indexOf('.') > 0) {
+	// // We've got a chain -- make sure it's our chain
+	// // System.out.println("Chain match: chainId = "+chainId+" atomSpec = "+atomSpec);
+	// String chainSpec[] = atomSpec.split("\\.");
+	// if (!chainSpec[1].equalsIgnoreCase(chainId))
+	// return false;
+	// atomSpec = chainSpec[0];
+	// }
+	// // System.out.println("Residue match: index = "+index+" atomSpec = "+atomSpec);
+	// if (index.equals(atomSpec))
+	// return true;
+	// }
+	// return false;
+	// }
 
 	/**
 	 * Get the index of this residue
@@ -363,35 +361,35 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	/**
 	 * Initialize the residue names
 	 */
-	private static void initNames() {
-		// Create our residue name table
-		aaNames = new HashMap<String, String>();
-		aaNames.put("ALA", "A Ala Alanine N[C@@H](C)C(O)=O");
-		aaNames.put("ARG", "R Arg Arginine N[C@@H](CCCNC(N)=N)C(O)=O");
-		aaNames.put("ASN", "N Asn Asparagine N[C@@H](CC(N)=O)C(O)=O");
-		aaNames.put("ASP", "D Asp Aspartic_acid N[C@@H](CC(O)=O)C(O)=O");
-		aaNames.put("CYS", "C Cys Cysteine N[C@@H](CS)C(O)=O");
-		aaNames.put("GLN", "Q Gln Glutamine N[C@H](C(O)=O)CCC(N)=O");
-		aaNames.put("GLU", "E Glu Glumatic_acid N[C@H](C(O)=O)CCC(O)=O");
-		aaNames.put("GLY", "G Gly Glycine NCC(O)=O");
-		aaNames.put("HIS", "H His Histidine N[C@@H](CC1=CN=CN1)C(O)=O");
-		aaNames.put("ILE", "I Ile Isoleucine N[C@]([C@H](C)CC)([H])C(O)=O");
-		aaNames.put("LEU", "L Leu Leucine N[C@](CC(C)C)([H])C(O)=O");
-		aaNames.put("LYS", "K Lys Lysine N[C@](CCCCN)([H])C(O)=O");
-		aaNames.put("DLY", "K Dly D-Lysine NCCCC[C@@H](N)C(O)=O");
-		aaNames.put("MET", "M Met Methionine N[C@](CCSC)([H])C(O)=O");
-		aaNames.put("PHE", "F Phe Phenylalanine N[C@](CC1=CC=CC=C1)([H])C(O)=O");
-		aaNames.put("PRO", "P Pro Proline OC([C@@]1([H])NCCC1)=O");
-		aaNames.put("SER", "S Ser Serine OC[C@](C(O)=O)([H])N");
-		aaNames.put("THR", "T Thr Threonine O[C@H](C)[C@](C(O)=O)([H])N");
-		aaNames.put("TRP", "W Trp Tryptophan N[C@@]([H])(CC1=CN([H])C2=C1C=CC=C2)C(O)=O");
-		aaNames.put("TYR", "Y Tyr Tyrosine N[C@@](C(O)=O)([H])CC1=CC=C(O)C=C1");
-		aaNames.put("VAL", "V Val Valine N[C@@](C(O)=O)([H])C(C)C");
-		aaNames.put("ASX", "B Asx Aspartic_acid_or_Asparagine");
-		aaNames.put("GLX", "Z Glx Glutamine_or_Glutamic_acid");
-		aaNames.put("XAA", "X Xaa Any_or_unknown_amino_acid");
-		aaNames.put("HOH", "HOH HOH Water [H]O[H]");
-	}
+	// private static void initNames() {
+	// // Create our residue name table
+	// aaNames = new HashMap<String, String>();
+	// aaNames.put("ALA", "A Ala Alanine N[C@@H](C)C(O)=O");
+	// aaNames.put("ARG", "R Arg Arginine N[C@@H](CCCNC(N)=N)C(O)=O");
+	// aaNames.put("ASN", "N Asn Asparagine N[C@@H](CC(N)=O)C(O)=O");
+	// aaNames.put("ASP", "D Asp Aspartic_acid N[C@@H](CC(O)=O)C(O)=O");
+	// aaNames.put("CYS", "C Cys Cysteine N[C@@H](CS)C(O)=O");
+	// aaNames.put("GLN", "Q Gln Glutamine N[C@H](C(O)=O)CCC(N)=O");
+	// aaNames.put("GLU", "E Glu Glumatic_acid N[C@H](C(O)=O)CCC(O)=O");
+	// aaNames.put("GLY", "G Gly Glycine NCC(O)=O");
+	// aaNames.put("HIS", "H His Histidine N[C@@H](CC1=CN=CN1)C(O)=O");
+	// aaNames.put("ILE", "I Ile Isoleucine N[C@]([C@H](C)CC)([H])C(O)=O");
+	// aaNames.put("LEU", "L Leu Leucine N[C@](CC(C)C)([H])C(O)=O");
+	// aaNames.put("LYS", "K Lys Lysine N[C@](CCCCN)([H])C(O)=O");
+	// aaNames.put("DLY", "K Dly D-Lysine NCCCC[C@@H](N)C(O)=O");
+	// aaNames.put("MET", "M Met Methionine N[C@](CCSC)([H])C(O)=O");
+	// aaNames.put("PHE", "F Phe Phenylalanine N[C@](CC1=CC=CC=C1)([H])C(O)=O");
+	// aaNames.put("PRO", "P Pro Proline OC([C@@]1([H])NCCC1)=O");
+	// aaNames.put("SER", "S Ser Serine OC[C@](C(O)=O)([H])N");
+	// aaNames.put("THR", "T Thr Threonine O[C@H](C)[C@](C(O)=O)([H])N");
+	// aaNames.put("TRP", "W Trp Tryptophan N[C@@]([H])(CC1=CN([H])C2=C1C=CC=C2)C(O)=O");
+	// aaNames.put("TYR", "Y Tyr Tyrosine N[C@@](C(O)=O)([H])CC1=CC=C(O)C=C1");
+	// aaNames.put("VAL", "V Val Valine N[C@@](C(O)=O)([H])C(C)C");
+	// aaNames.put("ASX", "B Asx Aspartic_acid_or_Asparagine");
+	// aaNames.put("GLX", "Z Glx Glutamine_or_Glutamic_acid");
+	// aaNames.put("XAA", "X Xaa Any_or_unknown_amino_acid");
+	// aaNames.put("HOH", "HOH HOH Water [H]O[H]");
+	// }
 
 	/**
 	 * Set the display type.
@@ -405,64 +403,6 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 
 	public static int getDisplayType() {
 		return displayType;
-	}
-
-	/**
-	 * Convert the amino acid type to a full name
-	 * 
-	 * @param aaType
-	 *          the residue type to convert
-	 * @return the full name of the residue
-	 */
-	public static String toFullName(String aaType) {
-		if (!aaNames.containsKey(aaType))
-			return aaType;
-		String[] ids = ((String) aaNames.get(aaType)).split(" ");
-		return ids[2].replace('_', ' ');
-	}
-
-	/**
-	 * Convert the amino acid type to a single letter
-	 * 
-	 * @param aaType
-	 *          the residue type to convert
-	 * @return the single letter representation of the residue
-	 */
-	public static String toSingleLetter(String aaType) {
-		if (!aaNames.containsKey(aaType))
-			return aaType;
-		String[] ids = ((String) aaNames.get(aaType)).split(" ");
-		return ids[0];
-	}
-
-	/**
-	 * Convert the amino acid type to three letters
-	 * 
-	 * @param aaType
-	 *          the residue type to convert
-	 * @return the three letter representation of the residue
-	 */
-	public static String toThreeLetter(String aaType) {
-		if (!aaNames.containsKey(aaType))
-			return aaType;
-		String[] ids = ((String) aaNames.get(aaType)).split(" ");
-		return ids[1];
-	}
-
-	/**
-	 * Convert the amino acid type to its SMILES string
-	 * 
-	 * @param aaType
-	 *          the residue type to convert
-	 * @return the SMILES representation of the residue
-	 */
-	public static String toSMILES(String aaType) {
-		if (!aaNames.containsKey(aaType))
-			return null;
-		String[] ids = ((String) aaNames.get(aaType)).split(" ");
-		if (ids.length < 4)
-			return null;
-		return ids[3];
 	}
 
 	public boolean hasSelectedChildren() {

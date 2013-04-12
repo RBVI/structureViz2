@@ -18,7 +18,7 @@ public class CloseStructuresTask extends AbstractTask {
 //	private List<CyNode> nodeList;
 	private CyNetworkView netView;
 	private StructureManager structureManager;
-	private Map<CyIdentifiable, String> openChimObjMap;
+	private Map<String, CyIdentifiable> openChimObjMap;
 
 	@Tunable(description = "Structures to be closed")
 	public ListMultipleSelection<String> openChimObjTunable;
@@ -44,7 +44,7 @@ public class CloseStructuresTask extends AbstractTask {
 	}
 
 	private void initTunables() {
-		List<String> availableObjs = new ArrayList<String>(openChimObjMap.values());
+		List<String> availableObjs = new ArrayList<String>(openChimObjMap.keySet());
 		if (availableObjs.size() > 0) {
 			openChimObjTunable = new ListMultipleSelection<String>(availableObjs);
 			openChimObjTunable.setSelectedValues(availableObjs);

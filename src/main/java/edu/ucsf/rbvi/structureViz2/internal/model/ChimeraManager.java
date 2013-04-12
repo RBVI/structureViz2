@@ -122,7 +122,7 @@ public class ChimeraManager {
 		for (String line : response) {
 			System.out.println("response line: " + line);
 			if (line.startsWith("#")) {
-				int[] modelNumbers = ChimUtils.parseModelNumber2(line);
+				int[] modelNumbers = ChimUtils.parseOpenedModelNumber(line);
 				if (modelNumbers[1] != 0) {
 					// what to do if multiple models?
 				}
@@ -204,7 +204,7 @@ public class ChimeraManager {
 	}
 
 	public void exitChimera() {
-		if (isChimeraLaunched()) {
+		if (isChimeraLaunched() && chimera != null) {
 			sendChimeraCommand("stop really", false);
 			chimera.destroy();
 		}
@@ -272,7 +272,9 @@ public class ChimeraManager {
 
 	public boolean isChimeraLaunched() {
 		// TODO: What is the best way to test if chimera is launched?
-		if (chimera != null && sendChimeraCommand("test", true) != null) {
+
+		//sendChimeraCommand("test", true) !=null 
+		if (chimera != null ) {
 			return true;
 		}
 		return false;
@@ -291,7 +293,10 @@ public class ChimeraManager {
 		for (String chimeraPath : chimeraPaths) {
 			File path = new File(chimeraPath);
 			if (!path.canExecute())
+			{
+				error = "Path does not exist";	
 				continue;
+			}			
 			try {
 				List<String> args = new ArrayList<String>();
 				args.add(chimeraPath);
@@ -299,10 +304,12 @@ public class ChimeraManager {
 				args.add("ReadStdin");
 				ProcessBuilder pb = new ProcessBuilder(args);
 				chimera = pb.start();
+				error = "";
 				break;
 			} catch (Exception e) {
-				// Chimera could not be started
-				error = e.getMessage();
+				// Chimera could not be starte
+				e.printStackTrace();		
+				error = "Test"+e.getMessage();
 			}
 		}
 		// If no error, then Chimera was launched successfully

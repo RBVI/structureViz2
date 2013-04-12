@@ -44,8 +44,8 @@ public class CyActivator extends AbstractCyActivator {
 		// See if we have a graphics console or not
 		boolean haveGUI = true;
 		// TODO: OK to check for the service?
-		// ServiceReference ref =
-		// bc.getServiceReference("org.cytoscape.application.swing.CySwingApplication");
+		//ServiceReference ref =
+		//bc.getServiceReference("org.cytoscape.application.swing.CySwingApplication");
 		CySwingApplication cyApplication = getService(bc, CySwingApplication.class);
 
 		if (cyApplication == null) {

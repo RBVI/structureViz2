@@ -25,34 +25,34 @@ public abstract class CyUtils {
 		return columnsFound;
 	}
 
-	public static Map<CyIdentifiable, String> getCyChimPiarsToStrings(CyNetwork network,
+	public static Map<String, CyIdentifiable> getCyChimPiarsToStrings(CyNetwork network,
 			Map<CyIdentifiable, List<String>> pairs) {
-		Map<CyIdentifiable, String> pairsMap = new HashMap<CyIdentifiable, String>();
+		Map<String, CyIdentifiable> pairsMap = new HashMap<String, CyIdentifiable>();
 		CyTable nodeTable = network.getDefaultNodeTable();
 		for (CyIdentifiable cyObj : pairs.keySet()) {
 			if (pairs.get(cyObj).size() > 0) {
 				String nodeName = nodeTable.getRow(cyObj.getSUID()).get(CyNetwork.NAME, String.class);
-					for (String name : pairs.get(cyObj)) {
-						pairsMap.put(cyObj, nodeName + ": " + name);
-					}
+				for (String name : pairs.get(cyObj)) {
+					pairsMap.put(nodeName + ": " + name, cyObj);
+				}
 			}
 		}
 		return pairsMap;
 	}
 
 	public static Map<CyIdentifiable, List<String>> getCyChimPairsToMap(List<String> selectedPairs,
-			Map<CyIdentifiable, String> allPairs) {
+			Map<String, CyIdentifiable> allPairs) {
 		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();
-		for (CyIdentifiable cyObj : allPairs.keySet()) {
-			if (selectedPairs.contains(allPairs.get(cyObj))) {
-				String[] names = allPairs.get(cyObj).split(":");
-				if (names.length == 2) {
-					if (!selectedPairsMap.containsKey(cyObj)) {
-						selectedPairsMap.put(cyObj, new ArrayList<String>());
-					}
-					selectedPairsMap.get(cyObj).add(names[1].trim());
-				}
+		for (String selectedPair : selectedPairs) {
+			String[] names = selectedPair.split(":");
+			if (names.length != 2) {
+				continue;
 			}
+			CyIdentifiable cyObj = allPairs.get(selectedPair);
+			if (!selectedPairsMap.containsKey(cyObj)) {
+				selectedPairsMap.put(cyObj, new ArrayList<String>());
+			}
+			selectedPairsMap.get(cyObj).add(names[1].trim());
 		}
 		return selectedPairsMap;
 	}

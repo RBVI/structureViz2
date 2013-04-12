@@ -20,7 +20,7 @@ public class AlignStructuresTask extends AbstractTask {
 
 	private StructureManager structureManager;
 	private CyNetworkView netView;
-	private Map<CyIdentifiable, String> availableChimObjMap;
+	private Map<String, CyIdentifiable> availableChimObjMap;
 
 	@Tunable(description = "Structures to be availavle for aligning")
 	public ListMultipleSelection<String> availableChimObjTunable;
@@ -51,7 +51,7 @@ public class AlignStructuresTask extends AbstractTask {
 	}
 
 	private void initTunables() {
-		List<String> availableObjs = new ArrayList<String>(availableChimObjMap.values());
+		List<String> availableObjs = new ArrayList<String>(availableChimObjMap.keySet());
 		if (availableObjs.size() > 0) {
 			availableChimObjTunable = new ListMultipleSelection<String>(availableObjs);
 			availableChimObjTunable.setSelectedValues(availableObjs);

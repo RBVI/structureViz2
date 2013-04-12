@@ -20,8 +20,8 @@ public class OpenStructuresTask extends AbstractTask {
 	// private List<CyNode> nodeList;
 	private CyNetworkView netView;
 	private StructureManager structureManager;
-	private Map<CyIdentifiable, String> structruesMap;
-	private Map<CyIdentifiable, String> chemStructruesMap;
+	private Map<String, CyIdentifiable> structruesMap;
+	private Map<String, CyIdentifiable> chemStructruesMap;
 
 	@Tunable(description = "Open structures")
 	public ListMultipleSelection<String> structureTunable;
@@ -63,7 +63,7 @@ public class OpenStructuresTask extends AbstractTask {
 	}
 
 	private void initTunables() {
-		List<String> availableStructures = new ArrayList<String>(structruesMap.values());
+		List<String> availableStructures = new ArrayList<String>(structruesMap.keySet());
 		if (availableStructures.size() > 0) {
 			structureTunable = new ListMultipleSelection<String>(availableStructures);
 			structureTunable.setSelectedValues(availableStructures);
@@ -71,7 +71,7 @@ public class OpenStructuresTask extends AbstractTask {
 			structureTunable = new ListMultipleSelection<String>("None");
 		}
 
-		List<String> availableChem = new ArrayList<String>(chemStructruesMap.values());
+		List<String> availableChem = new ArrayList<String>(chemStructruesMap.keySet());
 		if (availableChem.size() > 0) {
 			chemTunable = new ListMultipleSelection<String>(availableChem);
 		} else {

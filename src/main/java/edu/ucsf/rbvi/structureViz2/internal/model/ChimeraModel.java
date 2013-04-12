@@ -67,6 +67,8 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * @param inputLine
 	 *          Chimera input line from which to construct this model
 	 */
+	// invoked when listing models: listm type molecule; lists level molecule
+	// line = model id #0 type Molecule name 1ert
 	public ChimeraModel(String inputLine) {
 		this.name = ChimUtils.parseModelName(inputLine);
 		this.modelNumber = ChimUtils.parseModelNumber(inputLine)[0];
@@ -214,58 +216,8 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		return funcResidues;
 	}
 
-	// TODO: Rewrite parsing functional residues with Scooter
-	public void setFuncResidues(List<String> residues) {
-		for (int i = 0; i < residues.size(); i++) {
-			String residue = residues.get(i);
-			// Parse out the structure, if there is one
-			String[] components = residue.split("#");
-			if (components.length > 1 && !name.equals(components[0])) {
-				continue;
-			} else if (components.length > 1) {
-				residue = components[1];
-			} else if (components.length == 1) {
-				residue = components[0];
-			}
-			// Check to see if we have a range-spec
-			String resRange = "";
-			if (residue == null || residue.equals("") || residue.length() == 0) {
-				continue;
-			}
-			String[] range = residue.split("-", 2);
-			String chain = null;
-			for (int res = 0; res < range.length; res++) {
-				if (res == 1) {
-					resRange = resRange.concat("-");
-					if (chain != null && range[res].indexOf('.') == -1)
-						range[res] = range[res].concat("." + chain);
-				}
-
-				if (res == 0 && range.length >= 2 && range[res].indexOf('.') > 0) {
-					// This is a range spec with the leading residue containing a chain spec
-					String[] resChain = range[res].split("\\.");
-					chain = resChain[1];
-					range[res] = resChain[0];
-				}
-				// Fix weird SFLD syntax...
-				if (range[res].indexOf('|') > 0 && Character.isDigit(range[res].charAt(0))) {
-					int offset = range[res].indexOf('|');
-					String str = range[res].substring(offset + 1) + range[res].substring(0, offset);
-					range[res] = str;
-				}
-
-				// Convert to legal atom-spec
-				if (Character.isDigit(range[res].charAt(0))) {
-					resRange = resRange.concat(range[res]);
-				} else if (Character.isDigit(range[res].charAt(1))) {
-					resRange = resRange.concat(range[res].substring(1));
-				} else if (range[res].charAt(0) == '.') {
-					// Do we have a chain spec?
-					resRange = resRange.concat(range[res]);
-				} else {
-					resRange = resRange.concat(range[res].substring(3));
-				}
-			}
+	public void setFuncResidues(List<String> residueRanges) {
+		for (String resRange : residueRanges) {
 			if (residueMap.containsKey(resRange)) {
 				funcResidues.add(residueMap.get(resRange));
 			}
@@ -487,11 +439,15 @@ public class ChimeraModel implements ChimeraStructuralObject {
 			nodeName += " {none}";
 		} else if (cyObjects.size() == 1) {
 			CyIdentifiable cyObj = cyObjects.keySet().iterator().next();
-			nodeName += " " + cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class);
+			if (cyObjects.get(cyObj).getRow(cyObj) != null) {
+				nodeName += " " + cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class);
+			}
 		} else {
 			nodeName += "s {";
 			for (CyIdentifiable cyObj : cyObjects.keySet()) {
-				nodeName += cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
+				if (cyObjects.get(cyObj).getRow(cyObj) != null) {
+					nodeName += cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
+				}
 			}
 			nodeName = nodeName.substring(0, nodeName.length() - 1) + "}";
 		}

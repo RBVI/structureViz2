@@ -91,7 +91,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	private static final int EXPANDCHAINS = 21;
 	private static final int CREATENETWORK = 22;
 	private static final int SELECT = 23;
-	private boolean ignoreSelection = false;
+	private boolean ignoreDialogSelection = false;
 	private int residueDisplay = ChimeraResidue.THREE_LETTER;
 	private boolean isCollapsing = false;
 	private TreePath collapsingPath = null;
@@ -148,7 +148,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	 */
 	public void modelChanged() {
 		// Something significant changed in the model (new open/closed structure?)
-		ignoreSelection = true;
+		ignoreDialogSelection = true;
 		treeModel.reload();
 		int modelCount = chimeraManager.getChimeraModelsCount(false);
 		if (modelCount > 1)
@@ -156,7 +156,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		else
 			alignMenu.setEnabled(false);
 		structureManager.chimeraSelectionChanged();
-		ignoreSelection = false;
+		ignoreDialogSelection = false;
 		pack();
 	}
 
@@ -284,7 +284,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			// cPaths[i].getLastPathComponent()));
 		}
 		// Update selection in Chimera
-		if (!ignoreSelection) {
+		if (!ignoreDialogSelection) {
 			structureManager.updateChimeraSelection();
 			// Update selection in Cytoscape
 			structureManager.updateCytoscapeSelection();
@@ -303,7 +303,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	public void updateSelection(List<ChimeraStructuralObject> selectionList) {
 		// System.out.println("Model Navigator Panel: updateSelection ("+selectionList+")");
 		List<TreePath> pathList = new ArrayList<TreePath>();
-		this.ignoreSelection = true;
+		this.ignoreDialogSelection = true;
 		for (ChimeraStructuralObject selectedObject : selectionList) {
 			pathList.add((TreePath) selectedObject.getUserData());
 		}
@@ -311,7 +311,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		resetSelectionState(pathList);
 		int row = navigationTree.getMaxSelectionRow();
 		navigationTree.scrollRowToVisible(row);
-		this.ignoreSelection = false;
+		this.ignoreDialogSelection = false;
 	}
 
 	/**
@@ -612,7 +612,6 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				structureManager.exitChimera();
 			} else if (type == FUNCTIONALRESIDUES) {
 				structureManager.selectFunctResidues(chimeraManager.getChimeraModels());
-				// TODO: Necessary?
 				//modelChanged();
 			} else if (type == REFRESH) {
 				structureManager.updateModels();

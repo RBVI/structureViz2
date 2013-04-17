@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
@@ -406,7 +408,9 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 *          Network the {@link CyIdentifiable} belongs to.
 	 */
 	public void addCyObject(CyIdentifiable newObj, CyNetwork network) {
-		cyObjects.put(newObj, network);
+		if (newObj != null && network != null) {
+			cyObjects.put(newObj, network);
+		}
 	}
 
 	/**
@@ -439,14 +443,18 @@ public class ChimeraModel implements ChimeraStructuralObject {
 			nodeName += " {none}";
 		} else if (cyObjects.size() == 1) {
 			CyIdentifiable cyObj = cyObjects.keySet().iterator().next();
-			if (cyObjects.get(cyObj).getRow(cyObj) != null) {
-				nodeName += " " + cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class);
+			CyNetwork network = cyObjects.get(cyObj);
+			if (network != null && (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj))
+					|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj))) {
+				nodeName += " " + network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 			}
 		} else {
 			nodeName += "s {";
 			for (CyIdentifiable cyObj : cyObjects.keySet()) {
-				if (cyObjects.get(cyObj).getRow(cyObj) != null) {
-					nodeName += cyObjects.get(cyObj).getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
+				CyNetwork network = cyObjects.get(cyObj);
+				if (network != null && (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj))
+						|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj))) {
+					nodeName += network.getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
 				}
 			}
 			nodeName = nodeName.substring(0, nodeName.length() - 1) + "}";

@@ -4,7 +4,7 @@ import static org.cytoscape.work.ServiceProperties.COMMAND;
 import static org.cytoscape.work.ServiceProperties.COMMAND_NAMESPACE;
 import static org.cytoscape.work.ServiceProperties.ENABLE_FOR;
 import static org.cytoscape.work.ServiceProperties.INSERT_SEPARATOR_BEFORE;
-import static org.cytoscape.work.ServiceProperties.IN_TOOL_BAR;
+import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
 import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
@@ -12,6 +12,7 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.util.Properties;
 
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NetworkTaskFactory;
@@ -22,6 +23,7 @@ import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucsf.rbvi.structureViz2.internal.model.CyNetworkListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.CySelectionListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
@@ -61,6 +63,8 @@ public class CyActivator extends AbstractCyActivator {
 		StructureManager structureManager = new StructureManager(bc);
 		CySelectionListener selectionListener = new CySelectionListener(structureManager);
 		registerService(bc, selectionListener, RowsSetListener.class, new Properties());
+		CyNetworkListener networkListener = new CyNetworkListener(structureManager);
+		registerService(bc, networkListener, NetworkAboutToBeDestroyedListener.class, new Properties());
 		// TODO: Do we need to register with CyServiceRegistrar?
 
 		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
@@ -70,7 +74,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresProps.setProperty(COMMAND, "openStructures");
 		openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
-		openStructuresProps.setProperty(IN_TOOL_BAR, "true");
+		openStructuresProps.setProperty(IN_MENU_BAR, "true");
 		openStructuresProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, openStructures, NodeViewTaskFactory.class, openStructuresProps);
 		registerService(bc, openStructures, NetworkViewTaskFactory.class, openStructuresProps);
@@ -83,7 +87,7 @@ public class CyActivator extends AbstractCyActivator {
 		alignStructuresProps.setProperty(COMMAND, "alignStructures");
 		alignStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		alignStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
-		alignStructuresProps.setProperty(IN_TOOL_BAR, "true");
+		alignStructuresProps.setProperty(IN_MENU_BAR, "true");
 		alignStructuresProps.setProperty(MENU_GRAVITY, "3.0");
 		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
 		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
@@ -96,7 +100,7 @@ public class CyActivator extends AbstractCyActivator {
 		createStructureNetProps.setProperty(COMMAND, "createStructureNetworks");
 		createStructureNetProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		createStructureNetProps.setProperty(ENABLE_FOR, "network");
-		createStructureNetProps.setProperty(IN_TOOL_BAR, "true");
+		createStructureNetProps.setProperty(IN_MENU_BAR, "true");
 		createStructureNetProps.setProperty(MENU_GRAVITY, "5.0");
 		registerService(bc, createStructureNet, TaskFactory.class, createStructureNetProps);
 		structureManager.setCreateStructureNetFactory(createStructureNet);
@@ -108,7 +112,7 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresProps.setProperty(COMMAND, "closeStructures");
 		closeStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
-		closeStructuresProps.setProperty(IN_TOOL_BAR, "true");
+		closeStructuresProps.setProperty(IN_MENU_BAR, "true");
 		closeStructuresProps.setProperty(MENU_GRAVITY, "7.0");
 		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
@@ -119,7 +123,7 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(TITLE, "Exit Chimera");
 		exitChimeraProps.setProperty(COMMAND, "exitChimera");
 		exitChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
-		exitChimeraProps.setProperty(IN_TOOL_BAR, "true");
+		exitChimeraProps.setProperty(IN_MENU_BAR, "true");
 		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
 		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
 
@@ -130,7 +134,7 @@ public class CyActivator extends AbstractCyActivator {
 		settingsProps.setProperty(TITLE, "Settings...");
 		settingsProps.setProperty(COMMAND, "set");
 		settingsProps.setProperty(COMMAND_NAMESPACE, "structureViz");
-		settingsProps.setProperty(IN_TOOL_BAR, "true");
+		settingsProps.setProperty(IN_MENU_BAR, "true");
 		settingsProps.setProperty(ENABLE_FOR, "network");
 		settingsProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		settingsProps.setProperty(MENU_GRAVITY, "10.0");

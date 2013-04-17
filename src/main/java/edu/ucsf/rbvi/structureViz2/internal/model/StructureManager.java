@@ -52,7 +52,7 @@ public class StructureManager {
 	static private AlignStructuresDialog alDialog = null;
 
 	static private List<ChimeraStructuralObject> chimSelectionList;
-	static public boolean ignoreCySelection = false;
+	private boolean ignoreCySelection = false;
 
 	public StructureManager(BundleContext bc) {
 		this.bundleContext = bc;
@@ -80,7 +80,8 @@ public class StructureManager {
 	// TODO: rewrite
 	public void openStructures(CyNetwork network, Map<CyIdentifiable, List<String>> chimObjNames,
 			ModelType type) {
-		if (chimObjNames.size() == 0
+		if (network == null
+				|| chimObjNames.size() == 0
 				|| (!chimeraManager.isChimeraLaunched() && !chimeraManager
 						.launchChimera(getChimeraPaths(network)))) {
 			return;
@@ -107,10 +108,14 @@ public class StructureManager {
 				}
 				// for each model
 				for (ChimeraModel currentModel : currentModels) {
-					if (ChimUtils.fromAttribute(
-							network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager) != null) {
-						potentialRINs.add(network);
-						continue;
+					if (network.containsNode((CyNode) cyObj)
+							&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)) {
+						ChimeraStructuralObject res = ChimUtils.fromAttribute(
+								network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
+						if (res != null) {
+							potentialRINs.add(network);
+							continue;
+						}
 					}
 					currentCyMap.get(cyObj).add(currentModel);
 					if (!currentChimMap.containsKey(currentModel)) {
@@ -166,7 +171,9 @@ public class StructureManager {
 		// remove all associations
 		if (currentChimMap.containsKey(model)) {
 			for (CyIdentifiable cyObj : model.getCyObjects().keySet()) {
-				if (currentCyMap.containsKey(cyObj)) {
+				if (cyObj == null) {
+					continue;
+				} else if (currentCyMap.containsKey(cyObj)) {
 					currentCyMap.get(cyObj).remove(model);
 				} else if (cyObj instanceof CyNetwork) {
 					for (ChimeraResidue residue : model.getResidues()) {
@@ -186,12 +193,18 @@ public class StructureManager {
 	}
 
 	public void addStructureNetwork(CyNetwork rin) {
+		if (rin == null) {
+			return;
+		}
 		for (CyNode node : rin.getNodeList()) {
 			networkMap.put(node, rin);
 			String residueSpec = rin.getRow(node).get(ChimUtils.RESIDUE_ATTR, String.class);
 			ChimeraResidue chimObj = (ChimeraResidue) ChimUtils
 					.fromAttribute(residueSpec, chimeraManager);
 			// chimObj.getChimeraModel().addCyObject(node, rin);
+			if (chimObj == null) {
+				continue;
+			}
 			chimObj.getChimeraModel().addCyObject(rin, rin);
 			if (!currentCyMap.containsKey(node)) {
 				currentCyMap.put(node, new HashSet<ChimeraStructuralObject>());
@@ -201,7 +214,6 @@ public class StructureManager {
 				currentChimMap.put(chimObj, new HashSet<CyIdentifiable>());
 			}
 			currentChimMap.get(chimObj).add(node);
-
 			// TODO: add rin network to model in currentChimMap?
 			// TODO: add residues to model? see Structure.setResidueList
 		}
@@ -252,14 +264,14 @@ public class StructureManager {
 				continue;
 			}
 			CyNetwork network = networkMap.get(currentCyObj);
-			// TODO: Should we unselect all nodes or use second-level selection?
-			if (currentCyObj instanceof CyNode) {
-				network.getDefaultNodeTable().getRow(currentCyObj.getSUID()).set(CyNetwork.SELECTED, false);
-			} else if (currentCyObj instanceof CyEdge) {
-				// TODO: Handle edge selection
-				network.getDefaultEdgeTable().getRow(currentCyObj.getSUID()).set(CyNetwork.SELECTED, false);
+			if (network == null) {
+				continue;
 			}
-			networks.add(network);
+			if ((currentCyObj instanceof CyNode && network.containsNode((CyNode) currentCyObj))
+					|| (currentCyObj instanceof CyEdge && network.containsEdge((CyEdge) currentCyObj))) {
+				network.getRow(currentCyObj).set(CyNetwork.SELECTED, false);
+				networks.add(network);
+			}
 		}
 
 		// select only those associated with selected Chimera objects
@@ -274,16 +286,18 @@ public class StructureManager {
 			}
 		}
 		for (CyIdentifiable cyObj : currentCyObjs) {
-			if (!networkMap.containsKey(cyObj)) {
+			if (cyObj == null || !networkMap.containsKey(cyObj)) {
 				continue;
 			}
 			CyNetwork network = networkMap.get(cyObj);
-			if (cyObj instanceof CyNode) {
-				network.getDefaultNodeTable().getRow(cyObj.getSUID()).set(CyNetwork.SELECTED, true);
-			} else if (cyObj instanceof CyEdge) {
-				network.getDefaultEdgeTable().getRow(cyObj.getSUID()).set(CyNetwork.SELECTED, true);
+			if (network == null) {
+				continue;
 			}
-			networks.add(network);
+			if ((cyObj instanceof CyNode && network.containsNode((CyNode) cyObj))
+					|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj))) {
+				network.getRow(cyObj).set(CyNetwork.SELECTED, true);
+				networks.add(network);
+			}
 		}
 
 		CyNetworkViewManager cyNetViewManager = (CyNetworkViewManager) getService(CyNetworkViewManager.class);
@@ -302,6 +316,7 @@ public class StructureManager {
 		if (ignoreCySelection || currentCyMap.size() == 0) {
 			return;
 		}
+		// clearSelectionList();
 		System.out.println("cytoscape selection changed");
 		// iterate over all cy objects with associated models
 		for (CyIdentifiable cyObj : currentCyMap.keySet()) {
@@ -311,6 +326,16 @@ public class StructureManager {
 			for (ChimeraStructuralObject chimObj : currentCyMap.get(cyObj)) {
 				if (selectedRows.get(cyObj.getSUID())) {
 					addChimSelection(chimObj);
+					if (chimObj instanceof ChimeraResidue) {
+
+						if (chimObj.getChimeraModel().isSelected()) {
+							removeChimSelection(chimObj.getChimeraModel());
+						} else if (chimObj.getChimeraModel().getChain(((ChimeraResidue) chimObj).getChainId())
+								.isSelected()) {
+							removeChimSelection(chimObj.getChimeraModel().getChain(
+									((ChimeraResidue) chimObj).getChainId()));
+						}
+					}
 				} else {
 					removeChimSelection(chimObj);
 					if (chimObj.hasSelectedChildren() && chimObj instanceof ChimeraModel) {
@@ -321,28 +346,25 @@ public class StructureManager {
 				}
 			}
 		}
+		System.out.println("selection list: " + getChimSelectionCount());
 		updateChimeraSelection();
 		selectionChanged();
 	}
 
 	public void updateChimeraSelection() {
 		System.out.println("update Chimera selection");
-		String selSpec = "sel ";
-		boolean selected = false;
-
+		String selSpec = "";
 		for (int i = 0; i < chimSelectionList.size(); i++) {
 			ChimeraStructuralObject nodeInfo = chimSelectionList.get(i);
-			// nodeInfo.setSelected(true);
-			selected = true;
 			// we do not care about the model anymore
 			selSpec = selSpec.concat(nodeInfo.toSpec());
 			// TODO: Save models in a HashMap/Set for better performance?
 			if (i < chimSelectionList.size() - 1)
 				selSpec.concat("|");
 		}
-		if (selected) {
-			chimeraManager.select(selSpec);
-		} else if (getChimSelectionCount() == 0) {
+		if (selSpec.length() > 0) {
+			chimeraManager.select("sel " + selSpec);
+		} else {
 			chimeraManager.select("~sel");
 		}
 	}
@@ -397,6 +419,7 @@ public class StructureManager {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		System.out.println("selection list: " + getChimSelectionCount());
 		// Finally, update the navigator panel
 		selectionChanged();
 		updateCytoscapeSelection();
@@ -461,6 +484,34 @@ public class StructureManager {
 		chimSelectionList.clear();
 	}
 
+	// Network to be deleted
+	public void updateMapping(CyNetwork network) {
+		if (network == null) {
+			return;
+		}
+		for (ChimeraStructuralObject chimObj : currentChimMap.keySet()) {
+			// if (currentChimMap.get(chimObj).contains(network)) {
+			// currentChimMap.get(chimObj).remove(network);
+			// }
+			if (chimObj instanceof ChimeraModel
+					&& ((ChimeraModel) chimObj).getCyObjects().containsKey(network)) {
+				System.out.println("remove network");
+				((ChimeraModel) chimObj).getCyObjects().remove(network);
+			}
+		}
+		for (CyNode node : network.getNodeList()) {
+			if (currentCyMap.containsKey(node)) {
+				for (ChimeraStructuralObject chimObj : currentCyMap.get(node)) {
+					if (currentChimMap.containsKey(chimObj)) {
+						currentChimMap.get(chimObj).remove(node);
+					}
+				}
+				currentCyMap.remove(node);
+			}
+		}
+		modelChanged();
+	}
+
 	/**
 	 * Dump and refresh all of our model/chain/residue info
 	 */
@@ -523,7 +574,7 @@ public class StructureManager {
 				chimeraManager.getResidueInfo(newModel);
 			}
 			for (CyIdentifiable cyObj : newModel.getCyObjects().keySet()) {
-				if (cyObj instanceof CyNetwork) {
+				if (cyObj != null && cyObj instanceof CyNetwork) {
 					addStructureNetwork((CyNetwork) cyObj);
 				}
 			}
@@ -562,7 +613,7 @@ public class StructureManager {
 	public void selectionChanged() {
 		if (mnDialog != null)
 			System.out.println("update dialog selection");
-		mnDialog.updateSelection(chimSelectionList);
+		mnDialog.updateSelection(new ArrayList<ChimeraStructuralObject>(chimSelectionList));
 	}
 
 	public void launchAlignDialog(boolean useChains) {

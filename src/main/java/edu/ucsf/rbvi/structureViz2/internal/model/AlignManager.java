@@ -35,7 +35,16 @@ package edu.ucsf.rbvi.structureViz2.internal.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.cytoscape.model.CyEdge;
+import org.cytoscape.model.CyEdge.Type;
+import org.cytoscape.model.CyIdentifiable;
+import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 
 /**
  * The Align class provides the interface to Chimera for processing requests to align structures.
@@ -251,28 +260,44 @@ public class AlignManager {
 	 * @param to
 	 *          the ChimeraModel that represents the CyNode to use as the destination of the edge
 	 */
-	private void setEdgeAttributes(float[] results, ChimeraModel from, ChimeraModel to) {
+	private void setEdgeAttributes(float[] results, ChimeraModel reference, ChimeraModel match) {
 		// System.out.println("From: "+from+" To: "+to+" results: "+results);
 		// TODO: Save attributes
-		// CyNetwork network = chimeraObject.getNetworkView().getNetwork();
-		// CyNode source = from.getStructure().node();
-		// CyNode target = to.getStructure().node();
-		// if (source == null || target == null) {
-		// return;
-		// }
-		// CyEdge edge = null;
-		// ArrayList nodeList = new ArrayList(2);
-		// nodeList.add(source);
-		// nodeList.add(target);
-		// List edgeList = network.getConnectingEdges(nodeList);
+		Map<CyIdentifiable, CyNetwork> refNodes = reference.getCyObjects();
+		Map<CyIdentifiable, CyNetwork> matchNodes = match.getCyObjects();
+		ArrayList<CyNode> nodeList1 = new ArrayList<CyNode>();
+		ArrayList<CyNode> nodeList2 = new ArrayList<CyNode>();
+		Set<CyNetwork> networks = new HashSet<CyNetwork>();
+		for (CyIdentifiable cyObj : refNodes.keySet()) {
+			if (cyObj instanceof CyNode) {
+				nodeList1.add((CyNode)cyObj);
+				networks.add(refNodes.get(cyObj));
+			}
+		}
+		for (CyIdentifiable cyObj : matchNodes.keySet()) {
+			if (cyObj instanceof CyNode) {
+				nodeList2.add((CyNode)cyObj);
+				networks.add(matchNodes.get(cyObj));
+			}
+		}
+		if (nodeList1.size() == 0 || nodeList2.size() == 0 || networks.size() > 1) {
+			return;
+		}
+		List<CyEdge> edgeList = new ArrayList<CyEdge>();
+		CyNetwork network = networks.iterator().next(); 
+		for (CyNode node1 : nodeList1) {
+			for (CyNode node2 : nodeList2) {
+				edgeList = network.getConnectingEdgeList(node1, node2, Type.ANY);				
+			}
+		}
 		// CyAttributes edgeAttr = Cytoscape.getEdgeAttributes();
-		// if (edgeList == null || edgeList.size() == 0 || createNewEdges ) {
+		// if (edgeList == null || edgeList.size() == 0 || createNewEdges) {
 		// edgeList = new ArrayList();
 		// // Use Cytoscape.getCyEdge()?
-		// edge = (CyEdge) Cytoscape.getRootGraph().getEdge(Cytoscape.getRootGraph().createEdge(source,
-		// target));
-		// String edge_name = source.getIdentifier() +
-		// " ("+structureInteraction+") "+target.getIdentifier();
+		// edge = (CyEdge) Cytoscape.getRootGraph().getEdge(
+		// Cytoscape.getRootGraph().createEdge(source, target));
+		// String edge_name = source.getIdentifier() + " (" + structureInteraction + ") "
+		// + target.getIdentifier();
 		// edge.setIdentifier(edge_name);
 		// edgeAttr.setAttribute(edge.getIdentifier(), "interaction", structureInteraction);
 		// network.addEdge(edge);

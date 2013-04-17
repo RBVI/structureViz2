@@ -326,7 +326,8 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		if (setPaths != null && setPaths.size() > 0) {
 			navigationTree.addSelectionPaths(setPaths.toArray(new TreePath[1]));
 		} else {
-			collapseAll();
+			// TODO: Make this work if possible
+			//collapseAll();
 		}
 	}
 

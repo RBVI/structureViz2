@@ -44,9 +44,8 @@ public class AlignStructuresTask extends AbstractTask {
 				ModelType.PDB_MODEL);
 		if (structureManager.getModelNavigatorDialog() == null) {
 			structureManager.launchModelNavigatorDialog();
-		} else if (!structureManager.getModelNavigatorDialog().isVisible()) {
-			structureManager.getModelNavigatorDialog().setVisible(true);
 		}
+		// TODO: Start in headless mode?
 		structureManager.launchAlignDialog(false);
 	}
 

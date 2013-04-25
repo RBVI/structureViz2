@@ -209,7 +209,7 @@ public class ChimeraManager {
 			sendChimeraCommand("stop really", false);
 			try {
 				chimera.destroy();
-			} catch (Exception ex){
+			} catch (Exception ex) {
 				// ignore
 			}
 		}
@@ -278,8 +278,8 @@ public class ChimeraManager {
 	public boolean isChimeraLaunched() {
 		// TODO: What is the best way to test if chimera is launched?
 
-		//sendChimeraCommand("test", true) !=null 
-		if (chimera != null ) {
+		// sendChimeraCommand("test", true) !=null
+		if (chimera != null) {
 			return true;
 		}
 		return false;
@@ -297,11 +297,10 @@ public class ChimeraManager {
 		// iterate over possible paths for starting Chimera
 		for (String chimeraPath : chimeraPaths) {
 			File path = new File(chimeraPath);
-			if (!path.canExecute())
-			{
-				error = "Path does not exist";	
+			if (!path.canExecute()) {
+				error = "Path does not exist";
 				continue;
-			}			
+			}
 			try {
 				List<String> args = new ArrayList<String>();
 				args.add(chimeraPath);
@@ -313,8 +312,8 @@ public class ChimeraManager {
 				break;
 			} catch (Exception e) {
 				// Chimera could not be starte
-				e.printStackTrace();		
-				error = "Test"+e.getMessage();
+				e.printStackTrace();
+				error = "Test" + e.getMessage();
 			}
 		}
 		// If no error, then Chimera was launched successfully
@@ -323,6 +322,7 @@ public class ChimeraManager {
 			// Initialize the listener threads
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
+			structureManager.initChimTable();
 			// Ask Chimera to give us updates
 			startListening();
 			return true;

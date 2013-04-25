@@ -43,6 +43,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Tunable(description = "Add hydrogens", groups = "General")
 	public boolean addHydrogens;
 
+	@Tunable(description = "Ignore water", groups = "General")
+	public boolean ignoreWater;
+
 	@Tunable(description = "Include contacts", groups = "Contacts")
 	public boolean includeContacts;
 
@@ -91,6 +94,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	// TODO: Add "Within model" and specify number
 	// TODO: [FIX] Different number of nodes and edges in consecutive runs
 	// TODO: Too many Interactions between two models?
+	// TODO: remove single nodes
 
 	// Edge attributes
 	static final String DISTANCE_ATTR = "MinimumDistance";
@@ -101,7 +105,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	static final String SMILES_ATTR = "SMILES";
 	static final String STRUCTURE_ATTR = "pdbFileName";
 	static final String SEED_ATTR = "SeedResidues";
-	// TODO: Schould we keep these two attributes?
+	// TODO: Should we keep these two attributes?
 	static final String BACKBONE_ATTR = "BackboneInteraction";
 	static final String SIDECHAIN_ATTR = "SideChainInteraction";
 
@@ -117,6 +121,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		includeInteracions = new ListSingleSelection<String>(interactionArray);
 		includeInteracions.setSelectedValue(interactionArray[0]);
 		addHydrogens = true;
+		ignoreWater = true;
 		includeContacts = true;
 		overlapCutoffCont = -0.4;
 		hbondAllowanceCont = 0.0;
@@ -296,7 +301,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				continue;
 
 			CyEdge edge = createEdge(rin, nodeMap, line[0], line[1], "contact");
-
+			if (edge == null) {
+				continue;
+			}
 			updateMap(distanceMap, edge, line[3], -1); // We want the smallest distance
 			updateMap(overlapMap, edge, line[2], 1); // We want the largest overlap
 		}
@@ -349,7 +356,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				continue;
 
 			CyEdge edge = createEdge(rin, nodeMap, line[0], line[1], "hbond");
-
+			if (edge == null) {
+				continue;
+			}
 			// TODO: if hydrogens added, take the other distance?
 			String distance = line[3];
 			if ((line[2].equals("no") && line[3].equals("hydrogen")) || addHydrogens) {
@@ -423,6 +432,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		// 1) FunctionalResidues; 2) Seed; 3) SideChainOnly
 		CyNode source = createResidueNode(rin, nodeMap, sourceAlias);
 		CyNode target = createResidueNode(rin, nodeMap, targetAlias);
+		if (source == null || target == null) {
+			return null;
+		}
 		String sourceAtom = ChimUtils.getAtomName(sourceAlias);
 		String targetAtom = ChimUtils.getAtomName(targetAlias);
 		String interactingAtoms = sourceAtom + "_" + targetAtom;
@@ -481,6 +493,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			singleModel = true;
 		}
 		ChimeraResidue residue = ChimUtils.getResidue(alias, model);
+		if (ignoreWater && residue.getType().equals("HOH")) {
+			return null;
+		}
 		// boolean backbone = ChimUtils.isBackbone(alias);
 
 		int displayType = ChimeraResidue.getDisplayType();

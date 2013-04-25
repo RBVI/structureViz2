@@ -106,6 +106,7 @@ public class AlignManager {
 	 * @param val
 	 *          the flag to set
 	 */
+	// TODO: never used
 	public void setCreateNewEdges(boolean val) {
 		this.createNewEdges = val;
 	};
@@ -270,13 +271,13 @@ public class AlignManager {
 		Set<CyNetwork> networks = new HashSet<CyNetwork>();
 		for (CyIdentifiable cyObj : refNodes.keySet()) {
 			if (cyObj instanceof CyNode) {
-				nodeList1.add((CyNode)cyObj);
+				nodeList1.add((CyNode) cyObj);
 				networks.add(refNodes.get(cyObj));
 			}
 		}
 		for (CyIdentifiable cyObj : matchNodes.keySet()) {
 			if (cyObj instanceof CyNode) {
-				nodeList2.add((CyNode)cyObj);
+				nodeList2.add((CyNode) cyObj);
 				networks.add(matchNodes.get(cyObj));
 			}
 		}
@@ -284,10 +285,10 @@ public class AlignManager {
 			return;
 		}
 		List<CyEdge> edgeList = new ArrayList<CyEdge>();
-		CyNetwork network = networks.iterator().next(); 
+		CyNetwork network = networks.iterator().next();
 		for (CyNode node1 : nodeList1) {
 			for (CyNode node2 : nodeList2) {
-				edgeList = network.getConnectingEdgeList(node1, node2, Type.ANY);				
+				edgeList = network.getConnectingEdgeList(node1, node2, Type.ANY);
 			}
 		}
 		// CyAttributes edgeAttr = Cytoscape.getEdgeAttributes();

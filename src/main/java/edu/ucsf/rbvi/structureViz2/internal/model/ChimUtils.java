@@ -275,7 +275,7 @@ public abstract class ChimUtils {
 			}
 
 			// System.out.println("model = "+model+" chain = "+chain+" residue = "+residue);
-
+			// TODO: How should we handle submodels in this case?
 			if (model != null) {
 				chimeraModel = chimeraManager.getChimeraModels(model, ModelType.PDB_MODEL).get(0);
 			} else {

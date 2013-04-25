@@ -444,16 +444,20 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		} else if (cyObjects.size() == 1) {
 			CyIdentifiable cyObj = cyObjects.keySet().iterator().next();
 			CyNetwork network = cyObjects.get(cyObj);
-			if (network != null && (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj))
-					|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj))) {
+			if (network != null
+					&& (cyObj instanceof CyNetwork
+							|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) 
+							|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj)))) {
 				nodeName += " " + network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 			}
 		} else {
 			nodeName += "s {";
 			for (CyIdentifiable cyObj : cyObjects.keySet()) {
 				CyNetwork network = cyObjects.get(cyObj);
-				if (network != null && (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj))
-						|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj))) {
+				if (network != null
+						&& (cyObj instanceof CyNetwork
+								|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) 
+								|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj)))) {
 					nodeName += network.getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
 				}
 			}

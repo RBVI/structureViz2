@@ -15,7 +15,8 @@ public class CreateStructureNetworkTaskFactory extends AbstractTaskFactory imple
 	}
 
 	public boolean isReady() {
-		if (structureManager.getChimeraManager().getChimeraModelsCount(false) > 0) {
+		if (structureManager.getChimeraManager().isChimeraLaunched()
+				&& structureManager.getChimeraManager().getChimeraModelsCount(false) > 0) {
 			return true;
 		}
 		return false;

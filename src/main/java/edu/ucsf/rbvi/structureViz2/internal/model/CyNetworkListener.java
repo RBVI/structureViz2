@@ -12,7 +12,7 @@ public class CyNetworkListener implements NetworkAboutToBeDestroyedListener {
 	}
 
 	public void handleEvent(NetworkAboutToBeDestroyedEvent e) {
-		structureManager.updateMapping(e.getNetwork());
+		structureManager.deassociate(e.getNetwork());
 	}
 
 }

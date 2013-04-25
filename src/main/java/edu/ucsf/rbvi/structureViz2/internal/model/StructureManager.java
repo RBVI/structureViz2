@@ -14,11 +14,15 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.model.CyTableFactory;
+import org.cytoscape.model.CyTableManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
 
@@ -40,7 +44,12 @@ public class StructureManager {
 		PDB_MODEL, MODBASE_MODEL, SMILES
 	};
 
+	private String chimeraCommandAttr = "ChimeraCommand";
+	private String chimeraOutputTable = "ChimeraTable";
+	private String chimeraOutputAttr = "ChimeraOutput";
+	private CyTable chimTable = null;
 	private BundleContext bundleContext = null;
+	private boolean haveGUI = true;
 	private ChimeraManager chimeraManager = null;
 	private CreateStructureNetworkTaskFactory structureNetFactory = null;
 	private Map<CyNetwork, StructureSettings> settings = null;
@@ -50,16 +59,20 @@ public class StructureManager {
 
 	static private ModelNavigatorDialog mnDialog = null;
 	static private AlignStructuresDialog alDialog = null;
+	static private AssociationTask aTask = null;
 
 	static private List<ChimeraStructuralObject> chimSelectionList;
 	private boolean ignoreCySelection = false;
 
-	public StructureManager(BundleContext bc) {
+	public StructureManager(BundleContext bc, boolean haveGUI) {
 		this.bundleContext = bc;
+		this.haveGUI = haveGUI;
 		settings = new HashMap<CyNetwork, StructureSettings>();
 		currentCyMap = new HashMap<CyIdentifiable, Set<ChimeraStructuralObject>>();
 		currentChimMap = new HashMap<ChimeraStructuralObject, Set<CyIdentifiable>>();
 		networkMap = new HashMap<CyIdentifiable, CyNetwork>();
+		aTask = new AssociationTask();
+		aTask.start();
 		// Create the Chimera interface
 		chimeraManager = new ChimeraManager(this);
 		chimSelectionList = new ArrayList<ChimeraStructuralObject>();
@@ -73,11 +86,10 @@ public class StructureManager {
 		return bundleContext.getService(bundleContext.getServiceReference(serviceClass.getName()));
 	}
 
-	public void setCreateStructureNetFactory(CreateStructureNetworkTaskFactory factory) {
-		this.structureNetFactory = factory;
+	public void setCreateStructureNetFactory(TaskFactory factory) {
+		this.structureNetFactory = (CreateStructureNetworkTaskFactory) factory;
 	}
 
-	// TODO: rewrite
 	public void openStructures(CyNetwork network, Map<CyIdentifiable, List<String>> chimObjNames,
 			ModelType type) {
 		if (network == null
@@ -87,7 +99,9 @@ public class StructureManager {
 			return;
 		}
 		// potential rins
-		HashSet<CyNetwork> potentialRINs = new HashSet<CyNetwork>();
+		Set<CyNetwork> potentialRINs = new HashSet<CyNetwork>();
+		// new models
+		Map<String, List<ChimeraModel>> newModels = new HashMap<String, List<ChimeraModel>>();
 		// for each node that has an associated structure
 		for (CyIdentifiable cyObj : chimObjNames.keySet()) {
 			// save node to track its selection and mapping to chimera objects
@@ -105,9 +119,11 @@ public class StructureManager {
 				if (currentModels.size() == 0) {
 					// open and return models
 					currentModels = chimeraManager.openModel(chimObjName, type);
+					newModels.put(chimObjName, currentModels);
 				}
 				// for each model
 				for (ChimeraModel currentModel : currentModels) {
+					// check if it is a RIN
 					if (network.containsNode((CyNode) cyObj)
 							&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)) {
 						ChimeraStructuralObject res = ChimUtils.fromAttribute(
@@ -117,6 +133,7 @@ public class StructureManager {
 							continue;
 						}
 					}
+					// if not RIN then associate new model with the cytoscape node
 					currentCyMap.get(cyObj).add(currentModel);
 					if (!currentChimMap.containsKey(currentModel)) {
 						currentChimMap.put(currentModel, new HashSet<CyIdentifiable>());
@@ -128,12 +145,16 @@ public class StructureManager {
 				}
 			}
 		}
+		// networks that contain nodes associated to newly opened models
+		// this will usually be of length 1
 		for (CyNetwork net : potentialRINs) {
 			addStructureNetwork(net);
 		}
+		// update dialog
 		if (mnDialog != null) {
 			mnDialog.modelChanged();
 		}
+		aTask.associate(newModels);
 	}
 
 	public void closeStructures(Map<CyIdentifiable, List<String>> chimObjNames) {
@@ -196,6 +217,7 @@ public class StructureManager {
 		if (rin == null) {
 			return;
 		}
+		ChimeraModel model = null;
 		for (CyNode node : rin.getNodeList()) {
 			networkMap.put(node, rin);
 			String residueSpec = rin.getRow(node).get(ChimUtils.RESIDUE_ATTR, String.class);
@@ -205,7 +227,8 @@ public class StructureManager {
 			if (chimObj == null) {
 				continue;
 			}
-			chimObj.getChimeraModel().addCyObject(rin, rin);
+			model = chimObj.getChimeraModel();
+			// TODO: Find bug
 			if (!currentCyMap.containsKey(node)) {
 				currentCyMap.put(node, new HashSet<ChimeraStructuralObject>());
 			}
@@ -216,6 +239,10 @@ public class StructureManager {
 			currentChimMap.get(chimObj).add(node);
 			// TODO: add rin network to model in currentChimMap?
 			// TODO: add residues to model? see Structure.setResidueList
+		}
+		if (model != null) {
+			model.addCyObject(rin, rin);
+			// updateNetworkAttr(model, rin, true);
 		}
 	}
 
@@ -237,6 +264,10 @@ public class StructureManager {
 		currentCyMap.clear();
 		currentChimMap.clear();
 		networkMap.clear();
+		if (chimTable != null) {
+			((CyTableManager) getService(CyTableManager.class)).deleteTable(chimTable.getSUID());
+		}
+		// TODO: clear attributes
 		if (mnDialog != null) {
 			if (mnDialog.isVisible()) {
 				mnDialog.lostChimera();
@@ -485,7 +516,7 @@ public class StructureManager {
 	}
 
 	// Network to be deleted
-	public void updateMapping(CyNetwork network) {
+	public void deassociate(CyNetwork network) {
 		if (network == null) {
 			return;
 		}
@@ -591,6 +622,9 @@ public class StructureManager {
 	}
 
 	public void launchModelNavigatorDialog() {
+		if (!haveGUI) {
+			return;
+		}
 		if (mnDialog == null) {
 			CySwingApplication cyApplication = (CySwingApplication) getService(CySwingApplication.class);
 			mnDialog = ModelNavigatorDialog.LaunchModelNavigator(cyApplication.getJFrame(), this);
@@ -617,6 +651,9 @@ public class StructureManager {
 	}
 
 	public void launchAlignDialog(boolean useChains) {
+		if (!haveGUI) {
+			return;
+		}
 		if (alDialog != null) {
 			alDialog.setVisible(false);
 			alDialog.dispose();
@@ -849,4 +886,88 @@ public class StructureManager {
 		}
 		return residueList;
 	}
+
+	public void initChimTable() {
+		CyTableManager manager = (CyTableManager) getService(CyTableManager.class);
+		CyTableFactory factory = (CyTableFactory) getService(CyTableFactory.class);
+		chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class, true,
+				false);
+		manager.addTable(chimTable);
+		chimTable.createListColumn(chimeraOutputAttr, String.class, false);
+	}
+
+	public void addChimReply(String command, List<String> reply) {
+		chimTable.getRow(command).set(chimeraOutputAttr, reply);
+	}
+
+	class AssociationTask extends Thread {
+
+		public AssociationTask() {
+		}
+
+		public void run() {
+		}
+
+		public synchronized void associate(Map<String, List<ChimeraModel>> newModels) {
+			CyNetworkManager netManager = (CyNetworkManager) getService(CyNetworkManager.class);
+			// iterate over all networks
+			for (CyNetwork network : netManager.getNetworkSet()) {
+				ChimeraModel rinModel = null;
+				List<CyIdentifiable> nodes = new ArrayList<CyIdentifiable>();
+				nodes.addAll(network.getNodeList());
+				// for each network get the pdb names associated with its nodes
+				Map<CyIdentifiable, List<String>> chimObjNames = getChimObjNames(network, nodes,
+						ModelType.PDB_MODEL);
+				for (CyIdentifiable cyObj : chimObjNames.keySet()) {
+					for (String modelName : chimObjNames.get(cyObj)) {
+						// node should be associated with current model
+						if (newModels.containsKey(modelName)) {
+							// add it to the map
+							if (!currentCyMap.containsKey(cyObj)) {
+								currentCyMap.put(cyObj, new HashSet<ChimeraStructuralObject>());
+							}
+							// keep track of the network it belongs to
+							if (!networkMap.containsKey(cyObj)) {
+								networkMap.put(cyObj, network);
+							}
+							// check if it is a RIN
+							ChimeraResidue residue = null;
+							if (network.containsNode((CyNode) cyObj)
+									&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)) {
+								residue = (ChimeraResidue) ChimUtils
+										.fromAttribute(network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class),
+												chimeraManager);
+							}
+							if (residue != null) {
+								// if it is a RIN save only node <-> residue association
+								currentCyMap.get(cyObj).add(residue);
+								if (!currentChimMap.containsKey(residue)) {
+									currentChimMap.put(residue, new HashSet<CyIdentifiable>());
+								}
+								currentChimMap.get(residue).add(cyObj);
+								if (rinModel == null) {
+									rinModel = residue.getChimeraModel();
+								}
+							} else {
+								// save node <-> model association
+								currentCyMap.get(cyObj).addAll(newModels.get(modelName));
+								for (ChimeraModel model : newModels.get(modelName)) {
+									if (!currentChimMap.containsKey(model)) {
+										currentChimMap.put(model, new HashSet<CyIdentifiable>());
+									}
+									currentChimMap.get(model).add(cyObj);
+									model.addCyObject(cyObj, network);
+								}
+							}
+						}
+					}
+				}
+				if (rinModel != null) {
+					rinModel.addCyObject(network, network);
+					rinModel = null;
+				}
+			}
+		}
+	}
+
 }

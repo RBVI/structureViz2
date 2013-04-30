@@ -28,10 +28,9 @@ public abstract class CyUtils {
 	public static Map<String, CyIdentifiable> getCyChimPiarsToStrings(CyNetwork network,
 			Map<CyIdentifiable, List<String>> pairs) {
 		Map<String, CyIdentifiable> pairsMap = new HashMap<String, CyIdentifiable>();
-		CyTable nodeTable = network.getDefaultNodeTable();
 		for (CyIdentifiable cyObj : pairs.keySet()) {
 			if (pairs.get(cyObj).size() > 0) {
-				String nodeName = nodeTable.getRow(cyObj.getSUID()).get(CyNetwork.NAME, String.class);
+				String nodeName = network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 				for (String name : pairs.get(cyObj)) {
 					pairsMap.put(nodeName + ": " + name, cyObj);
 				}

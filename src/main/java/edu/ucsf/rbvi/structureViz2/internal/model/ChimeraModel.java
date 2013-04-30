@@ -73,6 +73,12 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	// line = model id #0 type Molecule name 1ert
 	public ChimeraModel(String inputLine) {
 		this.name = ChimUtils.parseModelName(inputLine);
+		// TODO: Write a method to get model type
+		if (name.startsWith("smiles")) {
+			this.type = ModelType.SMILES;
+		} else {
+			this.type = ModelType.PDB_MODEL;
+		}
 		this.modelNumber = ChimUtils.parseModelNumber(inputLine)[0];
 		this.subModelNumber = ChimUtils.parseModelNumber(inputLine)[1];
 
@@ -446,8 +452,8 @@ public class ChimeraModel implements ChimeraStructuralObject {
 			CyNetwork network = cyObjects.get(cyObj);
 			if (network != null
 					&& (cyObj instanceof CyNetwork
-							|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) 
-							|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj)))) {
+							|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) || (cyObj instanceof CyEdge && network
+							.containsEdge((CyEdge) cyObj)))) {
 				nodeName += " " + network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 			}
 		} else {
@@ -456,8 +462,8 @@ public class ChimeraModel implements ChimeraStructuralObject {
 				CyNetwork network = cyObjects.get(cyObj);
 				if (network != null
 						&& (cyObj instanceof CyNetwork
-								|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) 
-								|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj)))) {
+								|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) || (cyObj instanceof CyEdge && network
+								.containsEdge((CyEdge) cyObj)))) {
 					nodeName += network.getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
 				}
 			}

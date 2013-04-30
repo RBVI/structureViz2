@@ -101,6 +101,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	static final String OVERLAP_ATTR = "MaximumOverlap";
 	static final String INTSUBTYPE_ATTR = "InteractionSubtype";
 	static final String INTATOMS_ATTR = "InteractingAtoms";
+	static final String NUMINT_ATTR = "NumberInteractions";
 	// Node attributes
 	static final String SMILES_ATTR = "SMILES";
 	static final String STRUCTURE_ATTR = "pdbFileName";
@@ -147,7 +148,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		CyNetwork rin = createNetwork();
 
 		System.out.println("start getting interactions");
-		//structureManager.ignoreCySelection = true;
+		// structureManager.ignoreCySelection = true;
 		// add hydrogens first
 		if (addHydrogens) {
 			System.out.println("Adding hudrogens");
@@ -158,30 +159,39 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(
 					getContactCommand(overlapCutoffCont, hbondAllowanceCont, bondSepCont), true);
-			parseContactReplies(replyList, rin, nodeMap);
+			if (replyList != null) {
+				parseContactReplies(replyList, rin, nodeMap);
+			}
 		}
 		if (includeClashes) {
 			System.out.println("Getting clashes");
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(
 					getContactCommand(overlapCutoffClash, hbondAllowanceClash, bondSepClash), true);
-			parseContactReplies(replyList, rin, nodeMap);
+			if (replyList != null) {
+				parseContactReplies(replyList, rin, nodeMap);
+			}
 		}
 		if (includeHBonds) {
 			System.out.println("Getting Hydrogen Bonds");
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(getHBondCommand(), true);
-			parseHBondReplies(replyList, rin, nodeMap);
+			if (replyList != null) {
+				parseHBondReplies(replyList, rin, nodeMap);
+			}
 		}
 		if (includeConnectivity) {
 			System.out.println("Getting Connectivity");
 			String command = "listphysicalchains";
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
-			parseConnectivityReplies(replyList, rin);
+			if (replyList != null) {
+				parseConnectivityReplies(replyList, rin);
+			}
 		}
+		addCombinedEdges();
 		finalizeNetwork(rin);
-		//structureManager.ignoreCySelection = false;
+		// structureManager.ignoreCySelection = false;
 		// Activate structureViz for all of our nodes
 		structureManager.addStructureNetwork(rin);
 		chimeraManager.startListening();
@@ -359,6 +369,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			if (edge == null) {
 				continue;
 			}
+			// TODO: do not create a new edge
 			// TODO: if hydrogens added, take the other distance?
 			String distance = line[3];
 			if ((line[2].equals("no") && line[3].equals("hydrogen")) || addHydrogens) {
@@ -474,10 +485,12 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 			String command = "distance " + spec1 + " " + spec2 + "; ~distance " + spec1 + " " + spec2;
 			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
-			int offset = replyList.get(0).indexOf(':');
-			Double distance = Double.valueOf(replyList.get(0).substring(offset + 1));
-			rin.getRow(edge).set(DISTANCE_ATTR, distance);
-			// chimeraObject.chimeraSend("~distance "+spec1+" "+spec2);
+			if (replyList != null) {
+				int offset = replyList.get(0).indexOf(':');
+				Double distance = Double.valueOf(replyList.get(0).substring(offset + 1));
+				rin.getRow(edge).set(DISTANCE_ATTR, distance);
+				// chimeraObject.chimeraSend("~distance "+spec1+" "+spec2);
+			}
 		}
 		return edge;
 	}
@@ -619,6 +632,10 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		return false;
 	}
 
+	private void addCombinedEdges() {
+		
+	}
+	
 	private CyNetwork createNetwork() {
 		// get factories, etc.
 		CyNetworkFactory cyNetworkFactory = (CyNetworkFactory) structureManager

@@ -31,7 +31,7 @@ public class CySelectionListener implements RowsSetListener {
 				selectedRows.put(row.get(CyIdentifiable.SUID, Long.class), (Boolean)record.getValue());
 			}
 		}
-		if (selectedRows.size() != 0) {
+		if (selectedRows.size() != 0 && structureManager.getChimeraManager().isChimeraLaunched()) {
 			structureManager.cytoscapeSelectionChanged(selectedRows);
 		}
 	}

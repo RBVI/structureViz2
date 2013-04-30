@@ -45,6 +45,7 @@ import org.cytoscape.model.CyEdge.Type;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyTable;
 
 /**
  * The Align class provides the interface to Chimera for processing requests to align structures.
@@ -75,9 +76,9 @@ public class AlignManager {
 	private StructureManager structureManager = null;
 	private ChimeraManager chimeraManager = null;
 	private HashMap results = null;
-	private boolean createEdges = false;
+	private boolean assignResults = false;
 	private boolean showSequence = false;
-	private boolean createNewEdges = true;
+	private boolean createNewEdges = false;
 
 	/**
 	 * Create a new Align object
@@ -91,13 +92,13 @@ public class AlignManager {
 	}
 
 	/**
-	 * Set the flag that tells us whether to create an edge based on the results or not.
+	 * Set the flag that tells us whether to assign the results to existing edges or not.
 	 * 
 	 * @param val
 	 *          the flag to set
 	 */
-	public void setCreateEdges(boolean val) {
-		this.createEdges = val;
+	public void setAssignResults(boolean val) {
+		this.assignResults = val;
 	};
 
 	/**
@@ -106,7 +107,6 @@ public class AlignManager {
 	 * @param val
 	 *          the flag to set
 	 */
-	// TODO: never used
 	public void setCreateNewEdges(boolean val) {
 		this.createNewEdges = val;
 	};
@@ -150,7 +150,7 @@ public class AlignManager {
 		}
 		align((ChimeraStructuralObject) reference, matchList);
 		chimeraManager.focus();
-		if (createEdges)
+		if (assignResults)
 			setAllAttributes(reference, matchList);
 	}
 
@@ -167,14 +167,13 @@ public class AlignManager {
 		results = new HashMap<String, float[]>();
 
 		for (ChimeraStructuralObject match : models) {
-			// TODO: getModel for match?
 			List<String> matchResult = singleAlign(reference, match);
 			if (matchResult != null) {
 				results.put(match.toString(), parseResults(matchResult));
 			}
 		}
 		chimeraManager.focus();
-		if (createEdges)
+		if (assignResults)
 			setAllAttributes(reference, models);
 	}
 
@@ -263,7 +262,6 @@ public class AlignManager {
 	 */
 	private void setEdgeAttributes(float[] results, ChimeraModel reference, ChimeraModel match) {
 		// System.out.println("From: "+from+" To: "+to+" results: "+results);
-		// TODO: Save attributes
 		Map<CyIdentifiable, CyNetwork> refNodes = reference.getCyObjects();
 		Map<CyIdentifiable, CyNetwork> matchNodes = match.getCyObjects();
 		ArrayList<CyNode> nodeList1 = new ArrayList<CyNode>();
@@ -281,35 +279,42 @@ public class AlignManager {
 				networks.add(matchNodes.get(cyObj));
 			}
 		}
+		// We assume that all nodes are in the same network
 		if (nodeList1.size() == 0 || nodeList2.size() == 0 || networks.size() > 1) {
 			return;
 		}
-		List<CyEdge> edgeList = new ArrayList<CyEdge>();
 		CyNetwork network = networks.iterator().next();
+		// create attributes if needed
+		CyTable edgeTable = network.getDefaultEdgeTable();
+		for (String attrKey : attributeKeys) {
+			if (edgeTable.getColumn(attrKey) == null) {
+				edgeTable.createColumn(attrKey, Double.class, false);
+			}
+		}
+		// get edges between matched nodes and assign results to the attributes
+		// if set by the user create a new edge
+		List<CyEdge> edgeList = new ArrayList<CyEdge>();
 		for (CyNode node1 : nodeList1) {
 			for (CyNode node2 : nodeList2) {
 				edgeList = network.getConnectingEdgeList(node1, node2, Type.ANY);
+				if (edgeList.size() == 0 && createNewEdges) {
+					edgeList = new ArrayList<CyEdge>();
+					CyEdge edge = network.addEdge(node1, node2, true);
+					network.getRow(edge).set(CyEdge.INTERACTION, structureInteraction);
+					network.getRow(edge).set(
+							CyNetwork.NAME,
+							network.getRow(node1).get(CyNetwork.NAME, String.class) + " (" + structureInteraction
+									+ ") " + network.getRow(node2).get(CyNetwork.NAME, String.class));
+					edgeList.add(edge);
+				}
+				for (CyEdge edge : edgeList) {
+					Double d;
+					for (int i = 0; i < 3; i++) {
+						d = new Double(results[i]);
+						network.getRow(edge).set(attributeKeys[i], d);
+					}
+				}
 			}
 		}
-		// CyAttributes edgeAttr = Cytoscape.getEdgeAttributes();
-		// if (edgeList == null || edgeList.size() == 0 || createNewEdges) {
-		// edgeList = new ArrayList();
-		// // Use Cytoscape.getCyEdge()?
-		// edge = (CyEdge) Cytoscape.getRootGraph().getEdge(
-		// Cytoscape.getRootGraph().createEdge(source, target));
-		// String edge_name = source.getIdentifier() + " (" + structureInteraction + ") "
-		// + target.getIdentifier();
-		// edge.setIdentifier(edge_name);
-		// edgeAttr.setAttribute(edge.getIdentifier(), "interaction", structureInteraction);
-		// network.addEdge(edge);
-		// } else {
-		// edge = (CyEdge) edgeList.get(0);
-		// }
-		// // Now add the attributes
-		// Double d;
-		// for (int i = 0; i < 3; i++) {
-		// d = new Double(results[i]);
-		// edgeAttr.setAttribute(edge.getIdentifier(), attributeKeys[i], d);
-		// }
 	}
 }

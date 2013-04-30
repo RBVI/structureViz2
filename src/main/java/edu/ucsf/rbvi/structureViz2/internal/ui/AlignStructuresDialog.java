@@ -45,7 +45,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -75,13 +74,14 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	ChimeraStructuralObject referenceModel;
 
 	// Dialog components
-	private JLabel titleLabel;
-	private JTable resultsTable;
-	private JPanel buttonBox;
-	private JPanel checkBoxes;
+	// private JLabel titleLabel;
+	// private JTable resultsTable;
+	// private JPanel buttonBox;
+	// private JPanel checkBoxes;
 	private JButton alignButton;
 	private JCheckBox showSequence;
 	private JCheckBox assignResults;
+	private JCheckBox createNewEdges;
 
 	// Models
 	private AlignmentTableModel tableModel;
@@ -174,11 +174,13 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 		dataPanel.add(scrollPane);
 
 		// Create the checkbox
-		JPanel checkBoxes = new JPanel(new GridLayout(2, 1));
+		JPanel checkBoxes = new JPanel(new GridLayout(3, 1));
 		showSequence = new JCheckBox("Show sequence panel for each alignment");
 		checkBoxes.add(showSequence);
 		assignResults = new JCheckBox("Assign results to Cytoscape edge attributes");
 		checkBoxes.add(assignResults);
+		createNewEdges = new JCheckBox("Create new structure interaction edges");
+		checkBoxes.add(createNewEdges);
 		checkBoxes.setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
 				new EmptyBorder(10, 10, 10, 10)));
 		checkBoxes.setMaximumSize(new Dimension(1000, 80));
@@ -235,7 +237,11 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 			}
 
 			if (assignResults.isSelected()) {
-				alignment.setCreateEdges(true);
+				alignment.setAssignResults(true);
+			}
+
+			if (createNewEdges.isSelected()) {
+				alignment.setCreateNewEdges(true);
 			}
 
 			// Align them

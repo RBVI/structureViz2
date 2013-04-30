@@ -12,7 +12,7 @@ public class SendComandTask extends AbstractTask {
 
 	private StructureManager structureManager;
 
-	@Tunable(description="Command")
+	@Tunable(description = "Command")
 	public String command;
 
 	public SendComandTask(StructureManager structureManager) {
@@ -23,6 +23,8 @@ public class SendComandTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		List<String> reply = structureManager.getChimeraManager().sendChimeraCommand(command, true);
-		structureManager.addChimReply(command, reply);
+		if (reply != null) {
+			structureManager.addChimReply(command, reply);
+		}
 	}
 }

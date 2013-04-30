@@ -52,6 +52,20 @@ public class ChimeraManager {
 		return models;
 	}
 
+	public Map<String, List<ChimeraModel>> getChimeraModelsMap() {
+		Map<String, List<ChimeraModel>> models = new HashMap<String, List<ChimeraModel>>();
+		for (ChimeraModel model : currentModelsMap.values()) {
+			String modelName = model.getModelName();
+			if (!models.containsKey(modelName)) {
+				models.put(modelName, new ArrayList<ChimeraModel>());
+			}
+			if (!models.get(modelName).contains(model)) {
+				models.get(modelName).add(model);
+			}
+		}
+		return models;
+	}
+
 	public ChimeraModel getChimeraModel(Integer modelNumber, Integer subModelNumber) {
 		Integer key = ChimUtils.makeModelKey(modelNumber, subModelNumber);
 		if (currentModelsMap.containsKey(key)) {
@@ -120,15 +134,23 @@ public class ChimeraManager {
 			return null;
 		}
 		List<ChimeraModel> models = new ArrayList<ChimeraModel>();
+		int[] modelNumbers = null;
 		for (String line : response) {
-			System.out.println("response line: " + line);
 			if (line.startsWith("#")) {
-				int[] modelNumbers = ChimUtils.parseOpenedModelNumber(line);
+				modelNumbers = ChimUtils.parseOpenedModelNumber(line);
 				if (modelNumbers[1] != 0) {
-					// what to do if multiple models?
+					// TODO: What to do if multiple models?
 				}
+			} else if (line.startsWith("smiles")) {
+				List<String> reply = sendChimeraCommand("listm type molecule spec #"
+						+ getChimeraModelsCount(true), true);
+				if (reply != null && reply.size() == 1) {
+					modelNumbers = ChimUtils.parseModelNumber(reply.get(0));
+					// TODO: Create new smiles model each time? 
+				}
+			}
+			if (modelNumbers != null) {
 				int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);
-				System.out.println("model number for opened structure: " + modelNumber);
 				if (currentModelsMap.containsKey(modelNumber)) {
 					continue;
 				}
@@ -143,12 +165,11 @@ public class ChimeraManager {
 				// Make the molecule look decent
 				// chimeraSend("repr stick "+newModel.toSpec());
 
-				if (type != StructureManager.ModelType.SMILES) {
-					// Create the information we need for the navigator
+				// Create the information we need for the navigator
+				if (type != ModelType.SMILES) {
 					getResidueInfo(newModel);
 				}
-				System.out.println("#residues: " + newModel.getResidueCount());
-				System.out.println("#chains: " + newModel.getChainCount());
+				modelNumbers = null;
 			}
 		}
 		sendChimeraCommand("focus", false);
@@ -219,23 +240,27 @@ public class ChimeraManager {
 	public Map<Integer, ChimeraModel> getSelectedModels() {
 		Map<Integer, ChimeraModel> selectedModelsMap = new HashMap<Integer, ChimeraModel>();
 		List<String> chimeraReply = sendChimeraCommand("lists level molecule", true);
-		for (String modelLine : chimeraReply) {
-			ChimeraModel chimeraModel = new ChimeraModel(modelLine);
-			Integer modelKey = ChimUtils.makeModelKey(chimeraModel.getModelNumber(),
-					chimeraModel.getSubModelNumber());
-			selectedModelsMap.put(modelKey, chimeraModel);
+		if (chimeraReply != null) {
+			for (String modelLine : chimeraReply) {
+				ChimeraModel chimeraModel = new ChimeraModel(modelLine);
+				Integer modelKey = ChimUtils.makeModelKey(chimeraModel.getModelNumber(),
+						chimeraModel.getSubModelNumber());
+				selectedModelsMap.put(modelKey, chimeraModel);
+			}
 		}
 		return selectedModelsMap;
 	}
 
 	public void getSelectedResidues(Map<Integer, ChimeraModel> selectedModelsMap) {
 		List<String> chimeraReply = sendChimeraCommand("lists level residue", true);
-		for (String inputLine : chimeraReply) {
-			ChimeraResidue r = new ChimeraResidue(inputLine);
-			Integer modelKey = ChimUtils.makeModelKey(r.getModelNumber(), r.getSubModelNumber());
-			if (selectedModelsMap.containsKey(modelKey)) {
-				ChimeraModel model = selectedModelsMap.get(modelKey);
-				model.addResidue(r);
+		if (chimeraReply != null) {
+			for (String inputLine : chimeraReply) {
+				ChimeraResidue r = new ChimeraResidue(inputLine);
+				Integer modelKey = ChimUtils.makeModelKey(r.getModelNumber(), r.getSubModelNumber());
+				if (selectedModelsMap.containsKey(modelKey)) {
+					ChimeraModel model = selectedModelsMap.get(modelKey);
+					model.addResidue(r);
+				}
 			}
 		}
 	}
@@ -265,12 +290,15 @@ public class ChimeraManager {
 	 */
 	public List<String> getPresets() {
 		ArrayList<String> presetList = new ArrayList<String>();
-		for (String preset : sendChimeraCommand("preset list", true)) {
-			preset = preset.substring(7); // Skip over the "Preset"
-			preset = preset.replaceFirst("\"", "(");
-			preset = preset.replaceFirst("\"", ")");
-			// string now looks like: type number (description)
-			presetList.add(preset);
+		List<String> output = sendChimeraCommand("preset list", true);
+		if (output != null) {
+			for (String preset : output) {
+				preset = preset.substring(7); // Skip over the "Preset"
+				preset = preset.replaceFirst("\"", "(");
+				preset = preset.replaceFirst("\"", ")");
+				// string now looks like: type number (description)
+				presetList.add(preset);
+			}
 		}
 		return presetList;
 	}
@@ -365,6 +393,9 @@ public class ChimeraManager {
 		// Get the list -- it will be in the reply log
 		List<String> reply = sendChimeraCommand("listr spec #" + modelNumber + "." + subModelNumber,
 				true);
+		if (reply == null) {
+			return;
+		}
 		for (String inputLine : reply) {
 			ChimeraResidue r = new ChimeraResidue(inputLine);
 			if (r.getModelNumber() == modelNumber || r.getSubModelNumber() == subModelNumber) {

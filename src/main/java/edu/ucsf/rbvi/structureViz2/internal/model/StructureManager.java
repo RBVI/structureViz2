@@ -35,7 +35,7 @@ import edu.ucsf.rbvi.structureViz2.internal.ui.ModelNavigatorDialog;
  */
 public class StructureManager {
 	static final String[] defaultStructureKeys = { "Structure", "pdb", "pdbFileName", "PDB ID",
-			"structure", "biopax.xref.PDB", "pdb_ids" };
+			"structure", "biopax.xref.PDB", "pdb_ids", "ModelName", "ModelNumber" };
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList", "Residues" };
 
@@ -513,6 +513,14 @@ public class StructureManager {
 		chimSelectionList.clear();
 	}
 
+	public void associate(CyNetwork network) {
+		if (network != null) {
+			aTask.associate(network);
+		} else {
+			aTask.associate();
+		}
+	}
+
 	/**
 	 * De-associate a network from its mapping to Chimera objects.
 	 * 
@@ -565,9 +573,6 @@ public class StructureManager {
 	 * 
 	 * @param network
 	 */
-	public void associate(CyNetwork network) {
-		aTask.associateNetwork(network, chimeraManager.getChimeraModelsMap());
-	}
 
 	/**
 	 * Dump and refresh all of our model/chain/residue info
@@ -917,10 +922,19 @@ public class StructureManager {
 	public void initChimTable() {
 		CyTableManager manager = (CyTableManager) getService(CyTableManager.class);
 		CyTableFactory factory = (CyTableFactory) getService(CyTableFactory.class);
-		chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class, true,
-				true);
-		manager.addTable(chimTable);
-		chimTable.createListColumn(chimeraOutputAttr, String.class, false);
+		for (CyTable table : manager.getGlobalTables()) {
+			if (table.getTitle().equals(chimeraOutputTable)) {
+				chimTable = table;
+			}
+		}
+		if (chimTable == null) {
+			chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class, true,
+					true);
+			manager.addTable(chimTable);
+		}
+		if (chimTable.getColumn(chimeraOutputAttr) == null) {
+			chimTable.createListColumn(chimeraOutputAttr, String.class, false);
+		}
 	}
 
 	public void addChimReply(String command, List<String> reply) {
@@ -935,8 +949,21 @@ public class StructureManager {
 		public void run() {
 		}
 
+		public void associate(CyNetwork network) {
+			associateNetwork(network, chimeraManager.getChimeraModelsMap());
+		}
+
 		public void associate(Map<String, List<ChimeraModel>> newModels) {
 			CyNetworkManager netManager = (CyNetworkManager) getService(CyNetworkManager.class);
+			// iterate over all networks
+			for (CyNetwork network : netManager.getNetworkSet()) {
+				associateNetwork(network, newModels);
+			}
+		}
+
+		public void associate() {
+			CyNetworkManager netManager = (CyNetworkManager) getService(CyNetworkManager.class);
+			Map<String, List<ChimeraModel>> newModels = chimeraManager.getChimeraModelsMap();
 			// iterate over all networks
 			for (CyNetwork network : netManager.getNetworkSet()) {
 				associateNetwork(network, newModels);
@@ -965,8 +992,10 @@ public class StructureManager {
 						}
 						// check if it is a RIN
 						ChimeraResidue residue = null;
-						if (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)
-								&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)) {
+						if (cyObj instanceof CyNode
+								&& network.containsNode((CyNode) cyObj)
+								&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)
+								&& network.getDefaultNodeTable().getColumn(ChimUtils.RESIDUE_ATTR).getType() == String.class) {
 							residue = (ChimeraResidue) ChimUtils.fromAttribute(
 									network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
 						}

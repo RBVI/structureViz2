@@ -35,6 +35,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
@@ -123,6 +124,16 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresProps.setProperty(MENU_GRAVITY, "7.0");
 		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
+
+		TaskFactory launchChimera = new LaunchChimeraTaskFactory(structureManager);
+		Properties launchChimeraProps = new Properties();
+		launchChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		launchChimeraProps.setProperty(TITLE, "Launch Chimera");
+		launchChimeraProps.setProperty(COMMAND, "launchChimera");
+		launchChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		launchChimeraProps.setProperty(IN_MENU_BAR, "true");
+		launchChimeraProps.setProperty(MENU_GRAVITY, "8.0");
+		registerService(bc, launchChimera, TaskFactory.class, launchChimeraProps);
 
 		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
 		Properties exitChimeraProps = new Properties();

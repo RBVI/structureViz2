@@ -13,26 +13,52 @@ import org.cytoscape.model.events.RowsSetListener;
 
 public class CySelectionListener implements RowsSetListener {
 
-	StructureManager structureManager;
+	private StructureManager structureManager;
 
 	public CySelectionListener(StructureManager manager) {
 		this.structureManager = manager;
 	}
 
 	public void handleEvent(RowsSetEvent e) {
-		Map<Long, Boolean> selectedRows = new HashMap<Long, Boolean>();
+		if (!structureManager.getChimeraManager().isChimeraLaunched()) {
+			return;
+		}
 		if (e.containsColumn(CyNetwork.SELECTED)) {
+			Map<Long, Boolean> selectedRows = new HashMap<Long, Boolean>();
 			Collection<RowSetRecord> records = e.getColumnRecords(CyNetwork.SELECTED);
 			for (RowSetRecord record : records) {
 				CyRow row = record.getRow();
 				// This is a hack to avoid double selection...
 				if (row.toString().indexOf("FACADE") >= 0)
 					continue;
-				selectedRows.put(row.get(CyIdentifiable.SUID, Long.class), (Boolean)record.getValue());
+				selectedRows.put(row.get(CyIdentifiable.SUID, Long.class), (Boolean) record.getValue());
 			}
-		}
-		if (selectedRows.size() != 0 && structureManager.getChimeraManager().isChimeraLaunched()) {
-			structureManager.cytoscapeSelectionChanged(selectedRows);
+			if (selectedRows.size() != 0) {
+				structureManager.cytoscapeSelectionChanged(selectedRows);
+			}
+		} else {
+			boolean update = false;
+			String[] defaultstructurekeys = structureManager.defaultStructureKeys;
+			for (int i = 0; i < defaultstructurekeys.length; i++) {
+				String structureKey = defaultstructurekeys[i];
+				if (e.containsColumn(structureKey)) {
+					Collection<RowSetRecord> records = e.getColumnRecords(structureKey);
+					for (RowSetRecord record : records) {
+						CyRow row = record.getRow();
+						// This is a hack to avoid double selection...
+						if (row.toString().indexOf("FACADE") >= 0
+								|| !row.isSet(structureKey)) {
+							continue;
+						} else {
+							update = true;
+							break;
+						}
+					}
+				}
+			}
+			if (update) {
+				structureManager.associate(null);
+			}
 		}
 	}
 }

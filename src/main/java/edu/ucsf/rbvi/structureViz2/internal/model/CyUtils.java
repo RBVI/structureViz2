@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 
@@ -54,6 +55,17 @@ public abstract class CyUtils {
 			selectedPairsMap.get(cyObj).add(names[1].trim());
 		}
 		return selectedPairsMap;
+	}
+
+	public static String getNodeName(CyNetwork network, CyNode node) {
+		return getNodeName(network, node, CyNetwork.NAME);
+	}
+
+	public static String getNodeName(CyNetwork network, CyNode node, String attr) {
+		if (network.containsNode(node) && network.getRow(node).isSet(attr)) {
+			return network.getRow(node).get(attr, String.class);
+		}
+		return "";
 	}
 
 }

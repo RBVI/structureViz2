@@ -35,6 +35,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.ImportTrajectoryRINTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
@@ -144,6 +145,14 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(IN_MENU_BAR, "true");
 		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
 		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
+
+		// TaskFactory importNet = new ImportTrajectoryRINTaskFactory(structureManager, null);
+		// Properties importNetProps = new Properties();
+		// importNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		// importNetProps.setProperty(TITLE, "Import Network from Chimera");
+		// importNetProps.setProperty(IN_MENU_BAR, "true");
+		// importNetProps.setProperty(MENU_GRAVITY, "11.0");
+		// registerService(bc, importNet, TaskFactory.class, importNetProps);
 
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(
 				structureManager);

@@ -321,7 +321,7 @@ public class ChimeraManager {
 		}
 
 		// Try to launch Chimera (eventually using one of the possible paths)
-		String error = "";
+		String error = "Error message: ";
 		// iterate over possible paths for starting Chimera
 		for (String chimeraPath : chimeraPaths) {
 			File path = new File(chimeraPath);
@@ -339,9 +339,9 @@ public class ChimeraManager {
 				error = "";
 				break;
 			} catch (Exception e) {
-				// Chimera could not be starte
-				e.printStackTrace();
-				error = "Test" + e.getMessage();
+				// Chimera could not be started
+				// e.printStackTrace();
+				error += e.getMessage();
 			}
 		}
 		// If no error, then Chimera was launched successfully

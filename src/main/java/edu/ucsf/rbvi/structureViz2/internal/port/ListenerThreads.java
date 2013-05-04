@@ -9,10 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cytoscape.work.TaskManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.ImportTrajectoryRINTaskFactory;
 
 /***************************************************
  *                 Thread Classes                  *
@@ -110,6 +112,8 @@ public class ListenerThreads extends Thread {
 				(new ModelUpdater()).start();
 			} else if (line.startsWith("SelectionChanged: ")) {
 				(new SelectionUpdater()).start();
+			} else if (line.startsWith("Trajectory residue network files:")) {
+				(new NetworkUpdater(line)).start();
 			}
 		}
 		return;
@@ -124,6 +128,7 @@ public class ListenerThreads extends Thread {
 		List<String> reply = new ArrayList<String>();
 		boolean updateModels = false;
 		boolean updateSelection = false;
+		boolean importNetwork = false;
 		String line = null;
 
 		synchronized (replyLog) {
@@ -143,6 +148,8 @@ public class ListenerThreads extends Thread {
 					continue;
 				} else if (!line.startsWith("CMD")) {
 					reply.add(line);
+				} else if (line.startsWith("Trajectory residue network files:")) {
+					importNetwork = true;
 				}
 			}
 			replyLog.put(command, reply);
@@ -151,7 +158,9 @@ public class ListenerThreads extends Thread {
 			(new ModelUpdater()).start();
 		if (updateSelection)
 			(new SelectionUpdater()).start();
-
+		if (importNetwork) {
+			(new NetworkUpdater(line)).start();
+		}
 		return;
 	}
 
@@ -184,6 +193,28 @@ public class ListenerThreads extends Thread {
 			try {
 				// System.out.println("Calling updateSelection");
 				structureManager.chimeraSelectionChanged();
+			} catch (Exception e) {
+			}
+		}
+	}
+
+	/**
+	 * Selection updater thread
+	 */
+	class NetworkUpdater extends Thread {
+
+		private String line;
+
+		public NetworkUpdater(String line) {
+			this.line = line;
+		}
+
+		public void run() {
+			try {
+				// System.out.println("Calling updateSelection");
+				System.out.println("Start import network task 2");
+				((TaskManager<?, ?>) structureManager.getService(TaskManager.class))
+						.execute(new ImportTrajectoryRINTaskFactory(structureManager, line).createTaskIterator());
 			} catch (Exception e) {
 			}
 		}

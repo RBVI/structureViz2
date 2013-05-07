@@ -124,7 +124,6 @@ public class ChimeraManager {
 		if (type == StructureManager.ModelType.MODBASE_MODEL) {
 			response = sendChimeraCommand("open modbase:" + modelName, true);
 		} else if (type == StructureManager.ModelType.SMILES) {
-			// TODO: Figure out why open smiles is not working in Chimera
 			response = sendChimeraCommand("open smiles:" + modelName, true);
 		} else {
 			response = sendChimeraCommand("open " + modelName, true);

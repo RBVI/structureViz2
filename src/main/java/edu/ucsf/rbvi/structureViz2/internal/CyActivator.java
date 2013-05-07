@@ -35,7 +35,6 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
-import edu.ucsf.rbvi.structureViz2.internal.tasks.ImportTrajectoryRINTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;

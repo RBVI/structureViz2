@@ -94,7 +94,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	// TODO: Add "Within model" and specify number
 	// TODO: [FIX] Different number of nodes and edges in consecutive runs
 	// TODO: Too many Interactions between two models?
-	// TODO: remove single nodes
+	// TODO: remove single nodes?
 
 	// Edge attributes
 	static final String DISTANCE_ATTR = "MinimumDistance";
@@ -361,8 +361,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		for (++index; index < replyLog.size(); index++) {
 			System.out.println(replyLog.get(index));
 			String[] line = replyLog.get(index).trim().split("\\s+");
-			// TODO: Why 7?
-			if (line.length != 5 && line.length != 6 && line.length != 7)
+			if (line.length != 5 && line.length != 6)
 				continue;
 
 			CyEdge edge = createEdge(rin, nodeMap, line[0], line[1], "hbond");

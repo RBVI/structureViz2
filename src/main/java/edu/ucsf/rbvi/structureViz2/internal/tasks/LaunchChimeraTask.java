@@ -17,13 +17,16 @@ public class LaunchChimeraTask extends AbstractTask {
 
 	public LaunchChimeraTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
-		chimeraPath = "";
+		chimeraPath = structureManager.getDefaultChimeraPath();
 	}
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		List<String> pathList = structureManager.getChimeraPaths(null);
-		pathList.add(chimeraPath);
+		if (chimeraPath.length() > 0) {
+			pathList.add(chimeraPath);
+			structureManager.setDefaultChimeraPath(chimeraPath);
+		}
 		if (structureManager.getChimeraManager().launchChimera(pathList)
 				&& structureManager.getModelNavigatorDialog() == null) {
 			structureManager.launchModelNavigatorDialog();

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.cytoscape.application.swing.CySwingApplication;
@@ -20,6 +21,10 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableFactory;
 import org.cytoscape.model.CyTableManager;
+import org.cytoscape.property.CyProperty;
+import org.cytoscape.property.SimpleCyProperty;
+import org.cytoscape.session.CySession;
+import org.cytoscape.session.CySessionManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskFactory;
@@ -42,6 +47,8 @@ public class StructureManager {
 	public enum ModelType {
 		PDB_MODEL, MODBASE_MODEL, SMILES
 	};
+	public static Properties pathProps;
+	
 
 	private String chimeraCommandAttr = "ChimeraCommand";
 	private String chimeraOutputTable = "ChimeraTable";
@@ -75,6 +82,7 @@ public class StructureManager {
 		// Create the Chimera interface
 		chimeraManager = new ChimeraManager(this);
 		chimSelectionList = new ArrayList<ChimeraStructuralObject>();
+		pathProps = new Properties();
 	}
 
 	public ChimeraManager getChimeraManager() {
@@ -229,7 +237,6 @@ public class StructureManager {
 				continue;
 			}
 			model = chimObj.getChimeraModel();
-			// TODO: Find bug
 			if (!currentCyMap.containsKey(node)) {
 				currentCyMap.put(node, new HashSet<ChimeraStructuralObject>());
 			}
@@ -239,7 +246,6 @@ public class StructureManager {
 			}
 			currentChimMap.get(chimObj).add(node);
 			// TODO: add rin network to model in currentChimMap?
-			// TODO: add residues to model? see Structure.setResidueList
 		}
 		if (model != null) {
 			model.addCyObject(rin, rin);
@@ -577,7 +583,6 @@ public class StructureManager {
 	/**
 	 * Dump and refresh all of our model/chain/residue info
 	 */
-	// TODO: Fix!
 	public void updateModels() {
 		// Stop all of our listeners while we try to handle this
 		chimeraManager.stopListening();
@@ -851,6 +856,68 @@ public class StructureManager {
 		if (!settings.containsKey(network))
 			return Arrays.asList(defaultResidueKeys);
 		return settings.get(network).getResidueColumns().getSelectedValues();
+	}
+
+	public String getDefaultChimeraPath() {
+		String path = "";
+		CyProperty<?> defaultPathProperty = null;
+		CySessionManager sessionManager = (CySessionManager) getService(CySessionManager.class);
+		if (sessionManager != null) {
+			CySession session = sessionManager.getCurrentSession();
+			if (session != null) {
+				Set<CyProperty<?>> props = session.getProperties();
+				if (props != null) {
+					for (CyProperty<?> prop : props) {
+						if (prop.getName() != null) {
+							if (prop.getName().equals("defaultChimeraPath")) {
+								defaultPathProperty = prop;
+								Properties pathProps = (Properties) defaultPathProperty.getProperties();
+								path = pathProps.getProperty("defaultChimeraPath");
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		return path;
+	}
+
+	public void setDefaultChimeraPath(String path) {
+		// TODO: Make this work
+		CyProperty<?> defaultPathProperty = null;
+		CySessionManager sessionManager = (CySessionManager) getService(CySessionManager.class);
+		if (sessionManager != null) {
+			CySession session = sessionManager.getCurrentSession();
+			if (session != null) {
+				Set<CyProperty<?>> props = session.getProperties();
+				if (props != null) {
+					boolean propExists = false;
+					for (CyProperty<?> prop : props) {
+						System.out.println("prop: " + prop.toString());
+						if (prop.getName() != null) {
+							System.out.println(prop.getName());
+							if (prop.getName().equals("defaultChimeraPath")) {
+								defaultPathProperty = prop;
+								pathProps = (Properties) defaultPathProperty.getProperties();
+								if (!pathProps.getProperty("defaultChimeraPath").equals(path)) {
+									pathProps.setProperty("defaultChimeraPath", path);
+									// session.getProperties().add(defaultPathProperty);
+									propExists = true;
+									break;
+								}
+							}
+						}
+					}
+					if (!propExists) {
+						pathProps.setProperty("defaultChimeraPath", path);
+						defaultPathProperty = new SimpleCyProperty("defaultChimeraPath", pathProps,
+								String.class, CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
+						//session.getProperties().add(defaultPathProperty);
+					}
+				}
+			}
+		}
 	}
 
 	public List<String> getChimeraPaths(CyNetwork network) {

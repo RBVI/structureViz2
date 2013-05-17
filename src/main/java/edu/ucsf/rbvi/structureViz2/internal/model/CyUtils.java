@@ -33,7 +33,7 @@ public abstract class CyUtils {
 			if (pairs.get(cyObj).size() > 0) {
 				String nodeName = network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 				for (String name : pairs.get(cyObj)) {
-					pairsMap.put(nodeName + ": " + name, cyObj);
+					pairsMap.put(nodeName + " \t" + name, cyObj);
 				}
 			}
 		}
@@ -44,7 +44,7 @@ public abstract class CyUtils {
 			Map<String, CyIdentifiable> allPairs) {
 		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();
 		for (String selectedPair : selectedPairs) {
-			String[] names = selectedPair.split(":");
+			String[] names = selectedPair.split("\t");
 			if (names.length != 2) {
 				continue;
 			}

@@ -12,6 +12,7 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
@@ -632,9 +633,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	}
 
 	private void addCombinedEdges() {
-		
+
 	}
-	
+
 	private CyNetwork createNetwork() {
 		// get factories, etc.
 		CyNetworkFactory cyNetworkFactory = (CyNetworkFactory) structureManager
@@ -669,6 +670,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				.getService(CyNetworkViewManager.class);
 		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureManager
 				.getService(CyNetworkManager.class);
+		NetworkViewTaskFactory rinalyzerVisProps = (NetworkViewTaskFactory) structureManager
+				.getService(NetworkViewTaskFactory.class,
+						"(&(commandNamespace=rinalyzer)(command=initRinVisProps))");
 
 		// register network
 		cyNetworkManager.addNetwork(network);
@@ -688,26 +692,27 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		views.add(rinView);
 		insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
 		// Set vizmap
-		VisualMappingManager cyVmManager = (VisualMappingManager) structureManager
-				.getService(VisualMappingManager.class);
-		VisualStyleFactory cyVsFactory = (VisualStyleFactory) structureManager
-				.getService(VisualStyleFactory.class);
-		VisualStyle rinStyle = null;
-		for (VisualStyle vs : cyVmManager.getAllVisualStyles()) {
-			if (vs.getTitle().equals("RIN style")) {
-				rinStyle = vs;
+		if (rinalyzerVisProps != null) {
+			insertTasksAfterCurrentTask(rinalyzerVisProps.createTaskIterator(rinView));
+		} else {
+			VisualMappingManager cyVmManager = (VisualMappingManager) structureManager
+					.getService(VisualMappingManager.class);
+			VisualStyleFactory cyVsFactory = (VisualStyleFactory) structureManager
+					.getService(VisualStyleFactory.class);
+			VisualStyle rinStyle = null;
+			for (VisualStyle vs : cyVmManager.getAllVisualStyles()) {
+				if (vs.getTitle().equals("RIN style")) {
+					rinStyle = vs;
+				}
 			}
+			if (rinStyle == null) {
+				rinStyle = cyVsFactory.createVisualStyle(cyVmManager.getDefaultVisualStyle());
+				rinStyle.setTitle("RIN style");
+				cyVmManager.addVisualStyle(rinStyle);
+			}
+			cyVmManager.setVisualStyle(rinStyle, rinView);
+			rinStyle.apply(rinView);
 		}
-		if (rinStyle == null) {
-			rinStyle = cyVsFactory.createVisualStyle(cyVmManager.getDefaultVisualStyle());
-			rinStyle.setTitle("RIN style");
-			cyVmManager.addVisualStyle(rinStyle);
-		}
-		cyVmManager.setVisualStyle(rinStyle, rinView);
-		rinStyle.apply(rinView);
 		rinView.updateView();
-		// CySwingApplication application = (CySwingApplication) structureViz
-		// .getService(CySwingApplication.class);
-		// application.getJFrame().repaint();
 	}
 }

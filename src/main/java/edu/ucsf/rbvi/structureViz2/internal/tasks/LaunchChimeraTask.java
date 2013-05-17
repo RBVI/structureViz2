@@ -23,6 +23,7 @@ public class LaunchChimeraTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		List<String> pathList = structureManager.getChimeraPaths(null);
+		chimeraPath = chimeraPath.trim();
 		if (chimeraPath.length() > 0) {
 			pathList.add(chimeraPath);
 			structureManager.setDefaultChimeraPath(chimeraPath);

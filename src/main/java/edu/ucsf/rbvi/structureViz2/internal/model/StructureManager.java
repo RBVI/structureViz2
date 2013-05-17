@@ -30,6 +30,7 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.ui.AlignStructuresDialog;
@@ -93,6 +94,21 @@ public class StructureManager {
 		return bundleContext.getService(bundleContext.getServiceReference(serviceClass.getName()));
 	}
 
+	public Object getService(Class<?> serviceClass, String filter) {
+		// TODO: [Cy3] Seems to work but may have to re revised
+		try {
+			ServiceReference[] services = bundleContext.getServiceReferences(serviceClass.getName(), filter);
+			if (services != null && services.length > 0) {
+				return bundleContext.getService(services[0]);
+			}
+		} catch (Exception ex) {
+			// ignore
+			//ex.printStackTrace();
+		}
+		return null;
+	}
+
+	
 	public void setCreateStructureNetFactory(TaskFactory factory) {
 		this.structureNetFactory = (CreateStructureNetworkTaskFactory) factory;
 	}

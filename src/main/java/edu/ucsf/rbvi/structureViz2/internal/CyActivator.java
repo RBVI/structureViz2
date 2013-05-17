@@ -32,6 +32,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.CyNetworkListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.CySelectionListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.AnnotateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
@@ -67,11 +68,14 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, selectionListener, RowsSetListener.class, new Properties());
 		CyNetworkListener networkListener = new CyNetworkListener(structureManager);
 		registerService(bc, networkListener, NetworkAddedListener.class, new Properties());
-		registerService(bc, networkListener, NetworkAboutToBeDestroyedListener.class, new Properties());
+		registerService(bc, networkListener, NetworkAboutToBeDestroyedListener.class,
+				new Properties());
 		// TODO: Listen for new attribute values and not nodes/edges added
 		CyIdentifiableListener cyIdentifiableListener = new CyIdentifiableListener(structureManager);
-		registerService(bc, cyIdentifiableListener, AboutToRemoveNodesListener.class, new Properties());
-		registerService(bc, cyIdentifiableListener, AboutToRemoveEdgesListener.class, new Properties());
+		registerService(bc, cyIdentifiableListener, AboutToRemoveNodesListener.class,
+				new Properties());
+		registerService(bc, cyIdentifiableListener, AboutToRemoveEdgesListener.class,
+				new Properties());
 		// TODO: Do we need to register with CyServiceRegistrar?
 
 		// TODO: Add a task for opening the molecular navigator dialog
@@ -145,7 +149,8 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
 		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
 
-		// TaskFactory importNet = new ImportTrajectoryRINTaskFactory(structureManager, null);
+		// TaskFactory importNet = new
+		// ImportTrajectoryRINTaskFactory(structureManager, null);
 		// Properties importNetProps = new Properties();
 		// importNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		// importNetProps.setProperty(TITLE, "Import Network from Chimera");
@@ -172,6 +177,17 @@ public class CyActivator extends AbstractCyActivator {
 		commandProps.setProperty(COMMAND, "sendCommand");
 		commandProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, sendCommandTaskFactory, TaskFactory.class, commandProps);
+
+		TaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
+		Properties annotateProps = new Properties();
+		annotateProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		annotateProps.setProperty(TITLE, "Annotate Structure Network");
+		annotateProps.setProperty(COMMAND, "annotateRIN");
+		annotateProps.setProperty(COMMAND_NAMESPACE, "rinalyzer");
+		annotateProps.setProperty(IN_MENU_BAR, "true");
+		annotateProps.setProperty(ENABLE_FOR, "network");
+		registerService(bc, annotateFactory, NetworkTaskFactory.class, annotateProps);
+
 	}
 
 }

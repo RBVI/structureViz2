@@ -8,10 +8,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cytoscape.model.CyEdge;
+import org.cytoscape.model.CyEdge.Type;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
@@ -21,8 +23,10 @@ import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
+import org.cytoscape.work.TunableSetter;
 import org.cytoscape.work.util.ListSingleSelection;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
@@ -191,10 +195,16 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			}
 		}
 		addCombinedEdges();
-		finalizeNetwork(rin);
+
+		// register network
+		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureManager
+				.getService(CyNetworkManager.class);
+		cyNetworkManager.addNetwork(rin);
+
 		// structureManager.ignoreCySelection = false;
 		// Activate structureViz for all of our nodes
 		structureManager.addStructureNetwork(rin);
+		finalizeNetwork(rin);
 		chimeraManager.startListening();
 	}
 
@@ -306,7 +316,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		Map<CyEdge, Double> distanceMap = new HashMap<CyEdge, Double>();
 		Map<CyEdge, Double> overlapMap = new HashMap<CyEdge, Double>();
 		for (++index; index < replyLog.size(); index++) {
-			System.out.println(replyLog.get(index));
+			// System.out.println(replyLog.get(index));
 			String[] line = replyLog.get(index).trim().split("\\s+");
 			if (line.length != 4)
 				continue;
@@ -360,7 +370,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 		Map<CyEdge, Double> distanceMap = new HashMap<CyEdge, Double>();
 		for (++index; index < replyLog.size(); index++) {
-			System.out.println(replyLog.get(index));
+			// System.out.println(replyLog.get(index));
 			String[] line = replyLog.get(index).trim().split("\\s+");
 			if (line.length != 5 && line.length != 6)
 				continue;
@@ -455,7 +465,23 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				+ ChimUtils.getIntSubtype(rin.getRow(target).get(CyNetwork.NAME, String.class), targetAtom);
 
 		// Create our edge
-		CyEdge edge = rin.addEdge(source, target, true);
+		CyEdge edge = null;
+		if (type.equals("hbond")) {
+			List<CyEdge> existingEdges = rin.getConnectingEdgeList(source, target, Type.ANY);
+			if (existingEdges.size() > 0) {
+				for (CyEdge exEdge : existingEdges) {
+					if (rin.getRow(exEdge).get(CyEdge.INTERACTION, String.class).equals("contact")
+							&& rin.getRow(exEdge).get(INTATOMS_ATTR, String.class).equals(interactingAtoms)) {
+						// TODO: delete overlap attribute for this edge
+						edge = exEdge;
+						break;
+					}
+				}
+			}
+		}
+		if (edge == null) {
+			edge = rin.addEdge(source, target, true);
+		}
 		String edgeName = rin.getRow(source).get(CyNetwork.NAME, String.class) + " "
 				+ rin.getRow(target).get(CyNetwork.NAME, String.class);
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
@@ -668,14 +694,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				.getService(CyNetworkViewFactory.class);
 		CyNetworkViewManager cyNetworkViewManager = (CyNetworkViewManager) structureManager
 				.getService(CyNetworkViewManager.class);
-		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureManager
-				.getService(CyNetworkManager.class);
-		NetworkViewTaskFactory rinalyzerVisProps = (NetworkViewTaskFactory) structureManager
-				.getService(NetworkViewTaskFactory.class,
-						"(&(commandNamespace=rinalyzer)(command=initRinVisProps))");
-
-		// register network
-		cyNetworkManager.addNetwork(network);
 
 		// Create a network view
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
@@ -691,7 +709,25 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		Set<CyNetworkView> views = new HashSet<CyNetworkView>();
 		views.add(rinView);
 		insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
+
+		// annotate
+		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
+		// (NetworkTaskFactory) structureManager.getService(
+		// NetworkTaskFactory.class,
+		// "(&(commandNamespace=structureViz)(command=annotateStructureNetwork))");
+		if (annotateFactory != null) {
+			TunableSetter tunableSetter = (TunableSetter) structureManager
+					.getService(TunableSetter.class);
+			Map<String, Object> tunables = new HashMap<String, Object>();
+			tunables.put("ssAnnot", true);
+			TaskManager<?, ?> tm = (TaskManager<?, ?>) structureManager.getService(TaskManager.class);
+			tm.execute(tunableSetter.createTaskIterator(annotateFactory.createTaskIterator(network),
+					tunables));
+		}
 		// Set vizmap
+		NetworkViewTaskFactory rinalyzerVisProps = (NetworkViewTaskFactory) structureManager
+				.getService(NetworkViewTaskFactory.class,
+						"(&(commandNamespace=rinalyzer)(command=initRinVisProps))");
 		if (rinalyzerVisProps != null) {
 			insertTasksAfterCurrentTask(rinalyzerVisProps.createTaskIterator(rinView));
 		} else {

@@ -108,14 +108,25 @@ public class CyActivator extends AbstractCyActivator {
 		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager);
 		Properties createStructureNetProps = new Properties();
 		createStructureNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		createStructureNetProps.setProperty(TITLE, "Create Networks");
-		createStructureNetProps.setProperty(COMMAND, "createStructureNetworks");
+		createStructureNetProps.setProperty(TITLE, "Create Network");
+		createStructureNetProps.setProperty(COMMAND, "createStructureNetwork");
 		createStructureNetProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		createStructureNetProps.setProperty(ENABLE_FOR, "network");
 		createStructureNetProps.setProperty(IN_MENU_BAR, "true");
 		createStructureNetProps.setProperty(MENU_GRAVITY, "5.0");
 		registerService(bc, createStructureNet, TaskFactory.class, createStructureNetProps);
 		structureManager.setCreateStructureNetFactory(createStructureNet);
+
+		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
+		Properties annotateProps = new Properties();
+		annotateProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		annotateProps.setProperty(TITLE, "Annotate Network");
+		annotateProps.setProperty(COMMAND, "annotateStructureNetwork");
+		annotateProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		annotateProps.setProperty(IN_MENU_BAR, "true");
+		annotateProps.setProperty(ENABLE_FOR, "network");
+		annotateProps.setProperty(MENU_GRAVITY, "6.0");
+		registerService(bc, annotateFactory, NetworkTaskFactory.class, annotateProps);
 
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();
@@ -149,15 +160,6 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
 		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
 
-		// TaskFactory importNet = new
-		// ImportTrajectoryRINTaskFactory(structureManager, null);
-		// Properties importNetProps = new Properties();
-		// importNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		// importNetProps.setProperty(TITLE, "Import Network from Chimera");
-		// importNetProps.setProperty(IN_MENU_BAR, "true");
-		// importNetProps.setProperty(MENU_GRAVITY, "11.0");
-		// registerService(bc, importNet, TaskFactory.class, importNetProps);
-
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(
 				structureManager);
 		Properties settingsProps = new Properties();
@@ -177,16 +179,6 @@ public class CyActivator extends AbstractCyActivator {
 		commandProps.setProperty(COMMAND, "sendCommand");
 		commandProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, sendCommandTaskFactory, TaskFactory.class, commandProps);
-
-		TaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
-		Properties annotateProps = new Properties();
-		annotateProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		annotateProps.setProperty(TITLE, "Annotate Structure Network");
-		annotateProps.setProperty(COMMAND, "annotateRIN");
-		annotateProps.setProperty(COMMAND_NAMESPACE, "rinalyzer");
-		annotateProps.setProperty(IN_MENU_BAR, "true");
-		annotateProps.setProperty(ENABLE_FOR, "network");
-		registerService(bc, annotateFactory, NetworkTaskFactory.class, annotateProps);
 
 	}
 

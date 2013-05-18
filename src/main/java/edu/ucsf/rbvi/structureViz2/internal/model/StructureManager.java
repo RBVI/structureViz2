@@ -861,20 +861,19 @@ public class StructureManager {
 
 	public void annotateSS(CyNetwork network) {
 		// get models
-		final String ssColumn = "SecondaryStructure";
+		final String ssColumn = "SS";
 		if (currentCyMap.containsKey(network)) {
 			if (network.getDefaultNodeTable().getColumn(ssColumn) == null) {
 				network.getDefaultNodeTable().createColumn(ssColumn, String.class, false, "");
 			}
 			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
 				if (chimObj instanceof ChimeraModel) {
-					chimeraManager.sendChimeraCommand("", false);
+					chimeraManager.sendChimeraCommand("ksdssp", false);
 					List<ChimeraResidue> hResidues = chimeraManager.getSSInfo(".:/isHelix",
 							chimObj.getChimeraModel());
 					for (ChimeraResidue res : hResidues) {
 						if (currentChimMap.containsKey(res)) {
 							for (CyIdentifiable cyId : currentChimMap.get(res)) {
-								System.out.println(cyId.getSUID());
 								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
 									network.getRow(cyId).set(ssColumn, "Helix");
 								}

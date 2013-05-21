@@ -34,8 +34,9 @@ public class OpenStructuresTask extends AbstractTask {
 		// this.nodeList = nodeList;
 		this.netView = netView;
 		this.structureManager = structureManager;
-		structruesMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
-				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL));
+		structruesMap = CyUtils
+				.getCyChimPiarsToStrings(netView.getModel(), structureManager.getChimObjNames(
+						netView.getModel(), nodeList, ModelType.PDB_MODEL));
 		chemStructruesMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
 				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES));
 		initTunables();
@@ -47,19 +48,16 @@ public class OpenStructuresTask extends AbstractTask {
 				structureTunable.getSelectedValues(), structruesMap);
 		System.out.println("selectedStructuresMap: " + selectedStructureNames.size());
 		// open structures
-		structureManager
-				.openStructures(netView.getModel(), selectedStructureNames, ModelType.PDB_MODEL);
+		structureManager.openStructures(netView.getModel(), selectedStructureNames,
+				ModelType.PDB_MODEL);
 
 		// get selected chem structures from tunable parameter
-		 Map<CyIdentifiable, List<String>> selectedChemNames = CyUtils.getCyChimPairsToMap(
-		 chemTunable.getSelectedValues(), chemStructruesMap);
-		 System.out.println("selectedChemMap: " + selectedChemNames.size());
-		 // open structures
-		 structureManager.openStructures(netView.getModel(), selectedChemNames, ModelType.SMILES);
-
-		if (structureManager.getModelNavigatorDialog() == null) {
-			structureManager.launchModelNavigatorDialog();
-		}
+		Map<CyIdentifiable, List<String>> selectedChemNames = CyUtils.getCyChimPairsToMap(
+				chemTunable.getSelectedValues(), chemStructruesMap);
+		System.out.println("selectedChemMap: " + selectedChemNames.size());
+		// open structures
+		structureManager.openStructures(netView.getModel(), selectedChemNames, ModelType.SMILES);
+		structureManager.launchModelNavigatorDialog();
 	}
 
 	private void initTunables() {

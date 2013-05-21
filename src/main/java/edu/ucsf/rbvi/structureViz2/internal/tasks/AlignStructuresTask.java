@@ -42,9 +42,7 @@ public class AlignStructuresTask extends AbstractTask {
 		// open structures
 		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames,
 				ModelType.PDB_MODEL);
-		if (structureManager.getModelNavigatorDialog() == null) {
-			structureManager.launchModelNavigatorDialog();
-		}
+		structureManager.launchModelNavigatorDialog();
 		// TODO: Start in headless mode?
 		structureManager.launchAlignDialog(false);
 	}

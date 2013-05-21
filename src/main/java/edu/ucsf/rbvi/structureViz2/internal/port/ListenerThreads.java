@@ -173,11 +173,8 @@ public class ListenerThreads extends Thread {
 		}
 
 		public void run() {
-			// System.out.println("Model updated");
 			structureManager.updateModels();
 			structureManager.modelChanged();
-			// Now update our selection from Chimera
-			// (new SelectionUpdater()).start();
 		}
 	}
 
@@ -191,7 +188,6 @@ public class ListenerThreads extends Thread {
 
 		public void run() {
 			try {
-				// System.out.println("Calling updateSelection");
 				structureManager.chimeraSelectionChanged();
 			} catch (Exception e) {
 			}
@@ -211,8 +207,6 @@ public class ListenerThreads extends Thread {
 
 		public void run() {
 			try {
-				// System.out.println("Calling updateSelection");
-				System.out.println("Start import network task 2");
 				((TaskManager<?, ?>) structureManager.getService(TaskManager.class))
 						.execute(new ImportTrajectoryRINTaskFactory(structureManager, line).createTaskIterator());
 			} catch (Exception e) {

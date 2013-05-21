@@ -56,17 +56,17 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 			return;
 		}
 		System.out.println(fileNames);
-		String[] fileNamesParts = fileNames.split(":|,");
-		if (fileNamesParts.length == 3) {
-			String networkFile = fileNamesParts[1].trim();
-			networkFile = networkFile.substring(2, networkFile.length() - 1);
+		String[] fileNamesParts = fileNames.split(",");
+		if (fileNamesParts.length == 2) {
+			String networkFile = fileNamesParts[0].trim();
+			networkFile = networkFile.substring(networkFile.indexOf("'") + 1, networkFile.length() - 1);
 			System.out.println(networkFile);
 			if (networkFile.endsWith("network.txt")) {
 				// import network data
 				importNetwork(networkFile);
 			}
-			String tableFile = fileNamesParts[2].trim();
-			tableFile = tableFile.substring(1, tableFile.length() - 2);
+			String tableFile = fileNamesParts[1].trim();
+			tableFile = tableFile.substring(tableFile.indexOf("'") + 1, tableFile.length() - 2);
 			System.out.println(tableFile);
 			if (tableFile.endsWith("nattr.txt") && newNetwork != null) {
 				// import node attributes

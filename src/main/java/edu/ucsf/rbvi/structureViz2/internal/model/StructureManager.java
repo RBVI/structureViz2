@@ -65,9 +65,9 @@ public class StructureManager {
 	private Map<ChimeraStructuralObject, Set<CyIdentifiable>> currentChimMap = null;
 	private Map<CyIdentifiable, CyNetwork> networkMap = null;
 
-	static private ModelNavigatorDialog mnDialog = null;
-	static private AlignStructuresDialog alDialog = null;
-	static private AssociationTask aTask = null;
+	private ModelNavigatorDialog mnDialog = null;
+	private AlignStructuresDialog alDialog = null;
+	private AssociationTask aTask = null;
 
 	static private List<ChimeraStructuralObject> chimSelectionList;
 	private boolean ignoreCySelection = false;
@@ -681,11 +681,8 @@ public class StructureManager {
 		// Done
 	}
 
-	public ModelNavigatorDialog getModelNavigatorDialog() {
-		return mnDialog;
-	}
-
 	public void launchModelNavigatorDialog() {
+		System.out.println("launch dialog");
 		if (!haveGUI) {
 			return;
 		}
@@ -1064,14 +1061,12 @@ public class StructureManager {
 		CyTableFactory factory = (CyTableFactory) getService(CyTableFactory.class);
 		for (CyTable table : manager.getGlobalTables()) {
 			if (table.getTitle().equals(chimeraOutputTable)) {
-				chimTable = table;
+				manager.deleteTable(table.getSUID());
 			}
 		}
-		if (chimTable == null) {
-			chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class,
-					true, true);
-			manager.addTable(chimTable);
-		}
+		chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class, true,
+				true);
+		manager.addTable(chimTable);
 		if (chimTable.getColumn(chimeraOutputAttr) == null) {
 			chimTable.createListColumn(chimeraOutputAttr, String.class, false);
 		}

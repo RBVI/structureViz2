@@ -12,9 +12,10 @@ public class ExitChimeraTask extends AbstractTask {
 	public ExitChimeraTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
 	}
-	
-	
+
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("Ecit Chimera");
+		taskMonitor.setStatusMessage("Exiting Chimera ...");
 		structureManager.exitChimera();
 	}
 

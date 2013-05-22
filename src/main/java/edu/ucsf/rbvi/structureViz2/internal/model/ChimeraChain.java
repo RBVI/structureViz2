@@ -65,7 +65,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	/**
 	 * The residues that are part of this chain
 	 */
-	private TreeMap<String, ChimeraResidue> residueList;
+	private TreeMap<String, ChimeraResidue> residueMap;
 
 	/**
 	 * userData to associate with this chain
@@ -91,7 +91,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 		this.modelNumber = model;
 		this.subModelNumber = subModel;
 		this.chainId = chainId;
-		residueList = new TreeMap<String, ChimeraResidue>();
+		residueMap = new TreeMap<String, ChimeraResidue>();
 	}
 
 	/**
@@ -153,7 +153,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 		// TODO: If performance issues, change back to string
 		String index = residue.getIndex();
 		// Put it in our map so that we can return it in order
-		residueList.put(index, residue);
+		residueMap.put(index, residue);
 	}
 
 	/**
@@ -162,7 +162,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	 * @return a Collection of residues in residue order
 	 */
 	public Collection<ChimeraResidue> getResidues() {
-		return residueList.values();
+		return residueMap.values();
 	}
 
 	/**
@@ -171,7 +171,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	 * @return List of residues
 	 */
 	public List<ChimeraStructuralObject> getChildren() {
-		return new ArrayList<ChimeraStructuralObject>(residueList.values());
+		return new ArrayList<ChimeraStructuralObject>(residueMap.values());
 	}
 
 	/**
@@ -183,8 +183,8 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	 */
 	public ChimeraResidue getResidue(String index) {
 		// Integer index = new Integer(residueIndex);
-		if (residueList.containsKey(index))
-			return residueList.get(index);
+		if (residueMap.containsKey(index))
+			return residueMap.get(index);
 		return null;
 	}
 
@@ -205,8 +205,8 @@ public class ChimeraChain implements ChimeraStructuralObject {
 		int end = Integer.parseInt(range[1]);
 		for (int i = start; i < end; i++) {
 			String index = String.valueOf(i);
-			if (residueList.containsKey(index))
-				resultRange.add(residueList.get(index));
+			if (residueMap.containsKey(index))
+				resultRange.add(residueMap.get(index));
 		}
 		return resultRange;
 	}
@@ -288,7 +288,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	 * @return integer number of residues
 	 */
 	public int getResidueCount() {
-		return residueList.size();
+		return residueMap.size();
 	}
 
 	/**

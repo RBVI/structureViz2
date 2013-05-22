@@ -23,6 +23,7 @@ import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
@@ -36,6 +37,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraModel;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraResidue;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+
+//TODO: Bug: different number of nodes and edges in consecutive runs
 
 public class CreateStructureNetworkTask extends AbstractTask {
 
@@ -96,10 +99,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	private static final String[] interactionArray = { "Within selection",
 			"Between selection and all atoms", "Within selection and all atoms", "Between all models",
 			"Within and between all models" };
-	// TODO: Add "Within model" and specify number
-	// TODO: [FIX] Different number of nodes and edges in consecutive runs
-	// TODO: Too many Interactions between two models?
-	// TODO: remove single nodes?
 
 	// Edge attributes
 	static final String DISTANCE_ATTR = "MinimumDistance";
@@ -110,10 +109,10 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	// Node attributes
 	static final String SMILES_ATTR = "SMILES";
 	static final String STRUCTURE_ATTR = "pdbFileName";
+	static final String HDONOR_ATTR = "HDonor";
 	static final String SEED_ATTR = "SeedResidues";
-	// TODO: Should we keep these two attributes?
-	static final String BACKBONE_ATTR = "BackboneInteraction";
-	static final String SIDECHAIN_ATTR = "SideChainInteraction";
+	// static final String BACKBONE_ATTR = "BackboneInteraction";
+	// static final String SIDECHAIN_ATTR = "SideChainInteraction";
 
 	private StructureManager structureManager;
 	private ChimeraManager chimeraManager;
@@ -122,8 +121,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		this.structureManager = structureManager;
 		this.chimeraManager = structureManager.getChimeraManager();
 
-		// TODO: Create name for a new network dynamically
-		networkName = "New RIN";
+		networkName = getRINName();
 		includeInteracions = new ListSingleSelection<String>(interactionArray);
 		includeInteracions.setSelectedValue(interactionArray[0]);
 		addHydrogens = true;
@@ -144,23 +142,30 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		includeConnectivityDistance = false;
 	}
 
+	@ProvidesTitle
+	public String getTitle() {
+		return "Create Structure Network Options";
+	}
+
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("Create structure network");
 		// Save selected nodes indexed by their name
 		Map<String, CyNode> nodeMap = new HashMap<String, CyNode>();
 		System.out.println("create network");
 		chimeraManager.stopListening();
 		CyNetwork rin = createNetwork();
 
-		System.out.println("start getting interactions");
 		// structureManager.ignoreCySelection = true;
 		// add hydrogens first
 		if (addHydrogens) {
-			System.out.println("Adding hudrogens");
+			System.out.println("Adding hydrogens");
+			taskMonitor.setStatusMessage("Adding hydrogens ...");
 			chimeraManager.sendChimeraCommand("addh hbond true", false);
 		}
 		if (includeContacts) {
 			System.out.println("Getting contacts");
+			taskMonitor.setStatusMessage("Getting contacts ...");
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(
 					getContactCommand(overlapCutoffCont, hbondAllowanceCont, bondSepCont), true);
@@ -170,6 +175,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		}
 		if (includeClashes) {
 			System.out.println("Getting clashes");
+			taskMonitor.setStatusMessage("Getting clashes ...");
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(
 					getContactCommand(overlapCutoffClash, hbondAllowanceClash, bondSepClash), true);
@@ -179,6 +185,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		}
 		if (includeHBonds) {
 			System.out.println("Getting Hydrogen Bonds");
+			taskMonitor.setStatusMessage("Getting hydrogen bonds ...");
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(getHBondCommand(), true);
 			if (replyList != null) {
@@ -187,6 +194,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		}
 		if (includeConnectivity) {
 			System.out.println("Getting Connectivity");
+			taskMonitor.setStatusMessage("Getting connectivity ...");
 			String command = "listphysicalchains";
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
@@ -194,6 +202,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				parseConnectivityReplies(replyList, rin);
 			}
 		}
+
+		taskMonitor.setStatusMessage("Finalizing ...");
+		// add "combi" edges
 		addCombinedEdges();
 
 		// register network
@@ -325,6 +336,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			if (edge == null) {
 				continue;
 			}
+			// System.out.println(rin.getRow(edge).get(CyNetwork.NAME, String.class));
 			updateMap(distanceMap, edge, line[3], -1); // We want the smallest distance
 			updateMap(overlapMap, edge, line[2], 1); // We want the largest overlap
 		}
@@ -379,11 +391,16 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			if (edge == null) {
 				continue;
 			}
-			// TODO: do not create a new edge
-			// TODO: if hydrogens added, take the other distance?
+			// System.out.println(rin.getRow(edge).get(CyNetwork.NAME, String.class));
 			String distance = line[3];
 			if ((line[2].equals("no") && line[3].equals("hydrogen")) || addHydrogens) {
 				distance = line[4];
+			}
+			if (addHydrogens) {
+				CyNode donor = createResidueNode(rin, nodeMap, line[2]);
+				if (donor != null) {
+					rin.getRow(donor).set(HDONOR_ATTR, true);
+				}
 			}
 			updateMap(distanceMap, edge, distance, -1); // We want the smallest distance
 		}
@@ -472,8 +489,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				for (CyEdge exEdge : existingEdges) {
 					if (rin.getRow(exEdge).get(CyEdge.INTERACTION, String.class).equals("contact")
 							&& rin.getRow(exEdge).get(INTATOMS_ATTR, String.class).equals(interactingAtoms)) {
-						// TODO: delete overlap attribute for this edge
 						edge = exEdge;
+						rin.getRow(edge).set(OVERLAP_ATTR, null);
 						break;
 					}
 				}
@@ -482,7 +499,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		if (edge == null) {
 			edge = rin.addEdge(source, target, true);
 		}
-		String edgeName = rin.getRow(source).get(CyNetwork.NAME, String.class) + " "
+		String edgeName = rin.getRow(source).get(CyNetwork.NAME, String.class) + " (" + type + ") "
 				+ rin.getRow(target).get(CyNetwork.NAME, String.class);
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
 		rin.getRow(edge).set(CyEdge.INTERACTION, type);
@@ -493,7 +510,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	private CyEdge createConnectivityEdge(CyNetwork rin, CyNode node1, CyNode node2) {
 		CyEdge edge = rin.addEdge(node1, node2, true);
-		String edgeName = rin.getRow(node1).get(CyNetwork.NAME, String.class) + " "
+		String edgeName = rin.getRow(node1).get(CyNetwork.NAME, String.class) + " (connected)"
 				+ rin.getRow(node2).get(CyNetwork.NAME, String.class);
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
 		rin.getRow(edge).set(CyEdge.INTERACTION, "connected");
@@ -572,10 +589,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		// Add structureViz attributes
 		String smiles = ChimUtils.toSMILES(residue.getType());
 		if (smiles != null) {
-			// TODO: Check if attribute is a list?
 			rin.getRow(node).set(SMILES_ATTR, smiles);
 		}
-		// TODO: check the same as above
 		rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
 
 		return node;
@@ -659,7 +674,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	}
 
 	private void addCombinedEdges() {
-
+		// TODO: Add combined edges
 	}
 
 	private CyNetwork createNetwork() {
@@ -681,8 +696,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		rin.getDefaultNodeTable().createColumn(SMILES_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(STRUCTURE_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SEED_ATTR, Boolean.class, false);
-		rin.getDefaultNodeTable().createColumn(BACKBONE_ATTR, Boolean.class, false);
-		rin.getDefaultNodeTable().createColumn(SIDECHAIN_ATTR, Boolean.class, false);
+		rin.getDefaultNodeTable().createColumn(HDONOR_ATTR, Boolean.class, false);
 
 		// return network
 		return rin;
@@ -694,6 +708,15 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				.getService(CyNetworkViewFactory.class);
 		CyNetworkViewManager cyNetworkViewManager = (CyNetworkViewManager) structureManager
 				.getService(CyNetworkViewManager.class);
+
+		// remove single nodes
+		List<CyNode> singleNodes = new ArrayList<CyNode>();
+		for (CyNode node : network.getNodeList()) {
+			if (network.getAdjacentEdgeList(node, Type.ANY).size() == 0) {
+				singleNodes.add(node);
+			}
+		}
+		network.removeNodes(singleNodes);
 
 		// Create a network view
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
@@ -751,4 +774,14 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		}
 		rinView.updateView();
 	}
+
+	private String getRINName() {
+		String name = "RIN ";
+		Map<Integer, ChimeraModel> models = chimeraManager.getSelectedModels();
+		for (ChimeraModel model : models.values()) {
+			name += model.getModelName() + " ";
+		}
+		return name;
+	}
+
 }

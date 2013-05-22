@@ -153,8 +153,7 @@ public class ChimeraManager {
 				if (currentModelsMap.containsKey(modelNumber)) {
 					continue;
 				}
-				ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0],
-						modelNumbers[1]);
+				ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0], modelNumbers[1]);
 				currentModelsMap.put(modelNumber, newModel);
 				models.add(newModel);
 
@@ -208,7 +207,7 @@ public class ChimeraManager {
 	 * Select something in Chimera
 	 * 
 	 * @param command
-	 *            the selection command to pass to Chimera
+	 *          the selection command to pass to Chimera
 	 */
 	public void select(String command) {
 		sendChimeraCommand("listen stop select; " + command + "; listen start select", false);
@@ -256,8 +255,7 @@ public class ChimeraManager {
 		if (chimeraReply != null) {
 			for (String inputLine : chimeraReply) {
 				ChimeraResidue r = new ChimeraResidue(inputLine);
-				Integer modelKey = ChimUtils
-						.makeModelKey(r.getModelNumber(), r.getSubModelNumber());
+				Integer modelKey = ChimUtils.makeModelKey(r.getModelNumber(), r.getSubModelNumber());
 				if (selectedModelsMap.containsKey(modelKey)) {
 					ChimeraModel model = selectedModelsMap.get(modelKey);
 					model.addResidue(r);
@@ -284,9 +282,8 @@ public class ChimeraManager {
 	}
 
 	/**
-	 * Return the list of depiction presets available from within Chimera.
-	 * Chimera will return the list as a series of lines with the format: Preset
-	 * type number "description"
+	 * Return the list of depiction presets available from within Chimera. Chimera will return the
+	 * list as a series of lines with the format: Preset type number "description"
 	 * 
 	 * @return list of presets
 	 */
@@ -368,7 +365,7 @@ public class ChimeraManager {
 	 * Determine the color that Chimera is using for this model.
 	 * 
 	 * @param model
-	 *            the ChimeraModel we want to get the Color for
+	 *          the ChimeraModel we want to get the Color for
 	 * @return the default model Color for this model in Chimera
 	 */
 	public Color getModelColor(ChimeraModel model) {
@@ -382,12 +379,11 @@ public class ChimeraManager {
 
 	/**
 	 * 
-	 * Get information about the residues associated with a model. This uses the
-	 * Chimera listr command. We don't return the resulting residues, but we add
-	 * the residues to the model.
+	 * Get information about the residues associated with a model. This uses the Chimera listr
+	 * command. We don't return the resulting residues, but we add the residues to the model.
 	 * 
 	 * @param model
-	 *            the ChimeraModel to get residue information for
+	 *          the ChimeraModel to get residue information for
 	 * 
 	 */
 	public void getResidueInfo(ChimeraModel model) {
@@ -408,14 +404,13 @@ public class ChimeraManager {
 
 	public List<ChimeraResidue> getSSInfo(String aCommand, ChimeraModel model) {
 		List<ChimeraResidue> residues = new ArrayList<ChimeraResidue>();
-		final List<String> reply = sendChimeraCommand("listr spec " + model.toSpec() + aCommand,
-				true);
+		final List<String> reply = sendChimeraCommand("listr spec " + model.toSpec() + aCommand, true);
 		if (reply != null) {
 			for (String inputLine : reply) {
 				ChimeraResidue r = new ChimeraResidue(inputLine);
 				if (r.getModelNumber() == model.getModelNumber()
 						|| r.getSubModelNumber() == model.getSubModelNumber()) {
-					residues.add(model.getResidue(r.getIndex()));
+					residues.add(model.getResidue(r.getChainId(), r.getIndex()));
 				}
 			}
 		}

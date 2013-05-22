@@ -37,8 +37,7 @@ import edu.ucsf.rbvi.structureViz2.internal.ui.AlignStructuresDialog;
 import edu.ucsf.rbvi.structureViz2.internal.ui.ModelNavigatorDialog;
 
 /**
- * This object maintains the relationship between Chimera objects and Cytoscape
- * objects.
+ * This object maintains the relationship between Chimera objects and Cytoscape objects.
  */
 public class StructureManager {
 	static final String[] defaultStructureKeys = { "Structure", "pdb", "pdbFileName", "PDB ID",
@@ -98,8 +97,8 @@ public class StructureManager {
 	public Object getService(Class<?> serviceClass, String filter) {
 		// TODO: [Cy3] Seems to work but may have to re revised
 		try {
-			ServiceReference[] services = bundleContext.getServiceReferences(
-					serviceClass.getName(), filter);
+			ServiceReference[] services = bundleContext.getServiceReferences(serviceClass.getName(),
+					filter);
 			if (services != null && services.length > 0) {
 				return bundleContext.getService(services[0]);
 			}
@@ -139,8 +138,7 @@ public class StructureManager {
 			// for each structure that has to be opened
 			for (String chimObjName : chimObjNames.get(cyObj)) {
 				// get or open the corresponding models if they already exist
-				List<ChimeraModel> currentModels = chimeraManager.getChimeraModels(chimObjName,
-						type);
+				List<ChimeraModel> currentModels = chimeraManager.getChimeraModels(chimObjName, type);
 				if (currentModels.size() == 0) {
 					// open and return models
 					currentModels = chimeraManager.openModel(chimObjName, type);
@@ -150,11 +148,11 @@ public class StructureManager {
 				for (ChimeraModel currentModel : currentModels) {
 					System.out.println("Process model: " + currentModel.getModelName());
 					// check if it is a RIN
-					if (currentModel.getModelType().equals(ModelType.PDB_MODEL)
-							&& cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)
+					if (currentModel.getModelType().equals(ModelType.PDB_MODEL) && cyObj instanceof CyNode
+							&& network.containsNode((CyNode) cyObj)
 							&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)) {
-						ChimeraStructuralObject res = ChimUtils.fromAttribute(network.getRow(cyObj)
-								.get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
+						ChimeraStructuralObject res = ChimUtils.fromAttribute(
+								network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
 						if (res != null) {
 							potentialRINs.add(network);
 							continue;
@@ -168,8 +166,8 @@ public class StructureManager {
 					}
 					currentChimMap.get(currentModel).add(cyObj);
 					currentModel.addCyObject(cyObj, network);
-					currentModel.setFuncResidues(ChimUtils.parseFuncRes(
-							getResidueList(network, cyObj), chimObjName));
+					currentModel.setFuncResidues(ChimUtils.parseFuncRes(getResidueList(network, cyObj),
+							chimObjName));
 				}
 			}
 		}
@@ -200,8 +198,7 @@ public class StructureManager {
 			for (ChimeraStructuralObject chimObject : associatedChimObjects) {
 				// find the model to be closed
 				if (chimObject instanceof ChimeraModel
-						&& chimObjNames.get(cyObj).contains(
-								((ChimeraModel) chimObject).getModelName())) {
+						&& chimObjNames.get(cyObj).contains(((ChimeraModel) chimObject).getModelName())) {
 					closedModels.add((ChimeraModel) chimObject);
 				}
 			}
@@ -251,8 +248,8 @@ public class StructureManager {
 		for (CyNode node : rin.getNodeList()) {
 			networkMap.put(node, rin);
 			String residueSpec = rin.getRow(node).get(ChimUtils.RESIDUE_ATTR, String.class);
-			ChimeraResidue chimObj = (ChimeraResidue) ChimUtils.fromAttribute(residueSpec,
-					chimeraManager);
+			ChimeraResidue chimObj = (ChimeraResidue) ChimUtils
+					.fromAttribute(residueSpec, chimeraManager);
 			// chimObj.getChimeraModel().addCyObject(node, rin);
 			if (chimObj == null) {
 				continue;
@@ -270,11 +267,10 @@ public class StructureManager {
 		}
 		if (model != null) {
 			model.addCyObject(rin, rin);
-			// TODO: make sure to delete network from table
 			if (!currentCyMap.containsKey(rin)) {
 				currentCyMap.put(rin, new HashSet<ChimeraStructuralObject>());
-				currentCyMap.get(rin).add(model);
 			}
+			currentCyMap.get(rin).add(model);
 		}
 	}
 
@@ -331,8 +327,7 @@ public class StructureManager {
 				continue;
 			}
 			if ((currentCyObj instanceof CyNode && network.containsNode((CyNode) currentCyObj))
-					|| (currentCyObj instanceof CyEdge && network
-							.containsEdge((CyEdge) currentCyObj))) {
+					|| (currentCyObj instanceof CyEdge && network.containsEdge((CyEdge) currentCyObj))) {
 				network.getRow(currentCyObj).set(CyNetwork.SELECTED, false);
 				networks.add(network);
 			}
@@ -393,8 +388,8 @@ public class StructureManager {
 
 						if (chimObj.getChimeraModel().isSelected()) {
 							removeChimSelection(chimObj.getChimeraModel());
-						} else if (chimObj.getChimeraModel()
-								.getChain(((ChimeraResidue) chimObj).getChainId()).isSelected()) {
+						} else if (chimObj.getChimeraModel().getChain(((ChimeraResidue) chimObj).getChainId())
+								.isSelected()) {
 							removeChimSelection(chimObj.getChimeraModel().getChain(
 									((ChimeraResidue) chimObj).getChainId()));
 						}
@@ -402,8 +397,7 @@ public class StructureManager {
 				} else {
 					removeChimSelection(chimObj);
 					if (chimObj.hasSelectedChildren() && chimObj instanceof ChimeraModel) {
-						for (ChimeraResidue residue : ((ChimeraModel) chimObj)
-								.getSelectedResidues()) {
+						for (ChimeraResidue residue : ((ChimeraModel) chimObj).getSelectedResidues()) {
 							removeChimSelection(residue);
 						}
 					}
@@ -434,9 +428,9 @@ public class StructureManager {
 	}
 
 	/**
-	 * This is called by the selectionListener to let us know that the user has
-	 * changed their selection in Chimera. We need to go back to Chimera to find
-	 * out what is currently selected and update our list.
+	 * This is called by the selectionListener to let us know that the user has changed their
+	 * selection in Chimera. We need to go back to Chimera to find out what is currently selected and
+	 * update our list.
 	 */
 	public void chimeraSelectionChanged() {
 		System.out.println("Chimera selection changed");
@@ -452,8 +446,7 @@ public class StructureManager {
 				int subModelNumber = selectedModel.getSubModelNumber();
 				// Get the corresponding "real" model
 				if (chimeraManager.hasChimeraModel(modelNumber, subModelNumber)) {
-					ChimeraModel dataModel = chimeraManager.getChimeraModel(modelNumber,
-							subModelNumber);
+					ChimeraModel dataModel = chimeraManager.getChimeraModel(modelNumber, subModelNumber);
 					if (dataModel.getResidueCount() == selectedModel.getResidueCount()
 							|| dataModel.getModelType() == StructureManager.ModelType.SMILES) {
 						// Select the entire model
@@ -511,11 +504,11 @@ public class StructureManager {
 	}
 
 	/**
-	 * Add a selection to the selection list. This is called primarily by the
-	 * Model Navigator Dialog to keep the selections in sync
+	 * Add a selection to the selection list. This is called primarily by the Model Navigator Dialog
+	 * to keep the selections in sync
 	 * 
 	 * @param selectionToAdd
-	 *            the selection to add to our list
+	 *          the selection to add to our list
 	 */
 	public void addChimSelection(ChimeraStructuralObject selectionToAdd) {
 		if (selectionToAdd != null && !chimSelectionList.contains(selectionToAdd)) {
@@ -525,11 +518,11 @@ public class StructureManager {
 	}
 
 	/**
-	 * Remove a selection from the selection list. This is called primarily by
-	 * the Model Navigator Dialog to keep the selections in sync
+	 * Remove a selection from the selection list. This is called primarily by the Model Navigator
+	 * Dialog to keep the selections in sync
 	 * 
 	 * @param selectionToRemove
-	 *            the selection to remove from our list
+	 *          the selection to remove from our list
 	 */
 	public void removeChimSelection(ChimeraStructuralObject selectionToRemove) {
 		if (selectionToRemove != null && chimSelectionList.contains(selectionToRemove)) {
@@ -578,14 +571,16 @@ public class StructureManager {
 				}
 			}
 		}
+		if (currentCyMap.containsKey(network)) {
+			currentCyMap.remove(network);
+		}
 		deassociate(new HashSet<CyIdentifiable>(network.getNodeList()), false);
 		deassociate(new HashSet<CyIdentifiable>(network.getEdgeList()), false);
 		modelChanged();
 	}
 
 	/**
-	 * De-associate a set of nodes or edges from their mapping to Chimera
-	 * objects.
+	 * De-associate a set of nodes or edges from their mapping to Chimera objects.
 	 * 
 	 * @param cyObjects
 	 * @param updateDialog
@@ -706,9 +701,10 @@ public class StructureManager {
 	 * Inform our interface that the selection has changed
 	 */
 	public void selectionChanged() {
-		if (mnDialog != null)
+		if (mnDialog != null) {
 			System.out.println("update dialog selection");
-		mnDialog.updateSelection(new ArrayList<ChimeraStructuralObject>(chimSelectionList));
+			mnDialog.updateSelection(new ArrayList<ChimeraStructuralObject>(chimSelectionList));
+		}
 	}
 
 	public void launchAlignDialog(boolean useChains) {
@@ -749,8 +745,7 @@ public class StructureManager {
 	}
 
 	/**
-	 * Return all open structures for a set of CyObjects. Invoked by
-	 * CloseStructuresTask.
+	 * Return all open structures for a set of CyObjects. Invoked by CloseStructuresTask.
 	 * 
 	 * @param cyObjSet
 	 * @return
@@ -774,8 +769,8 @@ public class StructureManager {
 	}
 
 	/**
-	 * Return the names of structures or smiles that can be opened in Chimera
-	 * from the selected attribute. Invoked by openStructuresTask.
+	 * Return the names of structures or smiles that can be opened in Chimera from the selected
+	 * attribute. Invoked by openStructuresTask.
 	 * 
 	 * @param network
 	 * @param nodeSet
@@ -841,8 +836,7 @@ public class StructureManager {
 
 				for (String cell : cellList) {
 					// skip if the structure is already open
-					if (currentCyMap.containsKey(cyObj)
-							&& chimeraManager.getChimeraModels(cell).size() > 0) {
+					if (currentCyMap.containsKey(cyObj) && chimeraManager.getChimeraModels(cell).size() > 0) {
 						continue;
 					}
 					// add strcture name to map
@@ -940,8 +934,7 @@ public class StructureManager {
 						if (prop.getName() != null) {
 							if (prop.getName().equals("defaultChimeraPath")) {
 								defaultPathProperty = prop;
-								Properties pathProps = (Properties) defaultPathProperty
-										.getProperties();
+								Properties pathProps = (Properties) defaultPathProperty.getProperties();
 								path = pathProps.getProperty("defaultChimeraPath");
 								break;
 							}
@@ -964,9 +957,9 @@ public class StructureManager {
 				if (props != null) {
 					boolean propExists = false;
 					for (CyProperty<?> prop : props) {
-						System.out.println("prop: " + prop.toString());
+						// System.out.println("prop: " + prop.toString());
 						if (prop.getName() != null) {
-							System.out.println(prop.getName());
+							// System.out.println(prop.getName());
 							if (prop.getName().equals("defaultChimeraPath")) {
 								defaultPathProperty = prop;
 								pathProps = (Properties) defaultPathProperty.getProperties();
@@ -1020,7 +1013,7 @@ public class StructureManager {
 	 * Set the "active site" or "special" residues
 	 * 
 	 * @param residues
-	 *            String representation of the residues (comma separated)
+	 *          String representation of the residues (comma separated)
 	 */
 	private List<String> getResidueList(CyNetwork network, CyIdentifiable cyObj) {
 		List<String> residueList = new ArrayList<String>();
@@ -1130,11 +1123,9 @@ public class StructureManager {
 						if (cyObj instanceof CyNode
 								&& network.containsNode((CyNode) cyObj)
 								&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)
-								&& network.getDefaultNodeTable().getColumn(ChimUtils.RESIDUE_ATTR)
-										.getType() == String.class) {
-							residue = (ChimeraResidue) ChimUtils.fromAttribute(network
-									.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class),
-									chimeraManager);
+								&& network.getDefaultNodeTable().getColumn(ChimUtils.RESIDUE_ATTR).getType() == String.class) {
+							residue = (ChimeraResidue) ChimUtils.fromAttribute(
+									network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
 						}
 						if (residue != null) {
 							// if it is a RIN save only node <-> residue
@@ -1163,6 +1154,10 @@ public class StructureManager {
 			}
 			if (rinModel != null) {
 				rinModel.addCyObject(network, network);
+				if (!currentCyMap.containsKey(network)) {
+					currentCyMap.put(network, new HashSet<ChimeraStructuralObject>());
+				}
+				currentCyMap.get(network).add(rinModel);
 				rinModel = null;
 			}
 

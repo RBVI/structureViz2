@@ -34,29 +34,38 @@ public class OpenStructuresTask extends AbstractTask {
 		// this.nodeList = nodeList;
 		this.netView = netView;
 		this.structureManager = structureManager;
-		structruesMap = CyUtils
-				.getCyChimPiarsToStrings(netView.getModel(), structureManager.getChimObjNames(
-						netView.getModel(), nodeList, ModelType.PDB_MODEL));
+		structruesMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
+				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL));
 		chemStructruesMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
 				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES));
 		initTunables();
 	}
 
+	@ProvidesTitle
+	public String getTitle() {
+		return "Open Structures Options";
+	}
+
 	public void run(TaskMonitor taskMonitor) {
+		taskMonitor.setTitle("Open Structures");
+		taskMonitor.setStatusMessage("Opening structures ...");
 		// get selected structures from tunable parameter
 		Map<CyIdentifiable, List<String>> selectedStructureNames = CyUtils.getCyChimPairsToMap(
 				structureTunable.getSelectedValues(), structruesMap);
 		System.out.println("selectedStructuresMap: " + selectedStructureNames.size());
 		// open structures
-		structureManager.openStructures(netView.getModel(), selectedStructureNames,
-				ModelType.PDB_MODEL);
+		structureManager
+				.openStructures(netView.getModel(), selectedStructureNames, ModelType.PDB_MODEL);
 
 		// get selected chem structures from tunable parameter
+		taskMonitor.setStatusMessage("Opening chemical structures ...");
 		Map<CyIdentifiable, List<String>> selectedChemNames = CyUtils.getCyChimPairsToMap(
 				chemTunable.getSelectedValues(), chemStructruesMap);
 		System.out.println("selectedChemMap: " + selectedChemNames.size());
 		// open structures
 		structureManager.openStructures(netView.getModel(), selectedChemNames, ModelType.SMILES);
+
+		// open dialog
 		structureManager.launchModelNavigatorDialog();
 	}
 
@@ -77,8 +86,4 @@ public class OpenStructuresTask extends AbstractTask {
 		}
 	}
 
-	@ProvidesTitle
-	public String getTitle() {
-		return "Open Structures";
-	}
 }

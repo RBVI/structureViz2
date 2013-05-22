@@ -174,7 +174,7 @@ public abstract class ChimUtils {
 			ChimeraChain chain = model.getChain(residueChain[1]);
 			return chain.getResidue(residueChain[0]);
 		}
-		return model.getResidue(residueChain[0]);
+		return model.getResidue("_", residueChain[0]);
 	}
 
 	public static ChimeraChain getChain(String atomSpec, ChimeraModel model) {
@@ -274,7 +274,7 @@ public abstract class ChimUtils {
 				chain = split[1];
 			}
 
-			// System.out.println("model = "+model+" chain = "+chain+" residue = "+residue);
+			// System.out.println("model = " + model + " chain = " + chain + " residue = " + residue);
 			// TODO: How should we handle submodels in this case?
 			if (model != null) {
 				List<ChimeraModel> models = chimeraManager.getChimeraModels(model, ModelType.PDB_MODEL);
@@ -291,31 +291,32 @@ public abstract class ChimUtils {
 			if (chimeraModel == null) {
 				chimeraModel = chimeraManager.getChimeraModel();
 			}
-			// System.out.println("ChimeraModel = "+chimeraModel);
+			// System.out.println("ChimeraModel = " + chimeraModel);
 
 			if (chain != null) {
 				chimeraChain = chimeraModel.getChain(chain);
-				// System.out.println("ChimeraChain = "+chimeraChain);
+				// System.out.println("ChimeraChain = " + chimeraChain);
 			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return null;
-		}
-		if (residue != null) {
-			chimeraResidue = null;
+			if (residue != null) {
+				if (chimeraChain != null) {
+					chimeraResidue = chimeraChain.getResidue(residue);
+				} else {
+					chimeraResidue = chimeraModel.getResidue("_", residue);
+				}
+				// System.out.println("ChimeraResidue = " + chimeraResidue);
+				return chimeraResidue;
+			}
+
 			if (chimeraChain != null)
-				chimeraResidue = chimeraChain.getResidue(residue);
-			chimeraResidue = chimeraModel.getResidue(residue);
-			// System.out.println("ChimeraResidue = "+chimeraResidue);
-			return chimeraResidue;
+				return chimeraChain;
+
+			if (chimeraModel != null)
+				return chimeraModel;
+
+		} catch (Exception ex) {
+			// ex.printStackTrace();
+			// ignore
 		}
-
-		if (chimeraChain != null)
-			return chimeraChain;
-
-		if (chimeraModel != null)
-			return chimeraModel;
-
 		return null;
 	}
 

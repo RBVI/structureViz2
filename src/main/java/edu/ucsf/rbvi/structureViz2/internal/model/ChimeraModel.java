@@ -35,7 +35,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	private boolean selected = false; // The selected state of this model
 
 	private TreeMap<String, ChimeraChain> chainMap; // The list of chains
-	private TreeMap<String, ChimeraResidue> residueMap; // The list of residues
+	// private TreeMap<String, ChimeraResidue> residueMap; // The list of residues
 	private Map<CyIdentifiable, CyNetwork> cyObjects; // The list of Cytoscape objects
 	private HashSet<ChimeraResidue> funcResidues; // List of functional residues
 
@@ -58,7 +58,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		this.subModelNumber = subModelNumber;
 
 		this.chainMap = new TreeMap<String, ChimeraChain>();
-		this.residueMap = new TreeMap<String, ChimeraResidue>();
+		// this.residueMap = new TreeMap<String, ChimeraResidue>();
 		this.cyObjects = new HashMap<CyIdentifiable, CyNetwork>();
 		this.funcResidues = new HashSet<ChimeraResidue>();
 	}
@@ -83,7 +83,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		this.subModelNumber = ChimUtils.parseModelNumber(inputLine)[1];
 
 		this.chainMap = new TreeMap<String, ChimeraChain>();
-		this.residueMap = new TreeMap<String, ChimeraResidue>();
+		// this.residueMap = new TreeMap<String, ChimeraResidue>();
 		this.cyObjects = new HashMap<CyIdentifiable, CyNetwork>();
 	}
 
@@ -95,7 +95,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 */
 	public void addResidue(ChimeraResidue residue) {
 		residue.setChimeraModel(this);
-		residueMap.put(residue.getIndex(), residue);
+		// residueMap.put(residue.getIndex(), residue);
 		String chainId = residue.getChainId();
 		if (chainId != null) {
 			addResidue(chainId, residue);
@@ -103,7 +103,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 			addResidue("_", residue);
 		}
 		// Put it in our map so that we can return it in order
-		residueMap.put(residue.getIndex(), residue);
+		// residueMap.put(residue.getIndex(), residue);
 	}
 
 	/**
@@ -224,10 +224,11 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		return funcResidues;
 	}
 
-	public void setFuncResidues(List<String> residueRanges) {
-		for (String resRange : residueRanges) {
-			if (residueMap.containsKey(resRange)) {
-				funcResidues.add(residueMap.get(resRange));
+	public void setFuncResidues(List<String> residues) {
+		// TODO: Make this work for ranges?
+		for (String residue : residues) {
+			for (ChimeraChain chain : getChains()) {
+				funcResidues.add(chain.getResidue(residue));
 			}
 		}
 	}
@@ -312,7 +313,11 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * @return the list of residues in this model
 	 */
 	public Collection<ChimeraResidue> getResidues() {
-		return residueMap.values();
+		Collection<ChimeraResidue> residues = new ArrayList<ChimeraResidue>();
+		for (ChimeraChain chain : getChains()) {
+			residues.addAll(chain.getResidues());
+		}
+		return residues;
 	}
 
 	/**
@@ -321,7 +326,11 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * @return integer residues count
 	 */
 	public int getResidueCount() {
-		return residueMap.size();
+		int count = 0;
+		for (ChimeraChain chain : getChains()) {
+			count += chain.getResidueCount();
+		}
+		return count;
 	}
 
 	/**
@@ -345,9 +354,9 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 *          of the residue to return
 	 * @return the residue associated with that index
 	 */
-	public ChimeraResidue getResidue(String index) {
-		if (residueMap.containsKey(index)) {
-			return residueMap.get(index);
+	public ChimeraResidue getResidue(String chainId, String index) {
+		if (chainMap.containsKey(chainId)) {
+			return chainMap.get(chainId).getResidue(index);
 		}
 		return null;
 	}
@@ -375,15 +384,14 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 */
 	public List<ChimeraResidue> getSelectedResidues() {
 		List<ChimeraResidue> residueList = new ArrayList<ChimeraResidue>();
-		if (selected) {
-			residueList.addAll(getResidues());
-		} else {
-			for (ChimeraChain chain : getChains()) {
+		for (ChimeraChain chain : getChains()) {
+			if (selected) {
 				residueList.addAll(chain.getSelectedResidues());
+			} else {
+				residueList.addAll(getResidues());
 			}
 		}
 		return residueList;
-
 	}
 
 	/**

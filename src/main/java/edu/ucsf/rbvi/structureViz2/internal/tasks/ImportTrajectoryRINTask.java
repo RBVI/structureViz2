@@ -32,12 +32,6 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 	private CyNetwork newNetwork;
 	private Map<String, CyNode> nodesMap;
 
-	// @Tunable(description = "Network file", params = "fileCategory=unspecified;input=true")
-	// public File networkFile;
-	//
-	// @Tunable(description = "Table file", params = "fileCategory=unspecified;input=true")
-	// public File tableFile;
-
 	public ImportTrajectoryRINTask(StructureManager structureManager, String fileNames) {
 		this.structureManager = structureManager;
 		this.fileNames = fileNames;
@@ -47,11 +41,6 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		// importNetwork(networkFile.getAbsolutePath());
-		// importTable(tableFile.getAbsolutePath());
-		// Trajectory residue network files:
-		// ['tmpX5s6rv_network.txt',
-		// 'tmpir2F0T_nattr.txt']
 		if (fileNames == null) {
 			return;
 		}

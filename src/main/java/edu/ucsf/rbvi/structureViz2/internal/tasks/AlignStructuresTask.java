@@ -34,15 +34,23 @@ public class AlignStructuresTask extends AbstractTask {
 		initTunables();
 	}
 
+	@ProvidesTitle
+	public String getTitle() {
+		return "Align Structures Options";
+	}
+
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("Align structures");
 		// get selected structures from tunable parameter
 		Map<CyIdentifiable, List<String>> selectedChimeraObjNames = CyUtils.getCyChimPairsToMap(
 				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
 		// open structures
+		taskMonitor.setStatusMessage("Opening structures ...");
 		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames,
 				ModelType.PDB_MODEL);
 		structureManager.launchModelNavigatorDialog();
+		taskMonitor.setStatusMessage("Aligning structures ...");
 		// TODO: Start in headless mode?
 		structureManager.launchAlignDialog(false);
 	}
@@ -57,8 +65,4 @@ public class AlignStructuresTask extends AbstractTask {
 		}
 	}
 
-	@ProvidesTitle
-	public String getTitle() {
-		return "Align Structures";
-	}
 }

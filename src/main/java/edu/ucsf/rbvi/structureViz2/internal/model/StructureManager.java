@@ -45,6 +45,25 @@ public class StructureManager {
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList", "Residues" };
 
+	public static final Map<String, String> residueAttrCommandMap = new HashMap<String, String>();
+
+	static {
+		residueAttrCommandMap.put("SecondaryStructure", "");
+		residueAttrCommandMap.put("kdHydrophobicity", "kdHydrophobicity");
+		residueAttrCommandMap.put("phiAngle", "phi");
+		residueAttrCommandMap.put("psiAngle", "psi");
+		residueAttrCommandMap.put("Color", "ribbonColor");
+		residueAttrCommandMap.put("areaSAS", "areaSAS");
+		residueAttrCommandMap.put("areaSES", "areaSES");
+		residueAttrCommandMap.put("averageBFactor", "bfactor");
+		residueAttrCommandMap.put("averageOccupancy", "occupancy");
+		residueAttrCommandMap.put("chi1Angle", "chi1");
+		residueAttrCommandMap.put("chi2Angle", "chi2");
+		residueAttrCommandMap.put("chi3Angle", "chi3");
+		residueAttrCommandMap.put("chi4Angle", "chi4");
+		// "residueCoordinates"
+	}
+
 	public enum ModelType {
 		PDB_MODEL, MODBASE_MODEL, SMILES
 	};
@@ -850,6 +869,30 @@ public class StructureManager {
 		return mapChimObjNames;
 	}
 
+	public void annotate(CyNetwork network, String resAttr, Class attrClass) {
+		// get models
+		if (currentCyMap.containsKey(network)) {
+			if (network.getDefaultNodeTable().getColumn(resAttr) == null) {
+				network.getDefaultNodeTable().createColumn(resAttr, attrClass, false, "");
+			}
+			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
+				if (chimObj instanceof ChimeraModel) {
+					Map<ChimeraResidue, String> resValues = chimeraManager.getAttrValues(
+							residueAttrCommandMap.get(resAttr), chimObj.getChimeraModel());
+					for (ChimeraResidue res : resValues.keySet()) {
+						if (currentChimMap.containsKey(res)) {
+							for (CyIdentifiable cyId : currentChimMap.get(res)) {
+								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
+									network.getRow(cyId).set(resAttr, resValues.get(res));
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	public void annotateSS(CyNetwork network) {
 		// get models
 		final String ssColumn = "SS";
@@ -919,6 +962,12 @@ public class StructureManager {
 		if (!settings.containsKey(network))
 			return Arrays.asList(defaultResidueKeys);
 		return settings.get(network).getResidueColumns().getSelectedValues();
+	}
+
+	public List<String> getAllResidueAttributes() {
+		List<String> attributes = new ArrayList<String>();
+		attributes.addAll(residueAttrCommandMap.keySet());
+		return attributes;
 	}
 
 	public String getDefaultChimeraPath() {

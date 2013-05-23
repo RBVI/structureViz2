@@ -417,6 +417,25 @@ public class ChimeraManager {
 		return residues;
 	}
 
+	public Map<ChimeraResidue, String> getAttrValues(String aCommand, ChimeraModel model) {
+		Map<ChimeraResidue, String> values = new HashMap<ChimeraResidue, String>();
+		final List<String> reply = sendChimeraCommand("listr spec " + model.toSpec() + " attribute "
+				+ aCommand, true);
+		if (reply != null) {
+			for (String inputLine : reply) {
+				String[] lineParts = inputLine.split("\\s");
+				if (lineParts.length == 5 && lineParts[2].indexOf("#") > 0) {
+					ChimeraResidue residue = ChimUtils.getResidue(lineParts[2], model);
+					String value = lineParts[4];
+					if (residue != null) {
+						values.put(residue, value);
+					}
+				}
+			}
+		}
+		return values;
+	}
+
 	public List<String> sendChimeraCommand(String command, boolean reply) {
 		// if (!isChimeraLaunched()) {
 		// return null;

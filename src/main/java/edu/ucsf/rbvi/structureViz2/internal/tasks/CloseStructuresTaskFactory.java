@@ -19,6 +19,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 public class CloseStructuresTaskFactory extends AbstractTaskFactory implements NodeViewTaskFactory,
 		NetworkViewTaskFactory {
 
+	// TODO: make work for edges
+	
 	private StructureManager structureManager;
 
 	public CloseStructuresTaskFactory(StructureManager structureManager) {

@@ -141,12 +141,15 @@ public class ChimeraManager {
 					// TODO: What to do if multiple models?
 				}
 			} else if (line.startsWith("smiles")) {
-				List<String> reply = sendChimeraCommand("listm type molecule spec #"
+
+				List<String> reply = sendChimeraCommand("list model type molecule spec #"
 						+ getChimeraModelsCount(true), true);
 				if (reply != null && reply.size() == 1) {
 					modelNumbers = ChimUtils.parseModelNumber(reply.get(0));
 					// TODO: Create new smiles model each time?
 				}
+			} else {
+				// TODO: list all and get the right one
 			}
 			if (modelNumbers != null) {
 				int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);
@@ -166,7 +169,7 @@ public class ChimeraManager {
 
 				// Create the information we need for the navigator
 				if (type != ModelType.SMILES) {
-					getResidueInfo(newModel);
+					addResidues(newModel);
 				}
 				modelNumbers = null;
 			}
@@ -238,7 +241,7 @@ public class ChimeraManager {
 
 	public Map<Integer, ChimeraModel> getSelectedModels() {
 		Map<Integer, ChimeraModel> selectedModelsMap = new HashMap<Integer, ChimeraModel>();
-		List<String> chimeraReply = sendChimeraCommand("lists level molecule", true);
+		List<String> chimeraReply = sendChimeraCommand("list selection level molecule", true);
 		if (chimeraReply != null) {
 			for (String modelLine : chimeraReply) {
 				ChimeraModel chimeraModel = new ChimeraModel(modelLine);
@@ -251,7 +254,7 @@ public class ChimeraManager {
 	}
 
 	public void getSelectedResidues(Map<Integer, ChimeraModel> selectedModelsMap) {
-		List<String> chimeraReply = sendChimeraCommand("lists level residue", true);
+		List<String> chimeraReply = sendChimeraCommand("list selection level residue", true);
 		if (chimeraReply != null) {
 			for (String inputLine : chimeraReply) {
 				ChimeraResidue r = new ChimeraResidue(inputLine);
@@ -271,7 +274,7 @@ public class ChimeraManager {
 	 */
 	public List<ChimeraModel> getModelList() {
 		List<ChimeraModel> modelList = new ArrayList<ChimeraModel>();
-		List<String> list = sendChimeraCommand("listm type molecule", true);
+		List<String> list = sendChimeraCommand("list models type molecule", true);
 		if (list != null) {
 			for (String modelLine : list) {
 				ChimeraModel chimeraModel = new ChimeraModel(modelLine);
@@ -331,6 +334,7 @@ public class ChimeraManager {
 			try {
 				List<String> args = new ArrayList<String>();
 				args.add(chimeraPath);
+				System.out.println(chimeraPath);
 				args.add("--start");
 				args.add("ReadStdin");
 				ProcessBuilder pb = new ProcessBuilder(args);
@@ -369,8 +373,8 @@ public class ChimeraManager {
 	 * @return the default model Color for this model in Chimera
 	 */
 	public Color getModelColor(ChimeraModel model) {
-		List<String> colorLines = sendChimeraCommand(
-				"listm type molecule attr color spec " + model.toSpec(), true);
+		List<String> colorLines = sendChimeraCommand("list model spec " + model.toSpec()
+				+ " attribute color", true);
 		if (colorLines == null) {
 			return null;
 		}
@@ -386,11 +390,11 @@ public class ChimeraManager {
 	 *          the ChimeraModel to get residue information for
 	 * 
 	 */
-	public void getResidueInfo(ChimeraModel model) {
+	public void addResidues(ChimeraModel model) {
 		int modelNumber = model.getModelNumber();
 		int subModelNumber = model.getSubModelNumber();
 		// Get the list -- it will be in the reply log
-		List<String> reply = sendChimeraCommand("listr spec " + model.toSpec(), true);
+		List<String> reply = sendChimeraCommand("list residues spec " + model.toSpec(), true);
 		if (reply == null) {
 			return;
 		}
@@ -402,29 +406,28 @@ public class ChimeraManager {
 		}
 	}
 
-	public List<ChimeraResidue> getSSInfo(String aCommand, ChimeraModel model) {
-		List<ChimeraResidue> residues = new ArrayList<ChimeraResidue>();
-		final List<String> reply = sendChimeraCommand("listr spec " + model.toSpec() + aCommand, true);
+	public List<String> getAttrList() {
+		// TODO: Implement
+		// Should it be model specific?
+		// Add hard-coded 
+		List<String> attributes = new ArrayList<String>();
+		final List<String> reply = sendChimeraCommand("list resattr", true);
 		if (reply != null) {
 			for (String inputLine : reply) {
-				ChimeraResidue r = new ChimeraResidue(inputLine);
-				if (r.getModelNumber() == model.getModelNumber()
-						|| r.getSubModelNumber() == model.getSubModelNumber()) {
-					residues.add(model.getResidue(r.getChainId(), r.getIndex()));
-				}
+				
 			}
 		}
-		return residues;
+		return attributes;
 	}
 
 	public Map<ChimeraResidue, String> getAttrValues(String aCommand, ChimeraModel model) {
 		Map<ChimeraResidue, String> values = new HashMap<ChimeraResidue, String>();
-		final List<String> reply = sendChimeraCommand("listr spec " + model.toSpec() + " attribute "
-				+ aCommand, true);
+		final List<String> reply = sendChimeraCommand("list residue spec " + model.toSpec()
+				+ " attribute " + aCommand, true);
 		if (reply != null) {
 			for (String inputLine : reply) {
 				String[] lineParts = inputLine.split("\\s");
-				if (lineParts.length == 5 && lineParts[2].indexOf("#") > 0) {
+				if (lineParts.length == 5 && lineParts[2].indexOf(":") > 0) {
 					ChimeraResidue residue = ChimUtils.getResidue(lineParts[2], model);
 					String value = lineParts[4];
 					if (residue != null) {

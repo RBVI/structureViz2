@@ -17,6 +17,8 @@ import org.cytoscape.work.TaskIterator;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
+// TODO: make work for edges
+
 public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		NetworkViewTaskFactory, NodeViewTaskFactory {
 

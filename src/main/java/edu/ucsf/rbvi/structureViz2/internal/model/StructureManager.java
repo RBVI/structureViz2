@@ -678,7 +678,7 @@ public class StructureManager {
 
 			// Get the residue information
 			if (newModel.getModelType() != ModelType.SMILES) {
-				chimeraManager.getResidueInfo(newModel);
+				chimeraManager.addResidues(newModel);
 			}
 			for (CyIdentifiable cyObj : newModel.getCyObjects().keySet()) {
 				if (cyObj != null && cyObj instanceof CyNetwork) {
@@ -700,10 +700,13 @@ public class StructureManager {
 		if (!haveGUI) {
 			return;
 		}
-		if (mnDialog == null) {
-			CySwingApplication cyApplication = (CySwingApplication) getService(CySwingApplication.class);
-			mnDialog = ModelNavigatorDialog.LaunchModelNavigator(cyApplication.getJFrame(), this);
+		if (mnDialog != null) {
+			mnDialog.setVisible(true);
+			return;
 		}
+		CySwingApplication cyApplication = (CySwingApplication) getService(CySwingApplication.class);
+		mnDialog = new ModelNavigatorDialog(cyApplication.getJFrame(), this);
+		mnDialog.pack();
 		mnDialog.setVisible(true);
 	}
 
@@ -775,9 +778,13 @@ public class StructureManager {
 			List<String> nodeMatchingNames = new ArrayList<String>();
 			if (currentCyMap.containsKey(cyObj)) {
 				for (ChimeraStructuralObject chimObj : currentCyMap.get(cyObj)) {
-					if (chimObj instanceof ChimeraModel) {
-						nodeMatchingNames.add(((ChimeraModel) chimObj).getModelName());
+					// TODO: Check
+					// if (chimObj instanceof ChimeraModel) {
+					String modelName = chimObj.getChimeraModel().getModelName();
+					if (!nodeMatchingNames.contains(modelName)) {
+						nodeMatchingNames.add(modelName);
 					}
+					// }
 				}
 				if (nodeMatchingNames.size() > 0) {
 					matchingNames.put(cyObj, nodeMatchingNames);
@@ -858,7 +865,7 @@ public class StructureManager {
 					if (currentCyMap.containsKey(cyObj) && chimeraManager.getChimeraModels(cell).size() > 0) {
 						continue;
 					}
-					// add strcture name to map
+					// add structure name to map
 					if (!mapChimObjNames.containsKey(cyObj)) {
 						mapChimObjNames.put(cyObj, new ArrayList<String>());
 					}
@@ -903,24 +910,21 @@ public class StructureManager {
 			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
 				if (chimObj instanceof ChimeraModel) {
 					chimeraManager.sendChimeraCommand("ksdssp", false);
-					List<ChimeraResidue> hResidues = chimeraManager.getSSInfo(".:/isHelix",
+					Map<ChimeraResidue, String> hResidues = chimeraManager.getAttrValues("isHelix",
 							chimObj.getChimeraModel());
-					for (ChimeraResidue res : hResidues) {
+					Map<ChimeraResidue, String> sResidues = chimeraManager.getAttrValues("isSheet",
+							chimObj.getChimeraModel());
+					for (ChimeraResidue res : hResidues.keySet()) {
 						if (currentChimMap.containsKey(res)) {
 							for (CyIdentifiable cyId : currentChimMap.get(res)) {
 								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
-									network.getRow(cyId).set(ssColumn, "Helix");
-								}
-							}
-						}
-					}
-					List<ChimeraResidue> sResidues = chimeraManager.getSSInfo(".:/isSheet",
-							chimObj.getChimeraModel());
-					for (ChimeraResidue res : sResidues) {
-						if (currentChimMap.containsKey(res)) {
-							for (CyIdentifiable cyId : currentChimMap.get(res)) {
-								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
-									network.getRow(cyId).set(ssColumn, "Sheet");
+									if (hResidues.get(res).equals("True")) {
+										network.getRow(cyId).set(ssColumn, "Helix");
+									} else if (sResidues.containsKey(res) && sResidues.get(res).equals("True")) {
+										network.getRow(cyId).set(ssColumn, "Sheet");
+									} else {
+										network.getRow(cyId).set(ssColumn, "Loop");
+									}
 								}
 							}
 						}
@@ -1106,7 +1110,7 @@ public class StructureManager {
 				manager.deleteTable(table.getSUID());
 			}
 		}
-		chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class, true,
+		chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class, false,
 				true);
 		manager.addTable(chimTable);
 		if (chimTable.getColumn(chimeraOutputAttr) == null) {

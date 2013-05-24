@@ -75,6 +75,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 public class ModelNavigatorDialog extends JDialog implements TreeSelectionListener,
 		TreeExpansionListener, TreeWillExpandListener {
 
+	private static final long serialVersionUID = -1695555416220985117L;
 	// private boolean status;
 	// These must be > ChimeraResidue.FULL_NAME
 	private static final int COMMAND = 10;
@@ -106,16 +107,16 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	private ChimeraTreeModel treeModel;
 	private JMenu alignMenu;
 
-	public static ModelNavigatorDialog LaunchModelNavigator(Frame parent,
-			StructureManager structureManager) {
-		ModelNavigatorDialog mnDialog = new ModelNavigatorDialog(parent, structureManager);
-		mnDialog.pack();
-		if (parent != null) {
-			mnDialog.setLocationRelativeTo(parent);
-		}
-		mnDialog.setVisible(true);
-		return mnDialog;
-	}
+	// public static ModelNavigatorDialog LaunchModelNavigator(Frame parent,
+	// StructureManager structureManager) {
+	// ModelNavigatorDialog mnDialog = new ModelNavigatorDialog(parent, structureManager);
+	//
+	// if (parent != null) {
+	//
+	// }
+	// mnDialog.setVisible(true);
+	// return mnDialog;
+	// }
 
 	/**
 	 * Create a new ModelNavigatorDialog.
@@ -125,12 +126,15 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	 * @param object
 	 *          the Chimera interface object associated with this dialog
 	 */
-	protected ModelNavigatorDialog(Frame parent, StructureManager structureManager) {
+	public ModelNavigatorDialog(Frame parent, StructureManager structureManager) {
 		super(parent);
 		setTitle("Cytoscape Molecular Structure Navigator");
 		this.structureManager = structureManager;
 		this.chimeraManager = structureManager.getChimeraManager();
 		initComponents();
+		if (parent != null) {
+			setLocationRelativeTo(parent);
+		}
 		// status = false;
 	}
 
@@ -327,7 +331,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			navigationTree.addSelectionPaths(setPaths.toArray(new TreePath[1]));
 		} else {
 			// TODO: Make this work if possible
-			//collapseAll();
+			// collapseAll();
 		}
 	}
 
@@ -613,7 +617,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				structureManager.exitChimera();
 			} else if (type == FUNCTIONALRESIDUES) {
 				structureManager.selectFunctResidues(chimeraManager.getChimeraModels());
-				//modelChanged();
+				// modelChanged();
 			} else if (type == REFRESH) {
 				structureManager.updateModels();
 			} else if (type == COLLAPSEALL) {

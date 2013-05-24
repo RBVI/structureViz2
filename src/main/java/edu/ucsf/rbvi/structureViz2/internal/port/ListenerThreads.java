@@ -208,7 +208,8 @@ public class ListenerThreads extends Thread {
 		public void run() {
 			try {
 				((TaskManager<?, ?>) structureManager.getService(TaskManager.class))
-						.execute(new ImportTrajectoryRINTaskFactory(structureManager, line).createTaskIterator());
+						.execute(new ImportTrajectoryRINTaskFactory(structureManager, line)
+								.createTaskIterator());
 			} catch (Exception e) {
 			}
 		}

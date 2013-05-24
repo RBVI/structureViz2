@@ -33,10 +33,11 @@ public class LaunchChimeraTask extends AbstractTask {
 		List<String> pathList = structureManager.getChimeraPaths(null);
 		chimeraPath = chimeraPath.trim();
 		if (chimeraPath.length() > 0) {
-			pathList.add(chimeraPath);
+			pathList.add(0, chimeraPath);
 			structureManager.setDefaultChimeraPath(chimeraPath);
 		}
-		if (structureManager.getChimeraManager().launchChimera(pathList)) {
+		structureManager.getChimeraManager().launchChimera(pathList);
+		if (structureManager.getChimeraManager().isChimeraLaunched()) {
 			structureManager.launchModelNavigatorDialog();
 		}
 	}

@@ -28,9 +28,9 @@ public class SyncColorsTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		if (chimeraToCytoscape) {
-			structureManager.mapChimeraColorToCytoscape(networkView);
+			structureManager.syncChimToCyColors(networkView);
 		} else {
-
+			structureManager.syncCyToChimColors(networkView);
 		}
 	}
 

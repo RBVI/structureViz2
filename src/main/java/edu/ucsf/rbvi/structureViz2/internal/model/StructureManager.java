@@ -29,9 +29,8 @@ import org.cytoscape.session.CySession;
 import org.cytoscape.session.CySessionManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
-import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
-import org.cytoscape.view.vizmap.mappings.PassthroughMapping;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
@@ -954,10 +953,10 @@ public class StructureManager {
 	}
 
 	public void getResidueCoord(CyNetworkView networkView) {
-		
+
 	}
 
-	public void mapChimeraColorToCytoscape(CyNetworkView networkView) {
+	public void syncChimToCyColors(CyNetworkView networkView) {
 		// get models
 		CyNetwork network = networkView.getModel();
 		if (currentCyMap.containsKey(network)) {
@@ -985,7 +984,6 @@ public class StructureManager {
 													BasicVisualLexicon.NODE_FILL_COLOR, resColor);
 										} catch (NumberFormatException ex) {
 											// ignore
-											ex.printStackTrace();
 										}
 									}
 								}
@@ -995,6 +993,37 @@ public class StructureManager {
 					networkView.updateView();
 				}
 			}
+		}
+	}
+
+	public void syncCyToChimColors(CyNetworkView networkView) {
+		final Map<Color, String> color2res = new HashMap<Color, String>();
+		for (final View<CyNode> nodeView : networkView.getNodeViews()) {
+			final Color color = (Color) nodeView.getVisualProperty(BasicVisualLexicon.NODE_FILL_COLOR);
+			if (color != null && currentCyMap.containsKey(nodeView.getModel())) {
+				for (ChimeraStructuralObject chimObj : currentCyMap.get(nodeView.getModel())) {
+					// TODO: Check if residue?
+					// if (chimObj instanceof ChimeraResidue) {
+					if (!color2res.containsKey(color)) {
+						color2res.put(color, chimObj.toSpec());
+					} else {
+						color2res.put(color, color2res.get(color) + chimObj.toSpec());
+					}
+				}
+			}
+		}
+		for (final Color color : color2res.keySet()) {
+			String colorDef = "";
+			try {
+				float[] rgbColorCodes = color.getRGBColorComponents(null);
+				for (int i = 0; i < rgbColorCodes.length; i++) {
+					colorDef += rgbColorCodes[i] + ",";
+				}
+			} catch (Exception e) {
+				continue;
+			}
+			colorDef += "r,a";
+			chimeraManager.sendChimeraCommand("color " + colorDef + " " + color2res.get(color), false);
 		}
 	}
 

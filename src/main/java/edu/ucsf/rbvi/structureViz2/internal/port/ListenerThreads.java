@@ -105,7 +105,7 @@ public class ListenerThreads extends Thread {
 
 		String line = null;
 		while ((line = lineReader.readLine()) != null) {
-			// System.out.println("From Chimera-->"+line);
+			// System.out.println("From Chimera-->" + line);
 			if (line.startsWith("CMD")) {
 				chimeraCommandRead(line.substring(4));
 			} else if (line.startsWith("ModelChanged: ")) {
@@ -133,7 +133,7 @@ public class ListenerThreads extends Thread {
 
 		synchronized (replyLog) {
 			while ((line = lineReader.readLine()) != null) {
-				// System.out.println("From Chimera ("+command+") -->"+line);
+				// System.out.println("From Chimera (" + command + ") -->" + line);
 				if (line.startsWith("CMD")) {
 					logger.error("Got unexpected command from Chimera: " + line);
 

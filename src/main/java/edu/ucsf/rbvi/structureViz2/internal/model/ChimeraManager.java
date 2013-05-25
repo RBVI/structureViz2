@@ -407,31 +407,48 @@ public class ChimeraManager {
 	}
 
 	public List<String> getAttrList() {
-		// TODO: Implement
-		// Should it be model specific?
-		// Add hard-coded 
+		// TODO: Should it be model specific?
 		List<String> attributes = new ArrayList<String>();
 		final List<String> reply = sendChimeraCommand("list resattr", true);
 		if (reply != null) {
 			for (String inputLine : reply) {
-				
+				String[] lineParts = inputLine.split("\\s");
+				if (lineParts.length == 2 && lineParts[0].equals("resattr")) {
+					attributes.add(lineParts[1]);
+				}
 			}
 		}
 		return attributes;
 	}
 
-	public Map<ChimeraResidue, String> getAttrValues(String aCommand, ChimeraModel model) {
-		Map<ChimeraResidue, String> values = new HashMap<ChimeraResidue, String>();
+	public Map<ChimeraResidue, Object> getAttrValues(String aCommand, ChimeraModel model) {
+		Map<ChimeraResidue, Object> values = new HashMap<ChimeraResidue, Object>();
 		final List<String> reply = sendChimeraCommand("list residue spec " + model.toSpec()
 				+ " attribute " + aCommand, true);
 		if (reply != null) {
+			System.out.println(aCommand);
 			for (String inputLine : reply) {
 				String[] lineParts = inputLine.split("\\s");
-				if (lineParts.length == 5 && lineParts[2].indexOf(":") > 0) {
+				if (lineParts.length == 5) {
 					ChimeraResidue residue = ChimUtils.getResidue(lineParts[2], model);
 					String value = lineParts[4];
 					if (residue != null) {
-						values.put(residue, value);
+						if (value.equals("None")) {
+							continue;
+						}
+						if (value.equals("True") || value.equals("False")) {
+							System.out.println("boolean");
+							values.put(residue, Boolean.valueOf(value));
+							continue;
+						}
+						try {
+							Double doubleValue = Double.valueOf(value);
+							values.put(residue, doubleValue);
+							System.out.println("double");
+						} catch (NumberFormatException ex) {
+							System.out.println("string");
+							values.put(residue, value);
+						}
 					}
 				}
 			}

@@ -1,5 +1,7 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
+import java.awt.Color;
+import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +29,9 @@ import org.cytoscape.session.CySession;
 import org.cytoscape.session.CySessionManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.view.presentation.property.BasicVisualLexicon;
+import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
+import org.cytoscape.view.vizmap.mappings.PassthroughMapping;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
@@ -49,19 +54,19 @@ public class StructureManager {
 
 	static {
 		residueAttrCommandMap.put("SecondaryStructure", "");
-		residueAttrCommandMap.put("kdHydrophobicity", "kdHydrophobicity");
-		residueAttrCommandMap.put("phiAngle", "phi");
-		residueAttrCommandMap.put("psiAngle", "psi");
-		residueAttrCommandMap.put("Color", "ribbonColor");
-		residueAttrCommandMap.put("areaSAS", "areaSAS");
-		residueAttrCommandMap.put("areaSES", "areaSES");
+		// residueAttrCommandMap.put("Color", "ribbonColor");
 		residueAttrCommandMap.put("averageBFactor", "bfactor");
 		residueAttrCommandMap.put("averageOccupancy", "occupancy");
-		residueAttrCommandMap.put("chi1Angle", "chi1");
-		residueAttrCommandMap.put("chi2Angle", "chi2");
-		residueAttrCommandMap.put("chi3Angle", "chi3");
-		residueAttrCommandMap.put("chi4Angle", "chi4");
-		// "residueCoordinates"
+		residueAttrCommandMap.put("residueCoordinates", "occupancy");
+		// residueAttrCommandMap.put("kdHydrophobicity", "kdHydrophobicity");
+		// residueAttrCommandMap.put("phiAngle", "phi");
+		// residueAttrCommandMap.put("psiAngle", "psi");
+		// residueAttrCommandMap.put("areaSAS", "areaSAS");
+		// residueAttrCommandMap.put("areaSES", "areaSES");
+		// residueAttrCommandMap.put("chi1Angle", "chi1");
+		// residueAttrCommandMap.put("chi2Angle", "chi2");
+		// residueAttrCommandMap.put("chi3Angle", "chi3");
+		// residueAttrCommandMap.put("chi4Angle", "chi4");
 	}
 
 	public enum ModelType {
@@ -876,16 +881,30 @@ public class StructureManager {
 		return mapChimObjNames;
 	}
 
-	public void annotate(CyNetwork network, String resAttr, Class attrClass) {
+	public void annotate(CyNetwork network, String resAttr, String command) {
 		// get models
 		if (currentCyMap.containsKey(network)) {
-			if (network.getDefaultNodeTable().getColumn(resAttr) == null) {
-				network.getDefaultNodeTable().createColumn(resAttr, attrClass, false, "");
-			}
 			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
 				if (chimObj instanceof ChimeraModel) {
-					Map<ChimeraResidue, String> resValues = chimeraManager.getAttrValues(
-							residueAttrCommandMap.get(resAttr), chimObj.getChimeraModel());
+					// get attribute values
+					Map<ChimeraResidue, Object> resValues = chimeraManager.getAttrValues(command,
+							chimObj.getChimeraModel());
+					if (resValues.size() == 0) {
+						continue;
+					}
+					Object testObj = resValues.values().iterator().next();
+					if (testObj == null) {
+						continue;
+					}
+					// TODO: Do we really need this?
+					// create attribute
+					if (network.getDefaultNodeTable().getColumn(resAttr) != null
+							&& network.getDefaultNodeTable().getColumn(resAttr).getType() != testObj.getClass()) {
+						network.getDefaultNodeTable().deleteColumn(resAttr);
+					} else if (network.getDefaultNodeTable().getColumn(resAttr) == null) {
+						network.getDefaultNodeTable().createColumn(resAttr, testObj.getClass(), false);
+					}
+					// save all the values
 					for (ChimeraResidue res : resValues.keySet()) {
 						if (currentChimMap.containsKey(res)) {
 							for (CyIdentifiable cyId : currentChimMap.get(res)) {
@@ -910,17 +929,17 @@ public class StructureManager {
 			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
 				if (chimObj instanceof ChimeraModel) {
 					chimeraManager.sendChimeraCommand("ksdssp", false);
-					Map<ChimeraResidue, String> hResidues = chimeraManager.getAttrValues("isHelix",
+					Map<ChimeraResidue, Object> hResidues = chimeraManager.getAttrValues("isHelix",
 							chimObj.getChimeraModel());
-					Map<ChimeraResidue, String> sResidues = chimeraManager.getAttrValues("isSheet",
+					Map<ChimeraResidue, Object> sResidues = chimeraManager.getAttrValues("isSheet",
 							chimObj.getChimeraModel());
 					for (ChimeraResidue res : hResidues.keySet()) {
 						if (currentChimMap.containsKey(res)) {
 							for (CyIdentifiable cyId : currentChimMap.get(res)) {
 								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
-									if (hResidues.get(res).equals("True")) {
+									if (hResidues.get(res).equals(Boolean.TRUE)) {
 										network.getRow(cyId).set(ssColumn, "Helix");
-									} else if (sResidues.containsKey(res) && sResidues.get(res).equals("True")) {
+									} else if (sResidues.containsKey(res) && sResidues.get(res).equals(Boolean.TRUE)) {
 										network.getRow(cyId).set(ssColumn, "Sheet");
 									} else {
 										network.getRow(cyId).set(ssColumn, "Loop");
@@ -929,6 +948,51 @@ public class StructureManager {
 							}
 						}
 					}
+				}
+			}
+		}
+	}
+
+	public void getResidueCoord(CyNetworkView networkView) {
+		
+	}
+
+	public void mapChimeraColorToCytoscape(CyNetworkView networkView) {
+		// get models
+		CyNetwork network = networkView.getModel();
+		if (currentCyMap.containsKey(network)) {
+			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
+				if (chimObj instanceof ChimeraModel) {
+					// get attribute values
+					Map<ChimeraResidue, Object> resValues = chimeraManager.getAttrValues("ribbonColor",
+							chimObj.getChimeraModel());
+					if (resValues.size() == 0) {
+						continue;
+					}
+					// save all the values
+					for (ChimeraResidue res : resValues.keySet()) {
+						if (currentChimMap.containsKey(res)) {
+							for (CyIdentifiable cyId : currentChimMap.get(res)) {
+								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
+									String[] rgb = ((String) resValues.get(res)).split(",");
+									if (rgb.length == 3) {
+										try {
+											Paint resColor = new Color(Float.valueOf(rgb[0]), Float.valueOf(rgb[1]),
+													Float.valueOf(rgb[2]));
+											networkView.getNodeView((CyNode) cyId).clearValueLock(
+													BasicVisualLexicon.NODE_FILL_COLOR);
+											networkView.getNodeView((CyNode) cyId).setVisualProperty(
+													BasicVisualLexicon.NODE_FILL_COLOR, resColor);
+										} catch (NumberFormatException ex) {
+											// ignore
+											ex.printStackTrace();
+										}
+									}
+								}
+							}
+						}
+					}
+					networkView.updateView();
 				}
 			}
 		}
@@ -971,6 +1035,7 @@ public class StructureManager {
 	public List<String> getAllResidueAttributes() {
 		List<String> attributes = new ArrayList<String>();
 		attributes.addAll(residueAttrCommandMap.keySet());
+		attributes.addAll(chimeraManager.getAttrList());
 		return attributes;
 	}
 

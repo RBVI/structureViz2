@@ -40,6 +40,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
@@ -68,14 +69,11 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, selectionListener, RowsSetListener.class, new Properties());
 		CyNetworkListener networkListener = new CyNetworkListener(structureManager);
 		registerService(bc, networkListener, NetworkAddedListener.class, new Properties());
-		registerService(bc, networkListener, NetworkAboutToBeDestroyedListener.class,
-				new Properties());
+		registerService(bc, networkListener, NetworkAboutToBeDestroyedListener.class, new Properties());
 		// TODO: Listen for new attribute values and not nodes/edges added
 		CyIdentifiableListener cyIdentifiableListener = new CyIdentifiableListener(structureManager);
-		registerService(bc, cyIdentifiableListener, AboutToRemoveNodesListener.class,
-				new Properties());
-		registerService(bc, cyIdentifiableListener, AboutToRemoveEdgesListener.class,
-				new Properties());
+		registerService(bc, cyIdentifiableListener, AboutToRemoveNodesListener.class, new Properties());
+		registerService(bc, cyIdentifiableListener, AboutToRemoveEdgesListener.class, new Properties());
 
 		// TODO: Add a task for opening the molecular navigator dialog
 
@@ -119,8 +117,8 @@ public class CyActivator extends AbstractCyActivator {
 		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager);
 		Properties createStructureNetProps = new Properties();
 		createStructureNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		createStructureNetProps.setProperty(TITLE, "Create Structure Network");
-		createStructureNetProps.setProperty(COMMAND, "createStructureNetwork");
+		createStructureNetProps.setProperty(TITLE, "Create RIN");
+		createStructureNetProps.setProperty(COMMAND, "createRIN");
 		createStructureNetProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		createStructureNetProps.setProperty(ENABLE_FOR, "network");
 		createStructureNetProps.setProperty(IN_MENU_BAR, "true");
@@ -132,13 +130,24 @@ public class CyActivator extends AbstractCyActivator {
 		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
 		Properties annotateProps = new Properties();
 		annotateProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		annotateProps.setProperty(TITLE, "Annotate Structure Network");
-		annotateProps.setProperty(COMMAND, "annotateStructureNetwork");
+		annotateProps.setProperty(TITLE, "Annotate RIN");
+		annotateProps.setProperty(COMMAND, "annotateRIN");
 		annotateProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		annotateProps.setProperty(IN_MENU_BAR, "true");
 		annotateProps.setProperty(ENABLE_FOR, "network");
 		annotateProps.setProperty(MENU_GRAVITY, "6.0");
 		registerService(bc, annotateFactory, NetworkTaskFactory.class, annotateProps);
+
+		NetworkViewTaskFactory syncColorsFactory = new SyncColorsTaskFactory(structureManager);
+		Properties syncColorsProps = new Properties();
+		syncColorsProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		syncColorsProps.setProperty(TITLE, "Sync Colors");
+		syncColorsProps.setProperty(IN_MENU_BAR, "true");
+		syncColorsProps.setProperty(COMMAND, "syncColors");
+		syncColorsProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		syncColorsProps.setProperty(ENABLE_FOR, "networkAndView");
+		syncColorsProps.setProperty(MENU_GRAVITY, "7.0");
+		registerService(bc, syncColorsFactory, NetworkViewTaskFactory.class, syncColorsProps);
 
 		TaskFactory launchChimera = new LaunchChimeraTaskFactory(structureManager);
 		Properties launchChimeraProps = new Properties();

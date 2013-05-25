@@ -26,20 +26,27 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 
 	@ProvidesTitle
 	public String getTitle() {
-		return "Annotate Structure Network Options";
+		return "Annotate RIN Options";
 	}
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		// TODO: add data type for each attribute
-		taskMonitor.setTitle("Annotate structure network");
+		taskMonitor.setTitle("Annotate residue interaction network");
 		if (residueAttributes.getSelectedValues().size() > 0) {
 			for (String resAttr : residueAttributes.getSelectedValues()) {
 				taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
 				if (resAttr.equals("SecondaryStructure")) {
 					structureManager.annotateSS(network);
+					// } else if (resAttr.equals("residueCoordinates")) {
+					// structureManager.annotateCoord(network);
+					// } else if (resAttr.contains("Color")) {
+					// structureManager.annotateColor(network, resAttr,
+					// structureManager.residueAttrCommandMap.get(resAttr));
+				} else if (resAttr.equals("averageBFactor") || resAttr.equals("averageOccupancy")) {
+					structureManager.annotate(network, resAttr,
+							structureManager.residueAttrCommandMap.get(resAttr));
 				} else {
-					structureManager.annotate(network, resAttr, String.class);
+					structureManager.annotate(network, resAttr, resAttr);
 				}
 			}
 		}

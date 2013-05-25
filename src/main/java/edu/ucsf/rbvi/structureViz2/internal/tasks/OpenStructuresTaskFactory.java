@@ -24,7 +24,6 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 
 	private StructureManager structureManager;
 
-	// TODO: Can we get rid of the duplicated code?
 	public OpenStructuresTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
 	}
@@ -34,12 +33,12 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 	}
 
 	public boolean isReady(CyNetworkView netView) {
-		// Get all of the selected nodes
-		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
-		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		nodeList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES).size() > 0
-				|| structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL)
+		// Get all of the selected nodes/edges
+		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES).size() > 0
+				|| structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.PDB_MODEL)
 						.size() > 0) {
 			return true;
 		}
@@ -48,12 +47,12 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 
 	public boolean isReady(View<CyNode> nodeView, CyNetworkView netView) {
 		// Get all of the selected nodes
-		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
-		nodeList.add(nodeView.getModel());
-		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		nodeList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES).size() > 0
-				|| structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL)
+		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
+		selectedList.add(nodeView.getModel());
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES).size() > 0
+				|| structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.PDB_MODEL)
 						.size() > 0) {
 			return true;
 		}
@@ -62,18 +61,18 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 
 	public TaskIterator createTaskIterator(CyNetworkView netView) {
 		// Get all of the selected nodes
-		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
-		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		nodeList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager));
+		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
 	}
 
 	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netView) {
 		// Get all of the selected nodes
-		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
-		nodeList.add(nodeView.getModel());
-		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		nodeList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		return new TaskIterator(new OpenStructuresTask(nodeList, netView, structureManager));
+		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
+		selectedList.add(nodeView.getModel());
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
 	}
 }

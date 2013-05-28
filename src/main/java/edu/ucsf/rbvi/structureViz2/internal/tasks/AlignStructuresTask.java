@@ -12,7 +12,7 @@ import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
 
-import edu.ucsf.rbvi.structureViz2.internal.model.CyUtils;
+import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
@@ -29,7 +29,7 @@ public class AlignStructuresTask extends AbstractTask {
 			StructureManager structureManager) {
 		this.netView = netView;
 		this.structureManager = structureManager;
-		availableChimObjMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
+		availableChimObjMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(),
 				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL));
 		initTunables();
 	}
@@ -43,7 +43,7 @@ public class AlignStructuresTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Align structures");
 		// get selected structures from tunable parameter
-		Map<CyIdentifiable, List<String>> selectedChimeraObjNames = CyUtils.getCyChimPairsToMap(
+		Map<CyIdentifiable, List<String>> selectedChimeraObjNames = CytoUtils.getCyChimPairsToMap(
 				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
 		// open structures
 		taskMonitor.setStatusMessage("Opening structures ...");

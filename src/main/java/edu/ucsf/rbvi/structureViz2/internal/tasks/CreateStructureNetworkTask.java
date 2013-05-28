@@ -155,10 +155,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Create structure network");
+		taskMonitor.setTitle("Create residue interaction network");
 		// Save selected nodes indexed by their name
 		Map<String, CyNode> nodeMap = new HashMap<String, CyNode>();
-		System.out.println("create network");
 		chimeraManager.stopListening();
 		CyNetwork rin = createNetwork();
 

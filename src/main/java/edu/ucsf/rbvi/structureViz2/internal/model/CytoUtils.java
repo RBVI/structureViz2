@@ -12,7 +12,7 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 
-public abstract class CyUtils {
+public abstract class CytoUtils {
 
 	public static List<String> getMatchingAttributes(CyTable table, List<String> columns) {
 		Set<String> columnNames = CyTableUtil.getColumnNames(table);

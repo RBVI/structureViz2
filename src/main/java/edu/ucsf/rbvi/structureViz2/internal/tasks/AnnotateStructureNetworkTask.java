@@ -37,8 +37,8 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 				taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
 				if (resAttr.equals("SecondaryStructure")) {
 					structureManager.annotateSS(network);
-					// } else if (resAttr.equals("residueCoordinates")) {
-					// structureManager.annotateCoord(network);
+				} else if (resAttr.equals("Coordinates")) {
+					structureManager.annotateCoord(network, "resCoord");
 					// } else if (resAttr.contains("Color")) {
 					// structureManager.annotateColor(network, resAttr,
 					// structureManager.residueAttrCommandMap.get(resAttr));

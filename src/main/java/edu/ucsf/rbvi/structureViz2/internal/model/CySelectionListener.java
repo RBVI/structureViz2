@@ -46,8 +46,7 @@ public class CySelectionListener implements RowsSetListener {
 					for (RowSetRecord record : records) {
 						CyRow row = record.getRow();
 						// This is a hack to avoid double selection...
-						if (row.toString().indexOf("FACADE") >= 0
-								|| !row.isSet(structureKey)) {
+						if (row.toString().indexOf("FACADE") >= 0 || !row.isSet(structureKey)) {
 							continue;
 						} else {
 							update = true;

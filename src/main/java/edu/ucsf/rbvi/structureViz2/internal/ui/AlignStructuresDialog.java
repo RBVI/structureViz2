@@ -161,7 +161,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 		// Create the results table
 		tableModel = new AlignmentTableModel(chimObjects, this);
 
-		TableSorter sorter = new TableSorter(tableModel);
+		AlignTableSorter sorter = new AlignTableSorter(tableModel);
 		JTable results = new JTable(sorter);
 		sorter.setTableHeader(results.getTableHeader());
 

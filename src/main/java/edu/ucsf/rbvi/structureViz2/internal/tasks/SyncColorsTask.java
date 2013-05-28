@@ -12,10 +12,10 @@ public class SyncColorsTask extends AbstractTask {
 	private StructureManager structureManager;
 	private CyNetworkView networkView;
 
-	@Tunable(description = "Sync colors from Chimera to Cytoscape", dependsOn = "cytoscapeToChimera=false")
+	@Tunable(description = "Apply colors from associated Chimera models to current network view", dependsOn = "cytoscapeToChimera=false")
 	public boolean chimeraToCytoscape;
 
-	@Tunable(description = "Sync colors from Cytoscape to Chiemra", dependsOn = "chimeraToCytoscape=false")
+	@Tunable(description = "Apply colors from current network view to associated Chimera models", dependsOn = "chimeraToCytoscape=false")
 	public boolean cytoscapeToChimera;
 
 	public SyncColorsTask(StructureManager structureManager, CyNetworkView networkView) {

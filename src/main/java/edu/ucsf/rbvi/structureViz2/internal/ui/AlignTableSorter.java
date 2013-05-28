@@ -62,7 +62,7 @@ import javax.swing.table.*;
  * @version 2.0 02/27/04
  */
 
-public class TableSorter extends AbstractTableModel {
+public class AlignTableSorter extends AbstractTableModel {
     protected TableModel tableModel;
 
     public static final int DESCENDING = -1;
@@ -91,17 +91,17 @@ public class TableSorter extends AbstractTableModel {
     private Map columnComparators = new HashMap();
     private List<Directive> sortingColumns = new ArrayList();
 
-    public TableSorter() {
+    public AlignTableSorter() {
         this.mouseListener = new MouseHandler();
         this.tableModelListener = new TableModelHandler();
     }
 
-    public TableSorter(TableModel tableModel) {
+    public AlignTableSorter(TableModel tableModel) {
         this();
         setTableModel(tableModel);
     }
 
-    public TableSorter(TableModel tableModel, JTableHeader tableHeader) {
+    public AlignTableSorter(TableModel tableModel, JTableHeader tableHeader) {
         this();
         setTableHeader(tableHeader);
         setTableModel(tableModel);
@@ -359,7 +359,7 @@ public class TableSorter extends AbstractTableModel {
                     && getSortingStatus(column) == NOT_SORTED
                     && modelToView != null) {
                 int viewIndex = getModelToView()[e.getFirstRow()];
-                fireTableChanged(new TableModelEvent(TableSorter.this, 
+                fireTableChanged(new TableModelEvent(AlignTableSorter.this, 
                                                      viewIndex, viewIndex, 
                                                      column, e.getType()));
                 return;

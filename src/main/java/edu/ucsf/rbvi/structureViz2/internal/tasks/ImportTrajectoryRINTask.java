@@ -22,7 +22,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 
-import edu.ucsf.rbvi.structureViz2.internal.model.CyUtils;
+import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 public class ImportTrajectoryRINTask extends AbstractTask {
@@ -101,8 +101,8 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 					CyEdge edge = newNetwork.addEdge(source, target, true);
 					newNetwork.getRow(edge).set(
 							CyNetwork.NAME,
-							CyUtils.getNodeName(newNetwork, source) + " (" + words[1] + ") "
-									+ CyUtils.getNodeName(newNetwork, target));
+							CytoUtils.getNodeName(newNetwork, source) + " (" + words[1] + ") "
+									+ CytoUtils.getNodeName(newNetwork, target));
 					newNetwork.getRow(edge).set(CyEdge.INTERACTION, words[1]);
 					newNetwork.getRow(edge).set("Weight", new Double(words[3]));
 				}

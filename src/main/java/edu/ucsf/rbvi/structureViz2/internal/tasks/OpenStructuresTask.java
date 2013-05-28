@@ -12,7 +12,7 @@ import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
 
-import edu.ucsf.rbvi.structureViz2.internal.model.CyUtils;
+import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
@@ -34,9 +34,9 @@ public class OpenStructuresTask extends AbstractTask {
 		// this.nodeList = nodeList;
 		this.netView = netView;
 		this.structureManager = structureManager;
-		structruesMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
+		structruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(),
 				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL));
-		chemStructruesMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
+		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(),
 				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES));
 		initTunables();
 	}
@@ -50,7 +50,7 @@ public class OpenStructuresTask extends AbstractTask {
 		taskMonitor.setTitle("Open Structures");
 		taskMonitor.setStatusMessage("Opening structures ...");
 		// get selected structures from tunable parameter
-		Map<CyIdentifiable, List<String>> selectedStructureNames = CyUtils.getCyChimPairsToMap(
+		Map<CyIdentifiable, List<String>> selectedStructureNames = CytoUtils.getCyChimPairsToMap(
 				structureTunable.getSelectedValues(), structruesMap);
 		System.out.println("selectedStructuresMap: " + selectedStructureNames.size());
 		// open structures
@@ -59,7 +59,7 @@ public class OpenStructuresTask extends AbstractTask {
 
 		// get selected chem structures from tunable parameter
 		taskMonitor.setStatusMessage("Opening chemical structures ...");
-		Map<CyIdentifiable, List<String>> selectedChemNames = CyUtils.getCyChimPairsToMap(
+		Map<CyIdentifiable, List<String>> selectedChemNames = CytoUtils.getCyChimPairsToMap(
 				chemTunable.getSelectedValues(), chemStructruesMap);
 		System.out.println("selectedChemMap: " + selectedChemNames.size());
 		// open structures

@@ -451,6 +451,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	/**
 	 * Return a string representation for the model.
 	 */
+	// TODO: Important! Still throws a NullPointerException null after network is deleted...
 	public String toString() {
 		String nodeName = "Cytoscape";
 		if (cyObjects.size() == 0) {
@@ -465,7 +466,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 				nodeName += " " + network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 			}
 		} else {
-			nodeName += "s {";
+			nodeName += " {";
 			for (CyIdentifiable cyObj : cyObjects.keySet()) {
 				CyNetwork network = cyObjects.get(cyObj);
 				if (network != null

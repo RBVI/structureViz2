@@ -12,7 +12,7 @@ import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
 
-import edu.ucsf.rbvi.structureViz2.internal.model.CyUtils;
+import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 public class CloseStructuresTask extends AbstractTask {
@@ -25,7 +25,7 @@ public class CloseStructuresTask extends AbstractTask {
 	public CloseStructuresTask(List<CyIdentifiable> nodeList, CyNetworkView netView,
 			StructureManager structureManager) {
 		this.structureManager = structureManager;
-		openChimObjMap = CyUtils.getCyChimPiarsToStrings(netView.getModel(),
+		openChimObjMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(),
 				structureManager.getOpenChimObjNames(nodeList));
 		initTunables();
 	}
@@ -40,7 +40,7 @@ public class CloseStructuresTask extends AbstractTask {
 		taskMonitor.setTitle("Close structures");
 		taskMonitor.setStatusMessage("Closing structures ...");
 		// get open models
-		Map<CyIdentifiable, List<String>> selectedChimeraObjs = CyUtils.getCyChimPairsToMap(
+		Map<CyIdentifiable, List<String>> selectedChimeraObjs = CytoUtils.getCyChimPairsToMap(
 				openChimObjTunable.getSelectedValues(), openChimObjMap);
 		System.out.println("selectedChimObjMap: " + selectedChimeraObjs.size());
 		// automatically launch a dialog with list of models to close

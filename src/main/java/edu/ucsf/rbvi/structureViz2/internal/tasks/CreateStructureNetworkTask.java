@@ -38,11 +38,14 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraResidue;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-//TODO: Bug: different number of nodes and edges in consecutive runs
+// TODO: Bug: different number of nodes and edges in consecutive runs
+// TODO: Add all nodes in selection
+// TODO: Revise connectivity section
+// TODO: Check why selection disappears
 
 public class CreateStructureNetworkTask extends AbstractTask {
 
-	@Tunable(description = "Name of new structure network", groups = "General")
+	@Tunable(description = "Name of new network", groups = "General")
 	public String networkName;
 
 	@Tunable(description = "Include interactions", groups = "General")
@@ -78,16 +81,19 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Tunable(description = "Bond separation", groups = "Clashes", dependsOn = "includeClashes=true")
 	public int bondSepClash;
 
-	@Tunable(description = "Include hydrogen bonds (overlaps with contacts)", groups = "Hydrogen bonds")
+	@Tunable(description = "Include hydrogen bonds", groups = "Hydrogen bonds")
 	public boolean includeHBonds;
 
-	@Tunable(description = "Relax criteria for hydrogen bonding", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true")
+	@Tunable(description = "Remove redundant contacts", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true")
+	public boolean removeRedContacts;
+
+	@Tunable(description = "Add tolerances to strict criteria", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true")
 	public boolean relaxHBonds;
 
-	@Tunable(description = "Distance criteria", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true")
+	@Tunable(description = "Distance tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true")
 	public double distSlop;
 
-	@Tunable(description = "Angle criteria", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true")
+	@Tunable(description = "Angle tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true")
 	public double angleSlop;
 
 	@Tunable(description = "Include connectivity", groups = "Connectivity")
@@ -97,19 +103,17 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	public boolean includeConnectivityDistance;
 
 	private static final String[] interactionArray = { "Within selection",
-			"Between selection and all atoms", "Within selection and all atoms", "Between all models",
-			"Within and between all models" };
+			"Between selection and other atoms", "All of the above" };
 
 	// Edge attributes
-	static final String DISTANCE_ATTR = "MinimumDistance";
-	static final String OVERLAP_ATTR = "MaximumOverlap";
+	static final String DISTANCE_ATTR = "Distance";
+	static final String OVERLAP_ATTR = "Overlap";
 	static final String INTSUBTYPE_ATTR = "InteractionSubtype";
 	static final String INTATOMS_ATTR = "InteractingAtoms";
 	static final String NUMINT_ATTR = "NumberInteractions";
 	// Node attributes
 	static final String SMILES_ATTR = "SMILES";
 	static final String STRUCTURE_ATTR = "pdbFileName";
-	static final String HDONOR_ATTR = "HDonor";
 	static final String SEED_ATTR = "SeedResidues";
 	// static final String BACKBONE_ATTR = "BackboneInteraction";
 	// static final String SIDECHAIN_ATTR = "SideChainInteraction";
@@ -124,7 +128,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		networkName = getRINName();
 		includeInteracions = new ListSingleSelection<String>(interactionArray);
 		includeInteracions.setSelectedValue(interactionArray[0]);
-		addHydrogens = true;
+		addHydrogens = false;
 		ignoreWater = true;
 		includeContacts = true;
 		overlapCutoffCont = -0.4;
@@ -135,6 +139,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		hbondAllowanceClash = 0.4;
 		bondSepClash = 4;
 		includeHBonds = false;
+		removeRedContacts = true;
 		relaxHBonds = false;
 		distSlop = 0.4;
 		angleSlop = 20;
@@ -144,7 +149,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	@ProvidesTitle
 	public String getTitle() {
-		return "Create Structure Network Options";
+		return "Residue Interaction Network Options";
 	}
 
 	@Override
@@ -195,7 +200,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		if (includeConnectivity) {
 			System.out.println("Getting Connectivity");
 			taskMonitor.setStatusMessage("Getting connectivity ...");
-			String command = "listphysicalchains";
+			String command = "list physicalchains";
 			chimeraManager.stopListening();
 			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
 			if (replyList != null) {
@@ -228,34 +233,36 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			atomspec1 = "sel";
 			atomspec2 = "test self";
 		}
-		// "Between selection and all atoms"
+		// "Between selection and all other atoms"
 		else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
 			// between the specified atoms and all other atoms
 			atomspec1 = "sel";
 			atomspec2 = "test other";
 		}
-		// "Within selection and all atoms"
+		// "All of the above"
 		else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
-			// intra-model interactions between the specified atoms and all other atoms
+			// intra-model interactions between the specified atoms and all
+			// other atoms
 			atomspec1 = "sel";
 			atomspec2 = "test model";
 		}
 		// "Between models"
-		else if (includeInteracions.getSelectedValue() == interactionArray[3]) {
-			// between the specified atoms and all other atoms
-			// TODO: Not correct, finds only contacts between the first model and its neighbors
-			atomspec1 = "#" + chimeraManager.getChimeraModel().getModelNumber();
-			atomspec2 = "test other";
-		}
-		// Between and within all models
-		else {
-			atomspec1 = "#*";
-			atomspec2 = "test self";
-		}
+		// else if (includeInteracions.getSelectedValue() ==
+		// interactionArray[3]) {
+		// // between the specified atoms and all other atoms
+		// atomspec1 = "#" + chimeraManager.getChimeraModel().getModelNumber();
+		// atomspec2 = "test other";
+		// }
+		// // Between and within all models
+		// else {
+		// atomspec1 = "#*";
+		// atomspec2 = "test self";
+		// }
 		// Create the command
 		String command = "findclash " + atomspec1
-				+ " makePseudobonds false log true namingStyle command overlapCutoff " + overlapCutoff
-				+ " hbondAllowance " + hbondAllowance + " bondSeparation " + bondSep + " " + atomspec2;
+				+ " makePseudobonds false log true namingStyle command overlapCutoff "
+				+ overlapCutoff + " hbondAllowance " + hbondAllowance + " bondSeparation "
+				+ bondSep + " " + atomspec2;
 		return command;
 	}
 
@@ -284,16 +291,17 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			modelrestr = "intramodel true intermodel true";
 		}
 		// "Between models"
-		else if (includeInteracions.getSelectedValue() == interactionArray[3]) {
-			// Restrict H-bond detection to the specified model
-			atomspec = "spec #*";
-			modelrestr = "intramodel false intermodel true";
-		}
-		// Between and within models
-		else {
-			atomspec = "spec #*";
-			modelrestr = "intramodel true intermodel true";
-		}
+		// else if (includeInteracions.getSelectedValue() ==
+		// interactionArray[3]) {
+		// // Restrict H-bond detection to the specified model
+		// atomspec = "spec #*";
+		// modelrestr = "intramodel false intermodel true";
+		// }
+		// // Between and within models
+		// else {
+		// atomspec = "spec #*";
+		// modelrestr = "intramodel true intermodel true";
+		// }
 		String command = "findhbond " + atomspec + " " + modelrestr
 				+ " makePseudobonds false log true namingStyle command";
 		if (relaxHBonds) {
@@ -303,10 +311,11 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	}
 
 	/**
-	 * Clash replies look like: *preamble* *header line* *clash lines* where preamble is: Allowed
-	 * overlap: -0.4 H-bond overlap reduction: 0 Ignore contacts between atoms separated by 4 bonds or
-	 * less Ignore intra-residue contacts 44 contacts and the header line is: atom1 atom2 overlap
-	 * distance and the clash lines look like: :2470.A@N :323.A@OD2 -0.394 3.454
+	 * Clash replies look like: *preamble* *header line* *clash lines* where
+	 * preamble is: Allowed overlap: -0.4 H-bond overlap reduction: 0 Ignore
+	 * contacts between atoms separated by 4 bonds or less Ignore intra-residue
+	 * contacts 44 contacts and the header line is: atom1 atom2 overlap distance
+	 * and the clash lines look like: :2470.A@N :323.A@OD2 -0.394 3.454
 	 */
 	private List<CyEdge> parseContactReplies(List<String> replyLog, CyNetwork rin,
 			Map<String, CyNode> nodeMap) {
@@ -336,9 +345,11 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			if (edge == null) {
 				continue;
 			}
-			// System.out.println(rin.getRow(edge).get(CyNetwork.NAME, String.class));
-			updateMap(distanceMap, edge, line[3], -1); // We want the smallest distance
-			updateMap(overlapMap, edge, line[2], 1); // We want the largest overlap
+
+			// We want the smallest distance
+			updateMap(distanceMap, edge, line[3], -1);
+			// We want the largest overlap
+			updateMap(overlapMap, edge, line[2], 1);
 		}
 
 		// OK, now update the edge attributes we want
@@ -352,17 +363,20 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	// H-bonds (donor, acceptor, hydrogen, D..A dist, D-H..A dist):
 	/**
-	 * Finding acceptors in model '1tkk' Building search tree of acceptor atoms Finding donors in
-	 * model '1tkk' Matching donors in model '1tkk' to acceptors Finding intermodel H-bonds Finding
-	 * intramodel H-bonds Constraints relaxed by 0.4 angstroms and 20 degrees Models used: #0 1tkk
-	 * H-bonds (donor, acceptor, hydrogen, D..A dist, D-H..A dist): ARG 24.A NH1 GLU 2471.A OE1 no
-	 * hydrogen 3.536 N/A LYS 160.A NZ GLU 2471.A O no hydrogen 2.680 N/A LYS 162.A NZ ALA 2470.A O no
-	 * hydrogen 3.022 N/A LYS 268.A NZ GLU 2471.A O no hydrogen 3.550 N/A ILE 298.A N GLU 2471.A OE2
-	 * no hydrogen 3.141 N/A ALA 2470.A N THR 135.A OG1 no hydrogen 2.814 N/A ALA 2470.A N ASP 321.A
-	 * OD1 no hydrogen 2.860 N/A ALA 2470.A N ASP 321.A OD2 no hydrogen 3.091 N/A ALA 2470.A N ASP
-	 * 323.A OD1 no hydrogen 2.596 N/A ALA 2470.A N ASP 323.A OD2 no hydrogen 3.454 N/A GLU 2471.A N
-	 * SER 296.A O no hydrogen 2.698 N/A HOH 2541.A O GLU 2471.A OE1 no hydrogen 2.746 N/A HOH 2577.A
-	 * O GLU 2471.A O no hydrogen 2.989 N/A
+	 * Finding acceptors in model '1tkk' Building search tree of acceptor atoms
+	 * Finding donors in model '1tkk' Matching donors in model '1tkk' to
+	 * acceptors Finding intermodel H-bonds Finding intramodel H-bonds
+	 * Constraints relaxed by 0.4 angstroms and 20 degrees Models used: #0 1tkk
+	 * H-bonds (donor, acceptor, hydrogen, D..A dist, D-H..A dist): ARG 24.A NH1
+	 * GLU 2471.A OE1 no hydrogen 3.536 N/A LYS 160.A NZ GLU 2471.A O no
+	 * hydrogen 2.680 N/A LYS 162.A NZ ALA 2470.A O no hydrogen 3.022 N/A LYS
+	 * 268.A NZ GLU 2471.A O no hydrogen 3.550 N/A ILE 298.A N GLU 2471.A OE2 no
+	 * hydrogen 3.141 N/A ALA 2470.A N THR 135.A OG1 no hydrogen 2.814 N/A ALA
+	 * 2470.A N ASP 321.A OD1 no hydrogen 2.860 N/A ALA 2470.A N ASP 321.A OD2
+	 * no hydrogen 3.091 N/A ALA 2470.A N ASP 323.A OD1 no hydrogen 2.596 N/A
+	 * ALA 2470.A N ASP 323.A OD2 no hydrogen 3.454 N/A GLU 2471.A N SER 296.A O
+	 * no hydrogen 2.698 N/A HOH 2541.A O GLU 2471.A OE1 no hydrogen 2.746 N/A
+	 * HOH 2577.A O GLU 2471.A O no hydrogen 2.989 N/A
 	 */
 	private List<CyEdge> parseHBondReplies(List<String> replyLog, CyNetwork rin,
 			Map<String, CyNode> nodeMap) {
@@ -391,18 +405,14 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			if (edge == null) {
 				continue;
 			}
-			// System.out.println(rin.getRow(edge).get(CyNetwork.NAME, String.class));
+			// System.out.println(rin.getRow(edge).get(CyNetwork.NAME,
+			// String.class));
 			String distance = line[3];
 			if ((line[2].equals("no") && line[3].equals("hydrogen")) || addHydrogens) {
 				distance = line[4];
 			}
-			if (addHydrogens) {
-				CyNode donor = createResidueNode(rin, nodeMap, line[2]);
-				if (donor != null) {
-					rin.getRow(donor).set(HDONOR_ATTR, true);
-				}
-			}
-			updateMap(distanceMap, edge, distance, -1); // We want the smallest distance
+			updateMap(distanceMap, edge, distance, -1); // We want the smallest
+														// distance
 		}
 
 		// OK, now update the edge attributes we want
@@ -414,11 +424,13 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	}
 
 	/**
-	 * Parse the connectivity information from Chimera. The data is of the form: physical chain
-	 * #0:283.A #0:710.A physical chain #0:283.B #0:710.B physical chain #0:283.C #0:710.C
+	 * Parse the connectivity information from Chimera. The data is of the form:
+	 * physical chain #0:283.A #0:710.A physical chain #0:283.B #0:710.B
+	 * physical chain #0:283.C #0:710.C
 	 * 
-	 * We don't use this data to create new nodes -- only new edges. If two nodes are within the same
-	 * physical chain, we connect them with a "Connected" edge
+	 * We don't use this data to create new nodes -- only new edges. If two
+	 * nodes are within the same physical chain, we connect them with a
+	 * "Connected" edge
 	 */
 	private List<CyEdge> parseConnectivityReplies(List<String> replyLog, CyNetwork rin) {
 		List<CyEdge> edgeList = new ArrayList<CyEdge>();
@@ -438,7 +450,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			rangeList.add(range);
 		}
 
-		// If we don't have any nodes, get all of the residues in the connectivity
+		// If we don't have any nodes, get all of the residues in the
+		// connectivity
 		// list and create them as nodes
 
 		// For each node pair, figure out if the pair is connected
@@ -460,35 +473,41 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			}
 		}
 
-		// Now, make the edges based on whether any pair of nodes are in the same range
+		// Now, make the edges based on whether any pair of nodes are in the
+		// same range
 		return edgeList;
 	}
 
 	private CyEdge createEdge(CyNetwork rin, Map<String, CyNode> nodeMap, String sourceAlias,
 			String targetAlias, String type) {
-		// Create our two nodes. Note that makeResidueNode also adds three attributes:
+		// Create our two nodes. Note that makeResidueNode also adds three
+		// attributes:
 		// 1) FunctionalResidues; 2) Seed; 3) SideChainOnly
 		CyNode source = createResidueNode(rin, nodeMap, sourceAlias);
 		CyNode target = createResidueNode(rin, nodeMap, targetAlias);
 		if (source == null || target == null) {
 			return null;
 		}
+		String interactingAtoms = sourceAlias + "," + targetAlias;
 		String sourceAtom = ChimUtils.getAtomName(sourceAlias);
 		String targetAtom = ChimUtils.getAtomName(targetAlias);
-		String interactingAtoms = sourceAtom + "_" + targetAtom;
-		String interactionSubtype = type + " "
-				+ ChimUtils.getIntSubtype(rin.getRow(source).get(CyNetwork.NAME, String.class), sourceAtom)
+		String interactionSubtype = type
+				+ " "
+				+ ChimUtils.getIntSubtype(rin.getRow(source).get(CyNetwork.NAME, String.class),
+						sourceAtom)
 				+ "_"
-				+ ChimUtils.getIntSubtype(rin.getRow(target).get(CyNetwork.NAME, String.class), targetAtom);
+				+ ChimUtils.getIntSubtype(rin.getRow(target).get(CyNetwork.NAME, String.class),
+						targetAtom);
 
 		// Create our edge
 		CyEdge edge = null;
-		if (type.equals("hbond")) {
+		if (removeRedContacts && type.equals("hbond")) {
 			List<CyEdge> existingEdges = rin.getConnectingEdgeList(source, target, Type.ANY);
 			if (existingEdges.size() > 0) {
 				for (CyEdge exEdge : existingEdges) {
 					if (rin.getRow(exEdge).get(CyEdge.INTERACTION, String.class).equals("contact")
-							&& rin.getRow(exEdge).get(INTATOMS_ATTR, String.class).equals(interactingAtoms)) {
+							&& rin.getRow(exEdge).get(INTATOMS_ATTR, String.class)
+									.equals(interactingAtoms)) {
 						edge = exEdge;
 						rin.getRow(edge).set(OVERLAP_ATTR, null);
 						break;
@@ -515,7 +534,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
 		rin.getRow(edge).set(CyEdge.INTERACTION, "connected");
 
-		// Get the residue for node1 and node2 and ask Chimera to calculate the distance
+		// Get the residue for node1 and node2 and ask Chimera to calculate the
+		// distance
 		String residueAttr = rin.getRow(node1).get(ChimUtils.RESIDUE_ATTR, String.class);
 		ChimeraStructuralObject cso1 = ChimUtils.fromAttribute(residueAttr, chimeraManager);
 		residueAttr = rin.getRow(node2).get(ChimUtils.RESIDUE_ATTR, String.class);
@@ -526,7 +546,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			String spec2 = cso2.toSpec() + "@CA";
 			System.out.println("Getting distance between " + spec1 + " and " + spec2);
 
-			String command = "distance " + spec1 + " " + spec2 + "; ~distance " + spec1 + " " + spec2;
+			String command = "distance " + spec1 + " " + spec2 + "; ~distance " + spec1 + " "
+					+ spec2;
 			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
 			if (replyList != null) {
 				int offset = replyList.get(0).indexOf(':');
@@ -578,8 +599,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				model.getModelName() + "#" + residue.getIndex() + "." + residue.getChainId());
 		rin.getRow(node).set(
 				ChimUtils.RINALYZER_ATTR,
-				model.getModelName() + ":" + residue.getChainId() + ":" + residue.getIndex() + ":_:"
-						+ residue.getType());
+				model.getModelName() + ":" + residue.getChainId() + ":" + residue.getIndex()
+						+ ":_:" + residue.getType());
 		rin.getRow(node).set(SEED_ATTR, Boolean.valueOf(residue.isSelected()));
 		// if (backbone)
 		// rin.getRow(node).set(BACKBONE_ATTR, Boolean.TRUE);
@@ -696,7 +717,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		rin.getDefaultNodeTable().createColumn(SMILES_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(STRUCTURE_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SEED_ATTR, Boolean.class, false);
-		rin.getDefaultNodeTable().createColumn(HDONOR_ATTR, Boolean.class, false);
 
 		// return network
 		return rin;
@@ -710,19 +730,20 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				.getService(CyNetworkViewManager.class);
 
 		// remove single nodes
-		List<CyNode> singleNodes = new ArrayList<CyNode>();
-		for (CyNode node : network.getNodeList()) {
-			if (network.getAdjacentEdgeList(node, Type.ANY).size() == 0) {
-				singleNodes.add(node);
-			}
-		}
-		network.removeNodes(singleNodes);
+		// List<CyNode> singleNodes = new ArrayList<CyNode>();
+		// for (CyNode node : network.getNodeList()) {
+		// if (network.getAdjacentEdgeList(node, Type.ANY).size() == 0) {
+		// singleNodes.add(node);
+		// }
+		// }
+		// network.removeNodes(singleNodes);
 
 		// Create a network view
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
 		cyNetworkViewManager.addNetworkView(rinView);
 		// Do a layout
-		// CyLayoutAlgorithmManager cyLayoutManager = (CyLayoutAlgorithmManager) structureViz
+		// CyLayoutAlgorithmManager cyLayoutManager = (CyLayoutAlgorithmManager)
+		// structureViz
 		// .getService(CyLayoutAlgorithmManager.class);
 		// CyLayoutAlgorithm layout = cyLayoutManager.getDefaultLayout();
 		// insertTasksAfterCurrentTask(layout.createTaskIterator(rinView,
@@ -734,18 +755,18 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
 
 		// annotate
-		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
-		// (NetworkTaskFactory) structureManager.getService(
-		// NetworkTaskFactory.class,
-		// "(&(commandNamespace=structureViz)(command=annotateStructureNetwork))");
+		// TODO: Set tunable list
+		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
+				structureManager);
 		if (annotateFactory != null) {
 			TunableSetter tunableSetter = (TunableSetter) structureManager
 					.getService(TunableSetter.class);
 			Map<String, Object> tunables = new HashMap<String, Object>();
-			tunables.put("ssAnnot", true);
-			TaskManager<?, ?> tm = (TaskManager<?, ?>) structureManager.getService(TaskManager.class);
-			tm.execute(tunableSetter.createTaskIterator(annotateFactory.createTaskIterator(network),
-					tunables));
+			tunables.put("residueAttributes", structureManager.getAllResidueAttributes());
+			TaskManager<?, ?> tm = (TaskManager<?, ?>) structureManager
+					.getService(TaskManager.class);
+			tm.execute(tunableSetter.createTaskIterator(
+					annotateFactory.createTaskIterator(network), tunables));
 		}
 		// Set vizmap
 		NetworkViewTaskFactory rinalyzerVisProps = (NetworkViewTaskFactory) structureManager

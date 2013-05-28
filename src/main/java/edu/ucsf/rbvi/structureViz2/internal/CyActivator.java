@@ -117,7 +117,7 @@ public class CyActivator extends AbstractCyActivator {
 		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager);
 		Properties createStructureNetProps = new Properties();
 		createStructureNetProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		createStructureNetProps.setProperty(TITLE, "Create RIN");
+		createStructureNetProps.setProperty(TITLE, "Create Residue Network");
 		createStructureNetProps.setProperty(COMMAND, "createRIN");
 		createStructureNetProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		createStructureNetProps.setProperty(ENABLE_FOR, "network");
@@ -130,7 +130,7 @@ public class CyActivator extends AbstractCyActivator {
 		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
 		Properties annotateProps = new Properties();
 		annotateProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		annotateProps.setProperty(TITLE, "Annotate RIN");
+		annotateProps.setProperty(TITLE, "Annotate Residue Network");
 		annotateProps.setProperty(COMMAND, "annotateRIN");
 		annotateProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		annotateProps.setProperty(IN_MENU_BAR, "true");
@@ -141,7 +141,7 @@ public class CyActivator extends AbstractCyActivator {
 		NetworkViewTaskFactory syncColorsFactory = new SyncColorsTaskFactory(structureManager);
 		Properties syncColorsProps = new Properties();
 		syncColorsProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		syncColorsProps.setProperty(TITLE, "Sync Colors");
+		syncColorsProps.setProperty(TITLE, "Syncronize Colors");
 		syncColorsProps.setProperty(IN_MENU_BAR, "true");
 		syncColorsProps.setProperty(COMMAND, "syncColors");
 		syncColorsProps.setProperty(COMMAND_NAMESPACE, "structureViz");

@@ -26,7 +26,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 
 	@ProvidesTitle
 	public String getTitle() {
-		return "Annotate RIN Options";
+		return "Annotations Options";
 	}
 
 	@Override

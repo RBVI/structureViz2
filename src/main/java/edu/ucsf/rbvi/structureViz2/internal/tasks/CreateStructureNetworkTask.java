@@ -28,6 +28,7 @@ import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.TunableSetter;
+import org.cytoscape.work.util.ListMultipleSelection;
 import org.cytoscape.work.util.ListSingleSelection;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
@@ -762,10 +763,13 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			TunableSetter tunableSetter = (TunableSetter) structureManager
 					.getService(TunableSetter.class);
 			Map<String, Object> tunables = new HashMap<String, Object>();
-			tunables.put("residueAttributes", structureManager.getAllResidueAttributes());
+			List<String> resAttr = structureManager.getAllResidueAttributes();
+			ListMultipleSelection<String> resAttrTun = new ListMultipleSelection<String>(resAttr);
+			resAttrTun.setSelectedValues(resAttr);
+			tunables.put("residueAttributes", resAttrTun);
 			TaskManager<?, ?> tm = (TaskManager<?, ?>) structureManager
 					.getService(TaskManager.class);
-			tm.execute(tunableSetter.createTaskIterator(
+			insertTasksAfterCurrentTask(tunableSetter.createTaskIterator(
 					annotateFactory.createTaskIterator(network), tunables));
 		}
 		// Set vizmap

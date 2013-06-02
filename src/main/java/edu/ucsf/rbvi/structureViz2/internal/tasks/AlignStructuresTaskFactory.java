@@ -30,7 +30,8 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		// Get all of the selected nodes
 		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL).size() > 1) {
+		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL,
+				true).size() > 1) {
 			return true;
 		}
 		return false;
@@ -41,7 +42,8 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.add(nodeView.getModel());
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL).size() > 1) {
+		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL,
+				true).size() > 1) {
 			return true;
 		}
 		return false;

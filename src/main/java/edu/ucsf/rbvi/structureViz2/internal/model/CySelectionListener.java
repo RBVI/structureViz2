@@ -23,6 +23,9 @@ public class CySelectionListener implements RowsSetListener {
 		if (!structureManager.getChimeraManager().isChimeraLaunched()) {
 			return;
 		}
+		if (e.getSource().toString().indexOf("network") >= 0) {
+			return;
+		}
 		if (e.containsColumn(CyNetwork.SELECTED)) {
 			Map<Long, Boolean> selectedRows = new HashMap<Long, Boolean>();
 			Collection<RowSetRecord> records = e.getColumnRecords(CyNetwork.SELECTED);
@@ -31,7 +34,8 @@ public class CySelectionListener implements RowsSetListener {
 				// This is a hack to avoid double selection...
 				if (row.toString().indexOf("FACADE") >= 0)
 					continue;
-				selectedRows.put(row.get(CyIdentifiable.SUID, Long.class), (Boolean) record.getValue());
+				selectedRows.put(row.get(CyIdentifiable.SUID, Long.class),
+						(Boolean) record.getValue());
 			}
 			if (selectedRows.size() != 0) {
 				structureManager.cytoscapeSelectionChanged(selectedRows);

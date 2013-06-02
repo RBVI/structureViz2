@@ -130,7 +130,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	 *            the Chimera interface object associated with this dialog
 	 */
 	public ModelNavigatorDialog(Frame parent, StructureManager structureManager) {
-		super(parent);
+		super(parent, false);
 		setTitle("Cytoscape Molecular Structure Navigator");
 		this.structureManager = structureManager;
 		this.chimeraManager = structureManager.getChimeraManager();
@@ -276,7 +276,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			return;
 		}
 
-		System.out.println("dialog selection changed");
+		//System.out.println("dialog selection changed");
 		for (int i = 0; i < cPaths.length; i++) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) cPaths[i].getLastPathComponent();
 			if (!ChimeraStructuralObject.class.isInstance(node.getUserObject()))
@@ -337,7 +337,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		if (setPaths != null && setPaths.size() > 0) {
 			navigationTree.addSelectionPaths(setPaths.toArray(new TreePath[1]));
 		} else {
-			// TODO: Make this work if possible
+			// TODO: Collapse tree when no selection
 			// collapseAll();
 		}
 	}

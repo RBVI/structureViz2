@@ -150,7 +150,6 @@ public class ChimeraChain implements ChimeraStructuralObject {
 	 *          the ChimeraResidue to add to the chain.
 	 */
 	public void addResidue(ChimeraResidue residue) {
-		// TODO: If performance issues, change back to string
 		String index = residue.getIndex();
 		// Put it in our map so that we can return it in order
 		residueMap.put(index, residue);

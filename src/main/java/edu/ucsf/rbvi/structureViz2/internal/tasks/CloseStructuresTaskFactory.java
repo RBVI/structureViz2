@@ -16,11 +16,10 @@ import org.cytoscape.work.TaskIterator;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
+// TODO: Implement close structures for edges
 public class CloseStructuresTaskFactory extends AbstractTaskFactory implements NodeViewTaskFactory,
 		NetworkViewTaskFactory {
 
-	// TODO: make work for edges
-	
 	private StructureManager structureManager;
 
 	public CloseStructuresTaskFactory(StructureManager structureManager) {

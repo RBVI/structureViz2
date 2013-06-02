@@ -149,20 +149,24 @@ public class ChimeraManager {
 					// TODO: Create new smiles model each time?
 				}
 			} else {
-				// TODO: list all and get the right one
+				// TODO: Iterate over all open models to get the right one
 			}
 			if (modelNumbers != null) {
 				int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);
 				if (currentModelsMap.containsKey(modelNumber)) {
 					continue;
 				}
-				ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0], modelNumbers[1]);
+				ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0],
+						modelNumbers[1]);
 				currentModelsMap.put(modelNumber, newModel);
 				models.add(newModel);
 
 				// get model color
-				newModel.setModelColor(getModelColor(newModel));
-				System.out.println("color: " + newModel.getModelColor().toString());
+				Color modelColor = getModelColor(newModel);
+				if (modelColor != null) {
+					newModel.setModelColor(modelColor);
+				}
+
 				// Get our properties (default color scheme, etc.)
 				// Make the molecule look decent
 				// chimeraSend("repr stick "+newModel.toSpec());
@@ -210,7 +214,7 @@ public class ChimeraManager {
 	 * Select something in Chimera
 	 * 
 	 * @param command
-	 *          the selection command to pass to Chimera
+	 *            the selection command to pass to Chimera
 	 */
 	public void select(String command) {
 		sendChimeraCommand("listen stop select; " + command + "; listen start select", false);
@@ -253,12 +257,27 @@ public class ChimeraManager {
 		return selectedModelsMap;
 	}
 
+	public List<String> getSelectedResidueSpecs() {
+		List<String> selectedResidues = new ArrayList<String>();
+		List<String> chimeraReply = sendChimeraCommand("list selection level residue", true);
+		if (chimeraReply != null) {
+			for (String inputLine : chimeraReply) {
+				String[] inputLineParts = inputLine.split("\\s+");
+				if (inputLineParts.length == 5) {
+					selectedResidues.add(inputLineParts[2]);
+				}
+			}
+		}
+		return selectedResidues;
+	}
+
 	public void getSelectedResidues(Map<Integer, ChimeraModel> selectedModelsMap) {
 		List<String> chimeraReply = sendChimeraCommand("list selection level residue", true);
 		if (chimeraReply != null) {
 			for (String inputLine : chimeraReply) {
 				ChimeraResidue r = new ChimeraResidue(inputLine);
-				Integer modelKey = ChimUtils.makeModelKey(r.getModelNumber(), r.getSubModelNumber());
+				Integer modelKey = ChimUtils
+						.makeModelKey(r.getModelNumber(), r.getSubModelNumber());
 				if (selectedModelsMap.containsKey(modelKey)) {
 					ChimeraModel model = selectedModelsMap.get(modelKey);
 					model.addResidue(r);
@@ -285,8 +304,9 @@ public class ChimeraManager {
 	}
 
 	/**
-	 * Return the list of depiction presets available from within Chimera. Chimera will return the
-	 * list as a series of lines with the format: Preset type number "description"
+	 * Return the list of depiction presets available from within Chimera.
+	 * Chimera will return the list as a series of lines with the format: Preset
+	 * type number "description"
 	 * 
 	 * @return list of presets
 	 */
@@ -354,13 +374,13 @@ public class ChimeraManager {
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
 			structureManager.initChimTable();
+			// TODO: Check Chimera version and show a warning if below 1.8
 			// Ask Chimera to give us updates
 			startListening();
 			return true;
 		}
 
-		// Tell the suer that Chimera could not be started because of an error
-		System.out.println(error);
+		// Tell the user that Chimera could not be started because of an error
 		logger.error(error);
 		return false;
 	}
@@ -369,13 +389,13 @@ public class ChimeraManager {
 	 * Determine the color that Chimera is using for this model.
 	 * 
 	 * @param model
-	 *          the ChimeraModel we want to get the Color for
+	 *            the ChimeraModel we want to get the Color for
 	 * @return the default model Color for this model in Chimera
 	 */
 	public Color getModelColor(ChimeraModel model) {
 		List<String> colorLines = sendChimeraCommand("list model spec " + model.toSpec()
 				+ " attribute color", true);
-		if (colorLines == null) {
+		if (colorLines == null || colorLines.size() == 0) {
 			return null;
 		}
 		return ChimUtils.parseModelColor((String) colorLines.get(0));
@@ -383,11 +403,12 @@ public class ChimeraManager {
 
 	/**
 	 * 
-	 * Get information about the residues associated with a model. This uses the Chimera listr
-	 * command. We don't return the resulting residues, but we add the residues to the model.
+	 * Get information about the residues associated with a model. This uses the
+	 * Chimera listr command. We don't return the resulting residues, but we add
+	 * the residues to the model.
 	 * 
 	 * @param model
-	 *          the ChimeraModel to get residue information for
+	 *            the ChimeraModel to get residue information for
 	 * 
 	 */
 	public void addResidues(ChimeraModel model) {
@@ -458,7 +479,7 @@ public class ChimeraManager {
 
 		chimeraListenerThreads.clearResponse(command);
 		String text = command.concat("\n");
-		System.out.println("send command to chimera: " + text);
+		// System.out.println("send command to chimera: " + text);
 		try {
 			// send the command
 			chimera.getOutputStream().write(text.getBytes());

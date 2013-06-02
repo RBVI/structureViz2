@@ -203,6 +203,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 
 		dataPanel.add(buttonBox);
 		setContentPane(dataPanel);
+
 	}
 
 	/**

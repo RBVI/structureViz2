@@ -1,8 +1,10 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.view.model.CyNetworkView;
@@ -45,7 +47,11 @@ public class CloseStructuresTask extends AbstractTask {
 		System.out.println("selectedChimObjMap: " + selectedChimeraObjs.size());
 		// automatically launch a dialog with list of models to close
 		// close selected models
-		structureManager.closeStructures(selectedChimeraObjs);
+		Set<String> models = new HashSet<String>();
+		for (CyIdentifiable cyObj : selectedChimeraObjs.keySet()) {
+			models.addAll(selectedChimeraObjs.get(cyObj));
+		}
+		structureManager.closeStructures(models);
 	}
 
 	private void initTunables() {

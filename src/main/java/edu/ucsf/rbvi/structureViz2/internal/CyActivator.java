@@ -42,6 +42,9 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
+// TODO: Allow opening and closing the molecular navigator dialog
+// TODO: Consider headless mode
+// TODO: Paint structure onto node
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
@@ -65,17 +68,20 @@ public class CyActivator extends AbstractCyActivator {
 		StructureManager structureManager = new StructureManager(bc, haveGUI);
 
 		// Create and register our listeners
+		// Listens for changes in selection and attributes we are interested in
 		CySelectionListener selectionListener = new CySelectionListener(structureManager);
 		registerService(bc, selectionListener, RowsSetListener.class, new Properties());
+		// Listens for new networks added and network destroyed
 		CyNetworkListener networkListener = new CyNetworkListener(structureManager);
 		registerService(bc, networkListener, NetworkAddedListener.class, new Properties());
-		registerService(bc, networkListener, NetworkAboutToBeDestroyedListener.class, new Properties());
-		// TODO: Listen for new attribute values and not nodes/edges added
+		registerService(bc, networkListener, NetworkAboutToBeDestroyedListener.class,
+				new Properties());
+		// Listens for nodes/edges to be removed
 		CyIdentifiableListener cyIdentifiableListener = new CyIdentifiableListener(structureManager);
-		registerService(bc, cyIdentifiableListener, AboutToRemoveNodesListener.class, new Properties());
-		registerService(bc, cyIdentifiableListener, AboutToRemoveEdgesListener.class, new Properties());
-
-		// TODO: Add a task for opening the molecular navigator dialog
+		registerService(bc, cyIdentifiableListener, AboutToRemoveNodesListener.class,
+				new Properties());
+		registerService(bc, cyIdentifiableListener, AboutToRemoveEdgesListener.class,
+				new Properties());
 
 		// Menu task factories
 		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
@@ -127,7 +133,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, createStructureNet, TaskFactory.class, createStructureNetProps);
 		structureManager.setCreateStructureNetFactory(createStructureNet);
 
-		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(structureManager);
+		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
+				structureManager);
 		Properties annotateProps = new Properties();
 		annotateProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		annotateProps.setProperty(TITLE, "Annotate Residue Network");

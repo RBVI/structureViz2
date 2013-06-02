@@ -211,10 +211,9 @@ public abstract class ChimUtils {
 		} else if (split.length == 3) {
 			resType = split[1].trim().toUpperCase();
 		}
-		if (resType.equals("HOH")) {
+		if (resType.equalsIgnoreCase("HOH") || resType.equalsIgnoreCase("WAT")) {
 			return "water";
 		} else if (aaNames.containsKey(resType)) {
-			// TODO: Check this in a more appropriate way
 			if (atom.equals("C") || atom.equals("CA") || atom.equals("N") || atom.equals("O")
 					|| atom.equals("H")) {
 				return "mc";
@@ -238,7 +237,7 @@ public abstract class ChimUtils {
 	 *          the Chimera object we're currently using
 	 * @return a ChimeraStructuralObject of the lowest type
 	 */
-	// TODO: Revise method
+	// TODO: Adapt residue from attribute method for new specs
 	public static ChimeraStructuralObject fromAttribute(String attrSpec, ChimeraManager chimeraManager) {
 		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
@@ -275,7 +274,6 @@ public abstract class ChimUtils {
 			}
 
 			// System.out.println("model = " + model + " chain = " + chain + " residue = " + residue);
-			// TODO: How should we handle submodels in this case?
 			if (model != null) {
 				List<ChimeraModel> models = chimeraManager.getChimeraModels(model, ModelType.PDB_MODEL);
 				if (models.size() == 1) {
@@ -352,7 +350,7 @@ public abstract class ChimUtils {
 		return structure;
 	}
 
-	// TODO: Rewrite parsing functional residues with Scooter
+	// TODO: Rewrite parsing functional residues
 	// invoked by openStructures in StructureManager
 	public static List<String> parseFuncRes(List<String> residueNames, String modelName) {
 		List<String> resRanges = new ArrayList<String>();

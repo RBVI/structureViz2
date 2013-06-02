@@ -40,8 +40,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 // TODO: Bug: different number of nodes and edges in consecutive runs
-// TODO: Add all nodes in selection
-// TODO: Revise connectivity section
+// TODO: Add combined edges
+// TODO: Compute distance
 // TODO: Check why selection disappears
 
 public class CreateStructureNetworkTask extends AbstractTask {
@@ -100,8 +100,10 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Tunable(description = "Include connectivity", groups = "Connectivity")
 	public boolean includeConnectivity;
 
-	@Tunable(description = "Calculate connectivity distances (more time consuming)", groups = "Connectivity", dependsOn = "includeConnectivity=true")
-	public boolean includeConnectivityDistance;
+	// @Tunable(description =
+	// "Calculate connectivity distances (more time consuming)", groups =
+	// "Connectivity", dependsOn = "includeConnectivity=true")
+	// public boolean includeConnectivityDistance;
 
 	private static final String[] interactionArray = { "Within selection",
 			"Between selection and other atoms", "All of the above" };
@@ -116,6 +118,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	static final String SMILES_ATTR = "SMILES";
 	static final String STRUCTURE_ATTR = "pdbFileName";
 	static final String SEED_ATTR = "SeedResidues";
+	static final String CHAIN_ATTR = "Chain";
 	// static final String BACKBONE_ATTR = "BackboneInteraction";
 	// static final String SIDECHAIN_ATTR = "SideChainInteraction";
 
@@ -145,7 +148,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		distSlop = 0.4;
 		angleSlop = 20;
 		includeConnectivity = false;
-		includeConnectivityDistance = false;
+		// includeConnectivityDistance = false;
 	}
 
 	@ProvidesTitle
@@ -156,12 +159,17 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Create residue interaction network");
+		taskMonitor.setStatusMessage("Adding nodes ...");
 		// Save selected nodes indexed by their name
 		Map<String, CyNode> nodeMap = new HashMap<String, CyNode>();
 		chimeraManager.stopListening();
 		CyNetwork rin = createNetwork();
+		List<String> residues = chimeraManager.getSelectedResidueSpecs();
+		for (String res : residues) {
+			// System.out.println("get selected residue");
+			createResidueNode(rin, nodeMap, res);
+		}
 
-		// structureManager.ignoreCySelection = true;
 		// add hydrogens first
 		if (addHydrogens) {
 			System.out.println("Adding hydrogens");
@@ -447,12 +455,10 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			// Get the residues from the reside spec
 			range[0] = ChimUtils.getResidue(start, chimeraManager);
 			range[1] = ChimUtils.getResidue(end, chimeraManager);
-			rangeList.add(range);
+			if (range[0] != null && range[1] != null) {
+				rangeList.add(range);
+			}
 		}
-
-		// If we don't have any nodes, get all of the residues in the
-		// connectivity
-		// list and create them as nodes
 
 		// For each node pair, figure out if the pair is connected
 		List<CyNode> nodes = rin.getNodeList();
@@ -465,7 +471,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			for (int j = i + 1; j < nodes.size(); j++) {
 				CyNode node2 = nodes.get(j);
 				// System.out.println("Seeing if node2 "+node2+" is in the range...");
-				if (inRange(range, node2, rin)) {
+				if (inRange2(range, node1, node2, rin)) {
 					// System.out.println("....it is");
 					// These two nodes are connected
 					edgeList.add(createConnectivityEdge(rin, node1, node2));
@@ -529,11 +535,15 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	private CyEdge createConnectivityEdge(CyNetwork rin, CyNode node1, CyNode node2) {
 		CyEdge edge = rin.addEdge(node1, node2, true);
-		String edgeName = rin.getRow(node1).get(CyNetwork.NAME, String.class) + " (connected)"
+		String edgeName = rin.getRow(node1).get(CyNetwork.NAME, String.class) + " (backbone)"
 				+ rin.getRow(node2).get(CyNetwork.NAME, String.class);
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
-		rin.getRow(edge).set(CyEdge.INTERACTION, "connected");
+		rin.getRow(edge).set(CyEdge.INTERACTION, "backbone");
+		rin.getRow(edge).set(INTSUBTYPE_ATTR, "backbone");
+		return edge;
+	}
 
+	private void getDistance(CyNetwork rin, CyNode node1, CyNode node2, CyEdge edge) {
 		// Get the residue for node1 and node2 and ask Chimera to calculate the
 		// distance
 		String residueAttr = rin.getRow(node1).get(ChimUtils.RESIDUE_ATTR, String.class);
@@ -541,7 +551,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		residueAttr = rin.getRow(node2).get(ChimUtils.RESIDUE_ATTR, String.class);
 		ChimeraStructuralObject cso2 = ChimUtils.fromAttribute(residueAttr, chimeraManager);
 		if (cso1 != null && cso2 != null && cso1 instanceof ChimeraResidue
-				&& cso2 instanceof ChimeraResidue && includeConnectivityDistance) {
+				&& cso2 instanceof ChimeraResidue) {
 			String spec1 = cso1.toSpec() + "@CA";
 			String spec2 = cso2.toSpec() + "@CA";
 			System.out.println("Getting distance between " + spec1 + " and " + spec2);
@@ -556,18 +566,17 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				// chimeraObject.chimeraSend("~distance "+spec1+" "+spec2);
 			}
 		}
-		return edge;
 	}
 
 	private CyNode createResidueNode(CyNetwork rin, Map<String, CyNode> nodeMap, String alias) {
 		// alias is a atomSpec of the form [#model]:residueNumber@atom
 		// We want to convert that to a node identifier of [pdbid#]ABC nnn
 		// and add FunctionalResidues and BackboneOnly attributes
-		boolean singleModel = false;
+		// boolean singleModel = false;
 		ChimeraModel model = ChimUtils.getModel(alias, chimeraManager);
 		if (model == null) {
 			model = chimeraManager.getChimeraModel();
-			singleModel = true;
+			// singleModel = true;
 		}
 		ChimeraResidue residue = ChimUtils.getResidue(alias, model);
 		if (ignoreWater && residue.getType().equals("HOH")) {
@@ -581,8 +590,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		String nodeName = residue.toString().trim() + "." + residue.getChainId();
 		ChimeraResidue.setDisplayType(displayType);
 
-		if (!singleModel)
-			nodeName = model.getModelName() + "#" + nodeName;
+		// if (!singleModel)
+		nodeName = model.getModelName() + "#" + nodeName;
 
 		// Create the node if it does not already exist in the network
 		CyNode node = null;
@@ -590,30 +599,30 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			node = rin.addNode();
 			rin.getRow(node).set(CyNetwork.NAME, nodeName);
 			nodeMap.put(nodeName, node);
+
+			// Add attributes from Chimera
+			rin.getRow(node).set(ChimUtils.RESIDUE_ATTR,
+					model.getModelName() + "#" + residue.getIndex() + "." + residue.getChainId());
+			rin.getRow(node).set(
+					ChimUtils.RINALYZER_ATTR,
+					model.getModelName() + ":" + residue.getChainId() + ":" + residue.getIndex()
+							+ ":_:" + residue.getType());
+			rin.getRow(node).set(SEED_ATTR, Boolean.valueOf(residue.isSelected()));
+			rin.getRow(node).set(CHAIN_ATTR, residue.getChainId());
+			// if (backbone)
+			// rin.getRow(node).set(BACKBONE_ATTR, Boolean.TRUE);
+			// else
+			// rin.getRow(node).set(SIDECHAIN_ATTR, Boolean.TRUE);
+
+			// Add structureViz attributes
+			String smiles = ChimUtils.toSMILES(residue.getType());
+			if (smiles != null) {
+				rin.getRow(node).set(SMILES_ATTR, smiles);
+			}
+			rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
 		} else {
 			node = nodeMap.get(nodeName);
 		}
-
-		// Add attributes from Chimera
-		rin.getRow(node).set(ChimUtils.RESIDUE_ATTR,
-				model.getModelName() + "#" + residue.getIndex() + "." + residue.getChainId());
-		rin.getRow(node).set(
-				ChimUtils.RINALYZER_ATTR,
-				model.getModelName() + ":" + residue.getChainId() + ":" + residue.getIndex()
-						+ ":_:" + residue.getType());
-		rin.getRow(node).set(SEED_ATTR, Boolean.valueOf(residue.isSelected()));
-		// if (backbone)
-		// rin.getRow(node).set(BACKBONE_ATTR, Boolean.TRUE);
-		// else
-		// rin.getRow(node).set(SIDECHAIN_ATTR, Boolean.TRUE);
-
-		// Add structureViz attributes
-		String smiles = ChimUtils.toSMILES(residue.getType());
-		if (smiles != null) {
-			rin.getRow(node).set(SMILES_ATTR, smiles);
-		}
-		rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
-
 		return node;
 	}
 
@@ -673,12 +682,42 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		return false;
 	}
 
+	private boolean inRange2(ChimeraResidue[] range, CyNode node1, CyNode node2, CyNetwork rin) {
+		ChimeraStructuralObject cso1 = ChimUtils.fromAttribute(
+				rin.getRow(node1).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
+		ChimeraStructuralObject cso2 = ChimUtils.fromAttribute(
+				rin.getRow(node2).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
+		// Models can't be in a range...
+		if (cso1 == null || cso1 instanceof ChimeraModel || cso1 instanceof ChimeraChain
+				|| cso2 == null || cso2 instanceof ChimeraModel || cso2 instanceof ChimeraChain)
+			return false;
+
+		// OK, we have a residue, but we need to be careful to make
+		// sure that the chains match
+		ChimeraResidue residue1 = (ChimeraResidue) cso1;
+		ChimeraResidue residue2 = (ChimeraResidue) cso2;
+
+		int startIndex = Integer.parseInt(range[0].getIndex());
+		int endIndex = Integer.parseInt(range[1].getIndex());
+		int residueIndex1 = Integer.parseInt(residue1.getIndex());
+		int residueIndex2 = Integer.parseInt(residue2.getIndex());
+		int diff = Math.abs(residueIndex1 - residueIndex2);
+
+		if (endIndex < startIndex) {
+			if (diff == 1 && endIndex <= residueIndex1 && residueIndex1 <= startIndex
+					&& endIndex <= residueIndex2 && residueIndex2 <= startIndex)
+				return true;
+		} else {
+			if (diff == 1 && startIndex <= residueIndex1 && residueIndex1 <= endIndex
+					&& startIndex <= residueIndex2 && residueIndex2 <= endIndex)
+				return true;
+		}
+		return false;
+	}
+
 	private boolean inChainRange(ChimeraResidue[] range, String chainID) {
 		String start = range[0].getChainId();
 		String end = range[1].getChainId();
-
-		if (start == null || end == null)
-			return false;
 
 		if (start.equals(end))
 			return false;
@@ -695,7 +734,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	}
 
 	private void addCombinedEdges() {
-		// TODO: Add combined edges
 	}
 
 	private CyNetwork createNetwork() {
@@ -717,6 +755,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		rin.getDefaultNodeTable().createColumn(SMILES_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(STRUCTURE_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SEED_ATTR, Boolean.class, false);
+		rin.getDefaultNodeTable().createColumn(CHAIN_ATTR, String.class, false);
 
 		// return network
 		return rin;
@@ -755,7 +794,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
 
 		// annotate
-		// TODO: Set tunable list
 		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
 				structureManager);
 		if (annotateFactory != null) {

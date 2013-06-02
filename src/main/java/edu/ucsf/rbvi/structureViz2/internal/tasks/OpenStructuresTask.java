@@ -34,10 +34,10 @@ public class OpenStructuresTask extends AbstractTask {
 		// this.nodeList = nodeList;
 		this.netView = netView;
 		this.structureManager = structureManager;
-		structruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(),
-				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL));
-		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(),
-				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES));
+		structruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), structureManager
+				.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL, false));
+		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), structureManager
+				.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES, false));
 		initTunables();
 	}
 
@@ -52,16 +52,16 @@ public class OpenStructuresTask extends AbstractTask {
 		// get selected structures from tunable parameter
 		Map<CyIdentifiable, List<String>> selectedStructureNames = CytoUtils.getCyChimPairsToMap(
 				structureTunable.getSelectedValues(), structruesMap);
-		System.out.println("selectedStructuresMap: " + selectedStructureNames.size());
+		// System.out.println("selectedStructuresMap: " + selectedStructureNames.size());
 		// open structures
-		structureManager
-				.openStructures(netView.getModel(), selectedStructureNames, ModelType.PDB_MODEL);
+		structureManager.openStructures(netView.getModel(), selectedStructureNames,
+				ModelType.PDB_MODEL);
 
 		// get selected chem structures from tunable parameter
 		taskMonitor.setStatusMessage("Opening chemical structures ...");
 		Map<CyIdentifiable, List<String>> selectedChemNames = CytoUtils.getCyChimPairsToMap(
 				chemTunable.getSelectedValues(), chemStructruesMap);
-		System.out.println("selectedChemMap: " + selectedChemNames.size());
+		// System.out.println("selectedChemMap: " + selectedChemNames.size());
 		// open structures
 		structureManager.openStructures(netView.getModel(), selectedChemNames, ModelType.SMILES);
 

@@ -225,7 +225,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	}
 
 	public void setFuncResidues(List<String> residues) {
-		// TODO: Make this work for ranges?
+		// TODO: Make functional residues work
 		for (String residue : residues) {
 			for (ChimeraChain chain : getChains()) {
 				funcResidues.add(chain.getResidue(residue));

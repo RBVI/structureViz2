@@ -17,8 +17,6 @@ import org.cytoscape.work.TaskIterator;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
-// TODO: make work for edges
-
 public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		NetworkViewTaskFactory, NodeViewTaskFactory {
 
@@ -35,11 +33,14 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 	public boolean isReady(CyNetworkView netView) {
 		// Get all of the selected nodes/edges
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
-		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES).size() > 0
-				|| structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.PDB_MODEL)
-						.size() > 0) {
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
+		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES,
+				false).size() > 0
+				|| structureManager.getChimObjNames(netView.getModel(), selectedList,
+						ModelType.PDB_MODEL, false).size() > 0) {
 			return true;
 		}
 		return false;
@@ -49,11 +50,14 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		// Get all of the selected nodes
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
 		selectedList.add(nodeView.getModel());
-		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES).size() > 0
-				|| structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.PDB_MODEL)
-						.size() > 0) {
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
+		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES,
+				false).size() > 0
+				|| structureManager.getChimObjNames(netView.getModel(), selectedList,
+						ModelType.PDB_MODEL, false).size() > 0) {
 			return true;
 		}
 		return false;
@@ -62,8 +66,10 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 	public TaskIterator createTaskIterator(CyNetworkView netView) {
 		// Get all of the selected nodes
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
-		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
 		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
 	}
 
@@ -71,8 +77,10 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		// Get all of the selected nodes
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
 		selectedList.add(nodeView.getModel());
-		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
+		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED,
+				true));
 		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
 	}
 }

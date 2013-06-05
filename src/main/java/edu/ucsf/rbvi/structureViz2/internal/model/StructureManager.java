@@ -2,6 +2,8 @@ package edu.ucsf.rbvi.structureViz2.internal.model;
 
 import java.awt.Color;
 import java.awt.Paint;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -219,6 +221,18 @@ public class StructureManager {
 		if (mnDialog != null) {
 			mnDialog.modelChanged();
 		}
+	}
+
+	public File saveChimeraImage() {
+		File tmpFile = null;
+		try {
+			tmpFile = File.createTempFile("structureViz", ".png");
+			String path = tmpFile.getAbsolutePath();
+			chimeraManager.sendChimeraCommand("copy file "+path+" png", true);
+		} catch (IOException ioe) {
+			// Log error
+		}
+		return tmpFile;
 	}
 
 	public void closeModel(ChimeraModel model) {

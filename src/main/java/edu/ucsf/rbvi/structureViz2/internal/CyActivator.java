@@ -38,6 +38,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFact
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.PaintStructureTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
@@ -108,6 +109,19 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
 		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
 
+		// Note that this isn't in the main menu since it only applies to a particular
+		// node.
+		TaskFactory paintStructure = new PaintStructureTaskFactory(structureManager);
+		Properties paintStructureProps = new Properties();
+		paintStructureProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		paintStructureProps.setProperty(TITLE, "Paint Structure onto Node");
+		paintStructureProps.setProperty(COMMAND, "paintStructure");
+		paintStructureProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		paintStructureProps.setProperty(ENABLE_FOR, "networkAndView");
+		paintStructureProps.setProperty(IN_MENU_BAR, "false");
+		paintStructureProps.setProperty(MENU_GRAVITY, "3.0");
+		registerService(bc, paintStructure, NodeViewTaskFactory.class, paintStructureProps);
+
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();
 		closeStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
@@ -116,7 +130,7 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresProps.setProperty(IN_MENU_BAR, "true");
-		closeStructuresProps.setProperty(MENU_GRAVITY, "3.0");
+		closeStructuresProps.setProperty(MENU_GRAVITY, "4.0");
 		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
 
@@ -185,7 +199,7 @@ public class CyActivator extends AbstractCyActivator {
 		settingsProps.setProperty(COMMAND, "set");
 		settingsProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		settingsProps.setProperty(IN_MENU_BAR, "true");
-		settingsProps.setProperty(ENABLE_FOR, "network");
+		// settingsProps.setProperty(ENABLE_FOR, "network");
 		settingsProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		settingsProps.setProperty(MENU_GRAVITY, "10.0");
 		registerService(bc, settingsTask, NetworkTaskFactory.class, settingsProps);

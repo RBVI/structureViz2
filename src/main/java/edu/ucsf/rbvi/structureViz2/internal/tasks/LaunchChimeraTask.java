@@ -13,29 +13,31 @@ public class LaunchChimeraTask extends AbstractTask {
 
 	private StructureManager structureManager;
 
-	@Tunable(description = "Path to Chimera executable")
-	public String chimeraPath;
+	// @Tunable(description = "Path to Chimera executable")
+	// public String chimeraPath;
 
 	public LaunchChimeraTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
-		chimeraPath = structureManager.getDefaultChimeraPath();
+		// chimeraPath = structureManager.getDefaultChimeraPath();
 	}
 
-	@ProvidesTitle
-	public String getTitle() {
-		return "Launch Chimera Options";
-	}
+	// @ProvidesTitle
+	// public String getTitle() // {
+	// 	return "Launch Chimera Options";
+	// }
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Launch Chimera");
 		taskMonitor.setStatusMessage("Launching Chimera ...");
 		List<String> pathList = structureManager.getChimeraPaths(null);
+/*
 		chimeraPath = chimeraPath.trim();
 		if (chimeraPath.length() > 0) {
 			pathList.add(0, chimeraPath);
 			structureManager.setDefaultChimeraPath(chimeraPath);
 		}
+*/
 		structureManager.getChimeraManager().launchChimera(pathList);
 		if (structureManager.getChimeraManager().isChimeraLaunched()) {
 			structureManager.launchModelNavigatorDialog();

@@ -18,6 +18,7 @@ import org.cytoscape.model.events.NetworkAboutToBeDestroyedListener;
 import org.cytoscape.model.events.NetworkAddedListener;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
@@ -68,6 +69,9 @@ public class CyActivator extends AbstractCyActivator {
 		// Create the context object
 		StructureManager structureManager = new StructureManager(bc, haveGUI);
 
+		// Get a handle on the CyServiceRegistrar
+		CyServiceRegistrar registrar = getService(bc, CyServiceRegistrar.class);
+
 		// Create and register our listeners
 		// Listens for changes in selection and attributes we are interested in
 		CySelectionListener selectionListener = new CySelectionListener(structureManager);
@@ -111,7 +115,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		// Note that this isn't in the main menu since it only applies to a particular
 		// node.
-		TaskFactory paintStructure = new PaintStructureTaskFactory(structureManager);
+		TaskFactory paintStructure = new PaintStructureTaskFactory(registrar, structureManager);
 		Properties paintStructureProps = new Properties();
 		paintStructureProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		paintStructureProps.setProperty(TITLE, "Paint Structure onto Node");

@@ -8,6 +8,7 @@ import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
+import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
@@ -21,9 +22,11 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 public class PaintStructureTaskFactory extends AbstractTaskFactory implements NodeViewTaskFactory {
 
 	private StructureManager structureManager;
+	private CyServiceRegistrar registrar;
 
-	public PaintStructureTaskFactory(StructureManager structureManager) {
+	public PaintStructureTaskFactory(CyServiceRegistrar registrar, StructureManager structureManager) {
 		this.structureManager = structureManager;
+		this.registrar = registrar;
 	}
 
 	public TaskIterator createTaskIterator() {
@@ -43,6 +46,6 @@ public class PaintStructureTaskFactory extends AbstractTaskFactory implements No
 	}
 
 	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netView) {
-		return new TaskIterator(new PaintStructureTask(nodeView, netView, structureManager));
+		return new TaskIterator(new PaintStructureTask(nodeView, netView, registrar, structureManager));
 	}
 }

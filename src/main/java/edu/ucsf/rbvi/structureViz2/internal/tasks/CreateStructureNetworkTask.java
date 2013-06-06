@@ -41,9 +41,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 // TODO: Bug: different number of nodes and edges in consecutive runs
 // TODO: Add combined edges
-// TODO: Compute distance
 // TODO: Check why selection disappears
-
 public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Tunable(description = "Name of new network", groups = "General")
@@ -57,6 +55,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Tunable(description = "Ignore water", groups = "General")
 	public boolean ignoreWater;
+
+	@Tunable(description = "Create combined edges", groups = "General")
+	public boolean createCombiEdges;
 
 	@Tunable(description = "Include contacts", groups = "Contacts")
 	public boolean includeContacts;
@@ -100,6 +101,12 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Tunable(description = "Include connectivity", groups = "Connectivity")
 	public boolean includeConnectivity;
 
+	@Tunable(description = "Include distances between CA atoms", groups = "Distance")
+	public boolean includeDistance;
+
+	@Tunable(description = "Distance cutoff (in angstoms)", groups = "Distance")
+	public double distCutoff;
+
 	// @Tunable(description =
 	// "Calculate connectivity distances (more time consuming)", groups =
 	// "Connectivity", dependsOn = "includeConnectivity=true")
@@ -108,17 +115,23 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	private static final String[] interactionArray = { "Within selection",
 			"Between selection and other atoms", "All of the above" };
 
+	private static final String HBONDEDGE = "hbond";
+	private static final String CONTACTEDGE = "contact";
+	private static final String CLASHEDGE = "clash";
+	private static final String COMBIEDGE = "combi";
+	private static final String DISTEDGE = "distance";
+
 	// Edge attributes
-	static final String DISTANCE_ATTR = "Distance";
-	static final String OVERLAP_ATTR = "Overlap";
-	static final String INTSUBTYPE_ATTR = "InteractionSubtype";
-	static final String INTATOMS_ATTR = "InteractingAtoms";
-	static final String NUMINT_ATTR = "NumberInteractions";
+	private static final String DISTANCE_ATTR = "Distance";
+	private static final String OVERLAP_ATTR = "Overlap";
+	private static final String INTSUBTYPE_ATTR = "InteractionSubtype";
+	private static final String INTATOMS_ATTR = "InteractingAtoms";
+	private static final String NUMINT_ATTR = "NumberInteractions";
 	// Node attributes
-	static final String SMILES_ATTR = "SMILES";
-	static final String STRUCTURE_ATTR = "pdbFileName";
-	static final String SEED_ATTR = "SeedResidues";
-	static final String CHAIN_ATTR = "Chain";
+	private static final String SMILES_ATTR = "SMILES";
+	private static final String STRUCTURE_ATTR = "pdbFileName";
+	private static final String SEED_ATTR = "SeedResidues";
+	private static final String CHAIN_ATTR = "Chain";
 	// static final String BACKBONE_ATTR = "BackboneInteraction";
 	// static final String SIDECHAIN_ATTR = "SideChainInteraction";
 
@@ -134,6 +147,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		includeInteracions.setSelectedValue(interactionArray[0]);
 		addHydrogens = false;
 		ignoreWater = true;
+		createCombiEdges = false;
 		includeContacts = true;
 		overlapCutoffCont = -0.4;
 		hbondAllowanceCont = 0.0;
@@ -148,7 +162,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		distSlop = 0.4;
 		angleSlop = 20;
 		includeConnectivity = false;
-		// includeConnectivityDistance = false;
+		includeDistance = false;
+		distCutoff = 5.0;
 	}
 
 	@ProvidesTitle
@@ -183,7 +198,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			List<String> replyList = chimeraManager.sendChimeraCommand(
 					getContactCommand(overlapCutoffCont, hbondAllowanceCont, bondSepCont), true);
 			if (replyList != null) {
-				parseContactReplies(replyList, rin, nodeMap);
+				parseContactReplies(replyList, rin, nodeMap, CONTACTEDGE);
 			}
 		}
 		if (includeClashes) {
@@ -193,7 +208,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			List<String> replyList = chimeraManager.sendChimeraCommand(
 					getContactCommand(overlapCutoffClash, hbondAllowanceClash, bondSepClash), true);
 			if (replyList != null) {
-				parseContactReplies(replyList, rin, nodeMap);
+				parseContactReplies(replyList, rin, nodeMap, CLASHEDGE);
 			}
 		}
 		if (includeHBonds) {
@@ -206,19 +221,28 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			}
 		}
 		if (includeConnectivity) {
-			System.out.println("Getting Connectivity");
 			taskMonitor.setStatusMessage("Getting connectivity ...");
-			String command = "list physicalchains";
 			chimeraManager.stopListening();
-			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
+			List<String> replyList = chimeraManager.sendChimeraCommand("list physicalchains", true);
 			if (replyList != null) {
 				parseConnectivityReplies(replyList, rin);
 			}
 		}
+		if (includeDistance) {
+			System.out.println("Getting distances ...");
+			taskMonitor.setStatusMessage("Getting distances ...");
+			List<String> replyList = chimeraManager.sendChimeraCommand(getDistanceCommand(), true);
+			if (replyList != null) {
+				parseDistanceReplies(replyList, rin, nodeMap);
+			}
+		}
+		if (createCombiEdges) {
+			// add "combi" edges
+			taskMonitor.setStatusMessage("Creating combined edges ...");
+			addCombinedEdges(rin);
+		}
 
 		taskMonitor.setStatusMessage("Finalizing ...");
-		// add "combi" edges
-		addCombinedEdges();
 
 		// register network
 		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureManager
@@ -318,15 +342,39 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		return command;
 	}
 
+	private String getDistanceCommand() {
+		String atomspec = "";
+		// "Within selection"
+		if (includeInteracions.getSelectedValue() == interactionArray[0]) {
+			// among the specified atoms
+			atomspec = "@CA&sel";
+		}
+		// "Between selection and all other atoms"
+		else if (includeInteracions.getSelectedValue() == interactionArray[1]) {
+			// between the specified atoms and all other atoms
+			// TODO: How to get the distances between selection and other atoms
+			atomspec = "@CA&sel|@CA";
+		}
+		// "All of the above"
+		else if (includeInteracions.getSelectedValue() == interactionArray[2]) {
+			// intra-model interactions between the specified atoms and all
+			// other atoms
+			// TODO: How to get the distances within selection and other atoms
+			atomspec = "@CA";
+		}
+		// Create the command
+		String command = "list distmat " + atomspec;
+		return command;
+	}
+
 	/**
-	 * Clash replies look like: *preamble* *header line* *clash lines* where
-	 * preamble is: Allowed overlap: -0.4 H-bond overlap reduction: 0 Ignore
-	 * contacts between atoms separated by 4 bonds or less Ignore intra-residue
-	 * contacts 44 contacts and the header line is: atom1 atom2 overlap distance
-	 * and the clash lines look like: :2470.A@N :323.A@OD2 -0.394 3.454
+	 * Clash replies look like: *preamble* *header line* *clash lines* where preamble is: Allowed
+	 * overlap: -0.4 H-bond overlap reduction: 0 Ignore contacts between atoms separated by 4 bonds
+	 * or less Ignore intra-residue contacts 44 contacts and the header line is: atom1 atom2 overlap
+	 * distance and the clash lines look like: :2470.A@N :323.A@OD2 -0.394 3.454
 	 */
 	private List<CyEdge> parseContactReplies(List<String> replyLog, CyNetwork rin,
-			Map<String, CyNode> nodeMap) {
+			Map<String, CyNode> nodeMap, String edgeType) {
 		// Scan for our header line
 		boolean foundHeader = false;
 		int index = 0;
@@ -349,7 +397,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			if (line.length != 4)
 				continue;
 
-			CyEdge edge = createEdge(rin, nodeMap, line[0], line[1], "contact");
+			CyEdge edge = createEdge(rin, nodeMap, line[0], line[1], edgeType);
 			if (edge == null) {
 				continue;
 			}
@@ -371,19 +419,16 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	// H-bonds (donor, acceptor, hydrogen, D..A dist, D-H..A dist):
 	/**
-	 * Finding acceptors in model '1tkk' Building search tree of acceptor atoms
-	 * Finding donors in model '1tkk' Matching donors in model '1tkk' to
-	 * acceptors Finding intermodel H-bonds Finding intramodel H-bonds
-	 * Constraints relaxed by 0.4 angstroms and 20 degrees Models used: #0 1tkk
-	 * H-bonds (donor, acceptor, hydrogen, D..A dist, D-H..A dist): ARG 24.A NH1
-	 * GLU 2471.A OE1 no hydrogen 3.536 N/A LYS 160.A NZ GLU 2471.A O no
-	 * hydrogen 2.680 N/A LYS 162.A NZ ALA 2470.A O no hydrogen 3.022 N/A LYS
-	 * 268.A NZ GLU 2471.A O no hydrogen 3.550 N/A ILE 298.A N GLU 2471.A OE2 no
-	 * hydrogen 3.141 N/A ALA 2470.A N THR 135.A OG1 no hydrogen 2.814 N/A ALA
-	 * 2470.A N ASP 321.A OD1 no hydrogen 2.860 N/A ALA 2470.A N ASP 321.A OD2
-	 * no hydrogen 3.091 N/A ALA 2470.A N ASP 323.A OD1 no hydrogen 2.596 N/A
-	 * ALA 2470.A N ASP 323.A OD2 no hydrogen 3.454 N/A GLU 2471.A N SER 296.A O
-	 * no hydrogen 2.698 N/A HOH 2541.A O GLU 2471.A OE1 no hydrogen 2.746 N/A
+	 * Finding acceptors in model '1tkk' Building search tree of acceptor atoms Finding donors in
+	 * model '1tkk' Matching donors in model '1tkk' to acceptors Finding intermodel H-bonds Finding
+	 * intramodel H-bonds Constraints relaxed by 0.4 angstroms and 20 degrees Models used: #0 1tkk
+	 * H-bonds (donor, acceptor, hydrogen, D..A dist, D-H..A dist): ARG 24.A NH1 GLU 2471.A OE1 no
+	 * hydrogen 3.536 N/A LYS 160.A NZ GLU 2471.A O no hydrogen 2.680 N/A LYS 162.A NZ ALA 2470.A O
+	 * no hydrogen 3.022 N/A LYS 268.A NZ GLU 2471.A O no hydrogen 3.550 N/A ILE 298.A N GLU 2471.A
+	 * OE2 no hydrogen 3.141 N/A ALA 2470.A N THR 135.A OG1 no hydrogen 2.814 N/A ALA 2470.A N ASP
+	 * 321.A OD1 no hydrogen 2.860 N/A ALA 2470.A N ASP 321.A OD2 no hydrogen 3.091 N/A ALA 2470.A N
+	 * ASP 323.A OD1 no hydrogen 2.596 N/A ALA 2470.A N ASP 323.A OD2 no hydrogen 3.454 N/A GLU
+	 * 2471.A N SER 296.A O no hydrogen 2.698 N/A HOH 2541.A O GLU 2471.A OE1 no hydrogen 2.746 N/A
 	 * HOH 2577.A O GLU 2471.A O no hydrogen 2.989 N/A
 	 */
 	private List<CyEdge> parseHBondReplies(List<String> replyLog, CyNetwork rin,
@@ -409,7 +454,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			if (line.length != 5 && line.length != 6)
 				continue;
 
-			CyEdge edge = createEdge(rin, nodeMap, line[0], line[1], "hbond");
+			CyEdge edge = createEdge(rin, nodeMap, line[0], line[1], HBONDEDGE);
 			if (edge == null) {
 				continue;
 			}
@@ -432,13 +477,11 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	}
 
 	/**
-	 * Parse the connectivity information from Chimera. The data is of the form:
-	 * physical chain #0:283.A #0:710.A physical chain #0:283.B #0:710.B
-	 * physical chain #0:283.C #0:710.C
+	 * Parse the connectivity information from Chimera. The data is of the form: physical chain
+	 * #0:283.A #0:710.A physical chain #0:283.B #0:710.B physical chain #0:283.C #0:710.C
 	 * 
-	 * We don't use this data to create new nodes -- only new edges. If two
-	 * nodes are within the same physical chain, we connect them with a
-	 * "Connected" edge
+	 * We don't use this data to create new nodes -- only new edges. If two nodes are within the
+	 * same physical chain, we connect them with a "Connected" edge
 	 */
 	private List<CyEdge> parseConnectivityReplies(List<String> replyLog, CyNetwork rin) {
 		List<CyEdge> edgeList = new ArrayList<CyEdge>();
@@ -482,6 +525,43 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		// Now, make the edges based on whether any pair of nodes are in the
 		// same range
 		return edgeList;
+	}
+
+	/**
+	 * 
+	 * distmat #0:36.A@CA #0:37.A@CA 3.777 distmat #0:36.A@CA #0:38.A@CA 6.663
+	 * 
+	 * @param replyLog
+	 * @param rin
+	 * @param nodeMap
+	 * @return
+	 */
+	private List<CyEdge> parseDistanceReplies(List<String> replyLog, CyNetwork rin,
+			Map<String, CyNode> nodeMap) {
+		List<CyEdge> distEdges = new ArrayList<CyEdge>();
+		for (int index = 0; index < replyLog.size(); index++) {
+			// System.out.println(replyLog.get(index));
+			String[] line = replyLog.get(index).trim().split("\\s+");
+			if (line.length != 4)
+				continue;
+
+			String distance = line[3];
+			// try to read distance and create an edge if distance between atoms smaller than cutoff
+			// special case of cutoff = 0: create all edges
+			try {
+				Double distNum = Double.parseDouble(distance);
+				if (distCutoff == 0.0 || distNum <= distCutoff) {
+					CyEdge edge = createEdge(rin, nodeMap, line[1], line[2], DISTEDGE);
+					if (edge == null) {
+						continue;
+					}
+					rin.getRow(edge).set(DISTANCE_ATTR, distNum);
+				}
+			} catch (Exception ex) {
+				// ignore
+			}
+		}
+		return distEdges;
 	}
 
 	private CyEdge createEdge(CyNetwork rin, Map<String, CyNode> nodeMap, String sourceAlias,
@@ -543,31 +623,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		return edge;
 	}
 
-	private void getDistance(CyNetwork rin, CyNode node1, CyNode node2, CyEdge edge) {
-		// Get the residue for node1 and node2 and ask Chimera to calculate the
-		// distance
-		String residueAttr = rin.getRow(node1).get(ChimUtils.RESIDUE_ATTR, String.class);
-		ChimeraStructuralObject cso1 = ChimUtils.fromAttribute(residueAttr, chimeraManager);
-		residueAttr = rin.getRow(node2).get(ChimUtils.RESIDUE_ATTR, String.class);
-		ChimeraStructuralObject cso2 = ChimUtils.fromAttribute(residueAttr, chimeraManager);
-		if (cso1 != null && cso2 != null && cso1 instanceof ChimeraResidue
-				&& cso2 instanceof ChimeraResidue) {
-			String spec1 = cso1.toSpec() + "@CA";
-			String spec2 = cso2.toSpec() + "@CA";
-			System.out.println("Getting distance between " + spec1 + " and " + spec2);
-
-			String command = "distance " + spec1 + " " + spec2 + "; ~distance " + spec1 + " "
-					+ spec2;
-			List<String> replyList = chimeraManager.sendChimeraCommand(command, true);
-			if (replyList != null) {
-				int offset = replyList.get(0).indexOf(':');
-				Double distance = Double.valueOf(replyList.get(0).substring(offset + 1));
-				rin.getRow(edge).set(DISTANCE_ATTR, distance);
-				// chimeraObject.chimeraSend("~distance "+spec1+" "+spec2);
-			}
-		}
-	}
-
 	private CyNode createResidueNode(CyNetwork rin, Map<String, CyNode> nodeMap, String alias) {
 		// alias is a atomSpec of the form [#model]:residueNumber@atom
 		// We want to convert that to a node identifier of [pdbid#]ABC nnn
@@ -579,6 +634,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			// singleModel = true;
 		}
 		ChimeraResidue residue = ChimUtils.getResidue(alias, model);
+		System.out.println(residue.isSelected());
 		if (ignoreWater && residue.getType().equals("HOH")) {
 			return null;
 		}
@@ -733,7 +789,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		return false;
 	}
 
-	private void addCombinedEdges() {
+	private void addCombinedEdges(CyNetwork rin) {
+
 	}
 
 	private CyNetwork createNetwork() {

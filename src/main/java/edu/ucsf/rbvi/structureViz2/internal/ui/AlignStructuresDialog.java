@@ -34,6 +34,7 @@ package edu.ucsf.rbvi.structureViz2.internal.ui;
 
 // System imports
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -96,7 +97,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	 * @param chimObjects
 	 *          the List of models (or chains) open in Chimera
 	 */
-	public AlignStructuresDialog(JDialog parent, StructureManager structureManager,
+	public AlignStructuresDialog(Frame parent, StructureManager structureManager,
 			List<ChimeraStructuralObject> chimObjects) {
 		super(parent, false);
 		this.structureManager = structureManager;

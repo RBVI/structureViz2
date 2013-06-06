@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
@@ -57,17 +58,6 @@ public class StructureManager {
 	static {
 		residueAttrCommandMap.put("SecondaryStructure", "");
 		residueAttrCommandMap.put("Coordinates", "");
-		// residueAttrCommandMap.put("averageBFactor", "bfactor");
-		// residueAttrCommandMap.put("averageOccupancy", "occupancy");
-		// residueAttrCommandMap.put("kdHydrophobicity", "kdHydrophobicity");
-		// residueAttrCommandMap.put("phiAngle", "phi");
-		// residueAttrCommandMap.put("psiAngle", "psi");
-		// residueAttrCommandMap.put("areaSAS", "areaSAS");
-		// residueAttrCommandMap.put("areaSES", "areaSES");
-		// residueAttrCommandMap.put("chi1Angle", "chi1");
-		// residueAttrCommandMap.put("chi2Angle", "chi2");
-		// residueAttrCommandMap.put("chi3Angle", "chi3");
-		// residueAttrCommandMap.put("chi4Angle", "chi4");
 	}
 
 	public enum ModelType {
@@ -87,7 +77,7 @@ public class StructureManager {
 	private Map<CyNetwork, StructureSettings> settings = null;
 	private Map<CyIdentifiable, Set<ChimeraStructuralObject>> currentCyMap = null;
 	private Map<ChimeraStructuralObject, Set<CyIdentifiable>> currentChimMap = null;
-	private Map<CyIdentifiable, CyNetwork> networkMap = null;
+	private Map<CyIdentifiable, Set<CyNetwork>> networkMap = null;
 
 	private ModelNavigatorDialog mnDialog = null;
 	private AlignStructuresDialog alDialog = null;
@@ -102,7 +92,7 @@ public class StructureManager {
 		settings = new HashMap<CyNetwork, StructureSettings>();
 		currentCyMap = new HashMap<CyIdentifiable, Set<ChimeraStructuralObject>>();
 		currentChimMap = new HashMap<ChimeraStructuralObject, Set<CyIdentifiable>>();
-		networkMap = new HashMap<CyIdentifiable, CyNetwork>();
+		networkMap = new HashMap<CyIdentifiable, Set<CyNetwork>>();
 		aTask = new AssociationTask();
 		aTask.start();
 		// Create the Chimera interface
@@ -158,8 +148,9 @@ public class StructureManager {
 			}
 			// save node to network mapping to keep track of selection events
 			if (!networkMap.containsKey(cyObj)) {
-				networkMap.put(cyObj, network);
+				networkMap.put(cyObj, new HashSet<CyNetwork>());
 			}
+			networkMap.get(cyObj).add(network);
 			// for each structure that has to be opened
 			for (String chimObjName : chimObjNames.get(cyObj)) {
 				// get or open the corresponding models if they already exist
@@ -228,7 +219,7 @@ public class StructureManager {
 		try {
 			tmpFile = File.createTempFile("structureViz", ".png");
 			String path = tmpFile.getAbsolutePath();
-			chimeraManager.sendChimeraCommand("copy file "+path+" png", true);
+			chimeraManager.sendChimeraCommand("copy file " + path + " png", true);
 		} catch (IOException ioe) {
 			// Log error
 		}
@@ -269,7 +260,10 @@ public class StructureManager {
 		ChimeraModel model = null;
 		// the network is not added to the model in the currentChimMap
 		for (CyNode node : rin.getNodeList()) {
-			networkMap.put(node, rin);
+			if (!networkMap.containsKey(node)) {
+				networkMap.put(node, new HashSet<CyNetwork>());
+			}
+			networkMap.get(node).add(rin);
 			String residueSpec = rin.getRow(node).get(ChimUtils.RESIDUE_ATTR, String.class);
 			ChimeraResidue chimObj = (ChimeraResidue) ChimUtils.fromAttribute(residueSpec,
 					chimeraManager);
@@ -344,15 +338,18 @@ public class StructureManager {
 			if (!networkMap.containsKey(currentCyObj)) {
 				continue;
 			}
-			CyNetwork network = networkMap.get(currentCyObj);
-			if (network == null) {
+			Set<CyNetwork> currentCyNetworks = networkMap.get(currentCyObj);
+			if (currentCyNetworks == null || currentCyNetworks.size() == 0) {
+
 				continue;
 			}
-			if ((currentCyObj instanceof CyNode && network.containsNode((CyNode) currentCyObj))
-					|| (currentCyObj instanceof CyEdge && network
-							.containsEdge((CyEdge) currentCyObj))) {
-				network.getRow(currentCyObj).set(CyNetwork.SELECTED, false);
-				networks.add(network);
+			for (CyNetwork network : currentCyNetworks) {
+				if ((currentCyObj instanceof CyNode && network.containsNode((CyNode) currentCyObj))
+						|| (currentCyObj instanceof CyEdge && network
+								.containsEdge((CyEdge) currentCyObj))) {
+					network.getRow(currentCyObj).set(CyNetwork.SELECTED, false);
+					networks.add(network);
+				}
 			}
 		}
 
@@ -374,14 +371,17 @@ public class StructureManager {
 			if (cyObj == null || !networkMap.containsKey(cyObj)) {
 				continue;
 			}
-			CyNetwork network = networkMap.get(cyObj);
-			if (network == null) {
+			Set<CyNetwork> currentCyNetworks = networkMap.get(cyObj);
+			if (currentCyNetworks == null || currentCyNetworks.size() == 0) {
+
 				continue;
 			}
-			if ((cyObj instanceof CyNode && network.containsNode((CyNode) cyObj))
-					|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj))) {
-				network.getRow(cyObj).set(CyNetwork.SELECTED, true);
-				networks.add(network);
+			for (CyNetwork network : currentCyNetworks) {
+				if ((cyObj instanceof CyNode && network.containsNode((CyNode) cyObj))
+						|| (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj))) {
+					network.getRow(cyObj).set(CyNetwork.SELECTED, true);
+					networks.add(network);
+				}
 			}
 		}
 
@@ -711,10 +711,8 @@ public class StructureManager {
 		// }
 		if (mnDialog == null) {
 			// TODO: Should the MNDialog be modal?
-			// CySwingApplication cyApplication = (CySwingApplication)
-			// getService(CySwingApplication.class);
-			// cyApplication.getJFrame()
-			mnDialog = new ModelNavigatorDialog(null, this);
+			CySwingApplication cyApplication = (CySwingApplication) getService(CySwingApplication.class);
+			mnDialog = new ModelNavigatorDialog(cyApplication.getJFrame(), this);
 			mnDialog.pack();
 		}
 		mnDialog.setVisible(true);
@@ -759,7 +757,8 @@ public class StructureManager {
 			}
 		}
 		// Bring up the dialog
-		alDialog = new AlignStructuresDialog(null, this, chimObjectList);
+		CySwingApplication cyApplication = (CySwingApplication) getService(CySwingApplication.class);
+		alDialog = new AlignStructuresDialog(cyApplication.getJFrame(), this, chimObjectList);
 		alDialog.pack();
 		alDialog.setVisible(true);
 	}
@@ -1418,8 +1417,9 @@ public class StructureManager {
 						}
 						// keep track of the network it belongs to
 						if (!networkMap.containsKey(cyObj)) {
-							networkMap.put(cyObj, network);
+							networkMap.put(cyObj, new HashSet<CyNetwork>());
 						}
+						networkMap.get(cyObj).add(network);
 						// check if it is a RIN
 						ChimeraResidue residue = null;
 						if (cyObj instanceof CyNode

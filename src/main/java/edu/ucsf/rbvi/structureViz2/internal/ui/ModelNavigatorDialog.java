@@ -130,7 +130,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	 *            the Chimera interface object associated with this dialog
 	 */
 	public ModelNavigatorDialog(Frame parent, StructureManager structureManager) {
-		super(parent, false);
+		super(parent);
 		setTitle("Cytoscape Molecular Structure Navigator");
 		this.structureManager = structureManager;
 		this.chimeraManager = structureManager.getChimeraManager();

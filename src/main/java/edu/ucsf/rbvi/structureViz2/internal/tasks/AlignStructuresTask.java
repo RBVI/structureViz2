@@ -16,7 +16,6 @@ import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
-//TODO: Alignment should work for open models as well as for not open
 public class AlignStructuresTask extends AbstractTask {
 
 	private StructureManager structureManager;

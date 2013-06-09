@@ -19,6 +19,7 @@ import org.cytoscape.model.events.NetworkAddedListener;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.task.EdgeViewTaskFactory;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
@@ -46,7 +47,6 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
 // TODO: Allow opening and closing the molecular navigator dialog
 // TODO: Consider headless mode
-// TODO: Paint structure onto node
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);

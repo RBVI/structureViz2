@@ -41,7 +41,9 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 // TODO: Bug: different number of nodes and edges in consecutive runs
 // TODO: Add combined edges
-// TODO: Check why selection disappears
+// TODO: Bug: Selection disappears sometimes upon RIN creation
+// TODO: Move methods to a manager class and create single tasks
+// TODO: Add menus for adding each type of edges to an already existing network?
 public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Tunable(description = "Name of new network", groups = "General")

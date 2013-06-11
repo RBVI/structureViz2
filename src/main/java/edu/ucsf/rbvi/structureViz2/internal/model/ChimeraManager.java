@@ -135,21 +135,16 @@ public class ChimeraManager {
 		List<ChimeraModel> models = new ArrayList<ChimeraModel>();
 		int[] modelNumbers = null;
 		for (String line : response) {
+			// TODO: What to do if multiple models?
 			if (line.startsWith("#")) {
 				modelNumbers = ChimUtils.parseOpenedModelNumber(line);
-				if (modelNumbers[1] != 0) {
-					// TODO: What to do if multiple models?
-				}
 			} else if (line.startsWith("smiles")) {
-
 				List<String> reply = sendChimeraCommand("list model type molecule spec #"
 						+ getChimeraModelsCount(true), true);
 				if (reply != null && reply.size() == 1) {
 					modelNumbers = ChimUtils.parseModelNumber(reply.get(0));
 					// TODO: Create new smiles model each time?
 				}
-			} else {
-				// TODO: Iterate over all open models to get the right one
 			}
 			if (modelNumbers != null) {
 				int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);
@@ -160,24 +155,41 @@ public class ChimeraManager {
 						modelNumbers[1]);
 				currentModelsMap.put(modelNumber, newModel);
 				models.add(newModel);
-
-				// get model color
-				Color modelColor = getModelColor(newModel);
-				if (modelColor != null) {
-					newModel.setModelColor(modelColor);
-				}
-
-				// Get our properties (default color scheme, etc.)
-				// Make the molecule look decent
-				// chimeraSend("repr stick "+newModel.toSpec());
-
-				// Create the information we need for the navigator
-				if (type != ModelType.SMILES) {
-					addResidues(newModel);
-				}
 				modelNumbers = null;
 			}
 		}
+		if (models.size() == 0) {
+			// If parsing fails, iterate over all open models to get the right one
+			List<ChimeraModel> openModels = getModelList();
+			for (ChimeraModel openModel : openModels) {
+				if (modelName.equals(openModel.getModelName())) {
+					int modelNumber = ChimUtils.makeModelKey(openModel.getModelNumber(),
+							openModel.getSubModelNumber());
+					if (!currentModelsMap.containsKey(modelNumber)) {
+						currentModelsMap.put(modelNumber, openModel);
+						models.add(openModel);
+					}
+				}
+			}
+		}
+		// assign color and residues to open models
+		for (ChimeraModel newModel : models) {
+			// get model color
+			Color modelColor = getModelColor(newModel);
+			if (modelColor != null) {
+				newModel.setModelColor(modelColor);
+			}
+
+			// Get our properties (default color scheme, etc.)
+			// Make the molecule look decent
+			// chimeraSend("repr stick "+newModel.toSpec());
+
+			// Create the information we need for the navigator
+			if (type != ModelType.SMILES) {
+				addResidues(newModel);
+			}
+		}
+
 		sendChimeraCommand("focus", false);
 		startListening();
 		return models;
@@ -304,9 +316,8 @@ public class ChimeraManager {
 	}
 
 	/**
-	 * Return the list of depiction presets available from within Chimera.
-	 * Chimera will return the list as a series of lines with the format: Preset
-	 * type number "description"
+	 * Return the list of depiction presets available from within Chimera. Chimera will return the
+	 * list as a series of lines with the format: Preset type number "description"
 	 * 
 	 * @return list of presets
 	 */
@@ -403,9 +414,8 @@ public class ChimeraManager {
 
 	/**
 	 * 
-	 * Get information about the residues associated with a model. This uses the
-	 * Chimera listr command. We don't return the resulting residues, but we add
-	 * the residues to the model.
+	 * Get information about the residues associated with a model. This uses the Chimera listr
+	 * command. We don't return the resulting residues, but we add the residues to the model.
 	 * 
 	 * @param model
 	 *            the ChimeraModel to get residue information for

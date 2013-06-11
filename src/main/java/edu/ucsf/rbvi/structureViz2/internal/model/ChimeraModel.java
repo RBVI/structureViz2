@@ -58,7 +58,6 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		this.subModelNumber = subModelNumber;
 
 		this.chainMap = new TreeMap<String, ChimeraChain>();
-		// this.residueMap = new TreeMap<String, ChimeraResidue>();
 		this.cyObjects = new HashMap<CyIdentifiable, CyNetwork>();
 		this.funcResidues = new HashSet<ChimeraResidue>();
 	}
@@ -83,8 +82,8 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		this.subModelNumber = ChimUtils.parseModelNumber(inputLine)[1];
 
 		this.chainMap = new TreeMap<String, ChimeraChain>();
-		// this.residueMap = new TreeMap<String, ChimeraResidue>();
 		this.cyObjects = new HashMap<CyIdentifiable, CyNetwork>();
+		this.funcResidues = new HashSet<ChimeraResidue>();
 	}
 
 	/**

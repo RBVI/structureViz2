@@ -7,18 +7,20 @@ import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
 
+import edu.ucsf.rbvi.structureViz2.internal.model.RINManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 public class AnnotateStructureNetworkTask extends AbstractTask {
 
-	private StructureManager structureManager;
+	private RINManager rinManager;
 	private CyNetwork network;
 
 	@Tunable(description = "Available residue attributes")
 	public ListMultipleSelection<String> residueAttributes;
 
+	// TODO: Pass rinManager and not the structureManager?
 	public AnnotateStructureNetworkTask(StructureManager structureManager, CyNetwork aNetwork) {
-		this.structureManager = structureManager;
+		this.rinManager = structureManager.getRINManager();
 		network = aNetwork;
 		residueAttributes = new ListMultipleSelection<String>(
 				structureManager.getAllResidueAttributes());
@@ -36,17 +38,13 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 			for (String resAttr : residueAttributes.getSelectedValues()) {
 				taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
 				if (resAttr.equals("SecondaryStructure")) {
-					structureManager.annotateSS(network);
+					rinManager.annotateSS(network);
 				} else if (resAttr.equals("Coordinates")) {
-					structureManager.annotateCoord(network, "resCoord");
-					// } else if (resAttr.contains("Color")) {
-					// structureManager.annotateColor(network, resAttr,
-					// structureManager.residueAttrCommandMap.get(resAttr));
+					rinManager.annotateCoord(network, "resCoord");
 				} else if (resAttr.equals("averageBFactor") || resAttr.equals("averageOccupancy")) {
-					structureManager.annotate(network, resAttr,
-							structureManager.residueAttrCommandMap.get(resAttr));
+					rinManager.annotate(network, resAttr, rinManager.getAttrCommand(resAttr));
 				} else {
-					structureManager.annotate(network, resAttr, resAttr);
+					rinManager.annotate(network, resAttr, resAttr);
 				}
 			}
 		}

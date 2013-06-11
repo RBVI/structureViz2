@@ -1,7 +1,5 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
-import java.awt.Color;
-import java.awt.Paint;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,8 +29,6 @@ import org.cytoscape.session.CySession;
 import org.cytoscape.session.CySessionManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
-import org.cytoscape.view.model.View;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
@@ -53,13 +49,6 @@ public class StructureManager {
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList", "Residues" };
 
-	public static final Map<String, String> residueAttrCommandMap = new HashMap<String, String>();
-
-	static {
-		residueAttrCommandMap.put("SecondaryStructure", "");
-		residueAttrCommandMap.put("Coordinates", "");
-	}
-
 	public enum ModelType {
 		PDB_MODEL, MODBASE_MODEL, SMILES
 	};
@@ -73,6 +62,7 @@ public class StructureManager {
 	private BundleContext bundleContext = null;
 	private boolean haveGUI = true;
 	private ChimeraManager chimeraManager = null;
+	private RINManager rinManager = null;
 	private CreateStructureNetworkTaskFactory structureNetFactory = null;
 	private Map<CyNetwork, StructureSettings> settings = null;
 	private Map<CyIdentifiable, Set<ChimeraStructuralObject>> currentCyMap = null;
@@ -97,12 +87,17 @@ public class StructureManager {
 		aTask.start();
 		// Create the Chimera interface
 		chimeraManager = new ChimeraManager(this);
+		rinManager = new RINManager(this);
 		chimSelectionList = new ArrayList<ChimeraStructuralObject>();
 		pathProps = new Properties();
 	}
 
 	public ChimeraManager getChimeraManager() {
 		return chimeraManager;
+	}
+
+	public RINManager getRINManager() {
+		return rinManager;
 	}
 
 	public Object getService(Class<?> serviceClass) {
@@ -570,6 +565,41 @@ public class StructureManager {
 		chimSelectionList.clear();
 	}
 
+	/**
+	 * Get all Chimera objects associated with this cyObj.
+	 * 
+	 * @param cyObj
+	 *            {@link CyIdentifiable}.
+	 * @return Set of {@link ChimeraStructuralObject}.
+	 */
+	public Set<ChimeraStructuralObject> getAssociatedChimObjs(CyIdentifiable cyObj) {
+		if (currentCyMap.containsKey(cyObj)) {
+			return currentCyMap.get(cyObj);
+		}
+		return null;
+	}
+
+	/**
+	 * Get all Cytoscape objects associated with this chimObj.
+	 * 
+	 * @param chimObj
+	 *            {@link ChimeraStructuralObject}
+	 * @return Set of {@link CyIdentifiable}.
+	 */
+	public Set<CyIdentifiable> getAssociatedCyObjs(ChimeraStructuralObject chimObj) {
+		if (currentChimMap.containsKey(chimObj)) {
+			return currentChimMap.get(chimObj);
+		}
+		return null;
+	}
+
+	public Set<CyNetwork> getAssociatedNetworks(CyIdentifiable cyObj) {
+		if (networkMap.containsKey(cyObj)) {
+			return networkMap.get(cyObj);
+		}
+		return null;
+	}
+
 	public void associate(CyNetwork network) {
 		if (network != null) {
 			aTask.associate(network);
@@ -885,239 +915,6 @@ public class StructureManager {
 		return mapChimObjNames;
 	}
 
-	public void annotate(CyNetwork network, String resAttr, String command) {
-		// get models
-		if (currentCyMap.containsKey(network)) {
-			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
-				if (chimObj instanceof ChimeraModel) {
-					// get attribute values
-					Map<ChimeraResidue, Object> resValues = chimeraManager.getAttrValues(command,
-							chimObj.getChimeraModel());
-					if (resValues.size() == 0) {
-						continue;
-					}
-					Object testObj = resValues.values().iterator().next();
-					if (testObj == null) {
-						continue;
-					}
-					// create attribute
-					if (network.getDefaultNodeTable().getColumn(resAttr) != null
-							&& network.getDefaultNodeTable().getColumn(resAttr).getType() != testObj
-									.getClass()) {
-						network.getDefaultNodeTable().deleteColumn(resAttr);
-					} else if (network.getDefaultNodeTable().getColumn(resAttr) == null) {
-						network.getDefaultNodeTable().createColumn(resAttr, testObj.getClass(),
-								false);
-					}
-					// save all the values
-					for (ChimeraResidue res : resValues.keySet()) {
-						if (currentChimMap.containsKey(res)) {
-							for (CyIdentifiable cyId : currentChimMap.get(res)) {
-								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
-									network.getRow(cyId).set(resAttr, resValues.get(res));
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public void annotateSS(CyNetwork network) {
-		// get models
-		final String ssColumn = "SS";
-		if (currentCyMap.containsKey(network)) {
-			if (network.getDefaultNodeTable().getColumn(ssColumn) == null) {
-				network.getDefaultNodeTable().createColumn(ssColumn, String.class, false, "");
-			}
-			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
-				if (chimObj instanceof ChimeraModel) {
-					chimeraManager.sendChimeraCommand("ksdssp", false);
-					Map<ChimeraResidue, Object> hResidues = chimeraManager.getAttrValues("isHelix",
-							chimObj.getChimeraModel());
-					Map<ChimeraResidue, Object> sResidues = chimeraManager.getAttrValues("isSheet",
-							chimObj.getChimeraModel());
-					for (ChimeraResidue res : hResidues.keySet()) {
-						if (currentChimMap.containsKey(res)) {
-							for (CyIdentifiable cyId : currentChimMap.get(res)) {
-								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
-									if (hResidues.get(res).equals(Boolean.TRUE)) {
-										network.getRow(cyId).set(ssColumn, "Helix");
-									} else if (sResidues.containsKey(res)
-											&& sResidues.get(res).equals(Boolean.TRUE)) {
-										network.getRow(cyId).set(ssColumn, "Sheet");
-									} else {
-										network.getRow(cyId).set(ssColumn, "Loop");
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public void annotateCoord(CyNetwork network, String resAttr) {
-		if (!currentCyMap.containsKey(network)) {
-			return;
-		}
-		if (network.getDefaultNodeTable().getColumn(resAttr + ".x") == null) {
-			network.getDefaultNodeTable().createColumn(resAttr + ".x", Double.class, false);
-		}
-		if (network.getDefaultNodeTable().getColumn(resAttr + ".y") == null) {
-			network.getDefaultNodeTable().createColumn(resAttr + ".y", Double.class, false);
-		}
-		if (network.getDefaultNodeTable().getColumn(resAttr + ".z") == null) {
-			network.getDefaultNodeTable().createColumn(resAttr + ".z", Double.class, false);
-		}
-		// get coordinates
-		Map<ChimeraResidue, Double[]> resCoords = new HashMap<ChimeraResidue, Double[]>();
-		for (ChimeraStructuralObject model : currentCyMap.get(network)) {
-			if (model instanceof ChimeraModel) {
-				List<String> reply = chimeraManager.sendChimeraCommand("getcrd xf "
-						+ model.getChimeraModel().toSpec(), true);
-				if (reply == null) {
-					continue;
-				}
-				String[] lineParts = null;
-				for (String inputLine : reply) {
-					// response from chimera should look like this:
-					// Atom #0:355.A@C 36.598 78.221 2.056
-					// Atom #0:355.A@CA 35.276 77.803 1.543
-					lineParts = inputLine.split("\\s+");
-					if (lineParts.length != 5) {
-						continue;
-					}
-					ChimeraResidue residue = ChimUtils.getResidue(lineParts[1],
-							model.getChimeraModel());
-					String atom = ChimUtils.getAtomName(lineParts[1]);
-					if (residue == null) {
-						continue;
-					}
-					Double[] coord = null;
-					try {
-						coord = new Double[3];
-						for (int i = 0; i < 3; i++) {
-							coord[i] = new Double(lineParts[i + 2]);
-						}
-						if (!resCoords.containsKey(residue) || atom.equals("CA")) {
-							resCoords.put(residue, coord);
-						}
-					} catch (NumberFormatException ex) {
-						// no coordinates for this node, ignore
-						// ex.printStackTrace();
-					}
-				}
-			}
-		}
-		// save coordinates as attributes
-		for (CyNode node : network.getNodeList()) {
-			if (currentCyMap.containsKey(node)) {
-				for (ChimeraStructuralObject chimObj : currentCyMap.get(node)) {
-					if (resCoords.containsKey(chimObj)) {
-						final Double[] coord = resCoords.get(chimObj);
-						network.getRow(node).set(resAttr + ".x", coord[0]);
-						network.getRow(node).set(resAttr + ".y", coord[1]);
-						network.getRow(node).set(resAttr + ".z", coord[2]);
-					}
-				}
-			}
-		}
-	}
-
-	public void syncColors() {
-		Map<Integer, ChimeraModel> models = chimeraManager.getSelectedModels();
-		for (ChimeraModel selModel : models.values()) {
-			ChimeraModel model = chimeraManager.getChimeraModel(selModel.getModelNumber(),
-					selModel.getSubModelNumber());
-			if (model != null) {
-				for (CyIdentifiable obj : model.getCyObjects().keySet()) {
-					if (obj instanceof CyNetwork) {
-						CyNetworkViewManager manager = (CyNetworkViewManager) getService(CyNetworkViewManager.class);
-						for (CyNetworkView view : manager.getNetworkViews((CyNetwork) obj)) {
-							syncChimToCyColors(view);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public void syncChimToCyColors(CyNetworkView networkView) {
-		// get models
-		CyNetwork network = networkView.getModel();
-		if (currentCyMap.containsKey(network)) {
-			for (ChimeraStructuralObject chimObj : currentCyMap.get(network)) {
-				if (chimObj instanceof ChimeraModel) {
-					// get attribute values
-					Map<ChimeraResidue, Object> resValues = chimeraManager.getAttrValues(
-							"ribbonColor", chimObj.getChimeraModel());
-					if (resValues.size() == 0) {
-						continue;
-					}
-					// save all the values
-					for (ChimeraResidue res : resValues.keySet()) {
-						if (currentChimMap.containsKey(res)) {
-							for (CyIdentifiable cyId : currentChimMap.get(res)) {
-								if (cyId instanceof CyNode && network.containsNode((CyNode) cyId)) {
-									String[] rgb = ((String) resValues.get(res)).split(",");
-									if (rgb.length == 3) {
-										try {
-											Paint resColor = new Color(Float.valueOf(rgb[0]),
-													Float.valueOf(rgb[1]), Float.valueOf(rgb[2]));
-											networkView.getNodeView((CyNode) cyId).clearValueLock(
-													BasicVisualLexicon.NODE_FILL_COLOR);
-											networkView.getNodeView((CyNode) cyId)
-													.setVisualProperty(
-															BasicVisualLexicon.NODE_FILL_COLOR,
-															resColor);
-										} catch (NumberFormatException ex) {
-											// ignore
-										}
-									}
-								}
-							}
-						}
-					}
-					networkView.updateView();
-				}
-			}
-		}
-	}
-
-	public void syncCyToChimColors(CyNetworkView networkView) {
-		final Map<Color, String> color2res = new HashMap<Color, String>();
-		for (final View<CyNode> nodeView : networkView.getNodeViews()) {
-			final Color color = (Color) nodeView
-					.getVisualProperty(BasicVisualLexicon.NODE_FILL_COLOR);
-			if (color != null && currentCyMap.containsKey(nodeView.getModel())) {
-				for (ChimeraStructuralObject chimObj : currentCyMap.get(nodeView.getModel())) {
-					if (!color2res.containsKey(color)) {
-						color2res.put(color, chimObj.toSpec());
-					} else {
-						color2res.put(color, color2res.get(color) + chimObj.toSpec());
-					}
-				}
-			}
-		}
-		for (final Color color : color2res.keySet()) {
-			String colorDef = "";
-			try {
-				float[] rgbColorCodes = color.getRGBColorComponents(null);
-				for (int i = 0; i < rgbColorCodes.length; i++) {
-					colorDef += rgbColorCodes[i] + ",";
-				}
-			} catch (Exception e) {
-				continue;
-			}
-			colorDef += "r,a"; // ribbons and atoms
-			chimeraManager.sendChimeraCommand("color " + colorDef + " " + color2res.get(color),
-					false);
-		}
-	}
-
 	public void setStructureSettings(CyNetwork network, StructureSettings newSettings) {
 		settings.put(network, newSettings);
 	}
@@ -1154,7 +951,7 @@ public class StructureManager {
 
 	public List<String> getAllResidueAttributes() {
 		List<String> attributes = new ArrayList<String>();
-		attributes.addAll(residueAttrCommandMap.keySet());
+		attributes.addAll(rinManager.getResAttrs());
 		attributes.addAll(chimeraManager.getAttrList());
 		return attributes;
 	}
@@ -1339,71 +1136,13 @@ public class StructureManager {
 
 		public synchronized void associateNetwork(CyNetwork network,
 				Map<String, List<ChimeraModel>> newModels) {
-			// TODO: Revise assignment of networks considering subnetworks
 			// System.out.println("associating network: "
 			// + network.getRow(network).get(CyNetwork.NAME, String.class));
 			ChimeraModel rinModel = null;
 			// for each network get the pdb names associated with its nodes
-			Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
-			CyTable table = network.getDefaultNodeTable();
-			// if (network.get.get(0) instanceof CyNode) {
-			// table = network.getDefaultNodeTable();
-			// } else if (cyObjSet.get(0) instanceof CyEdge) {
-			// table = network.getDefaultEdgeTable();
-			// }
-			if (table == null) {
-				return;
-			}
-			List<String> attrsFound = null;
-			attrsFound = CytoUtils.getMatchingAttributes(table, getCurrentStructureKeys(network));
-
-			// if something is null, just return an empty map
-			if (attrsFound == null || attrsFound.size() == 0)
-				return;
-			// System.out.println(attrsFound.size());
-			// iterate over cytoscape objects
-			for (CyIdentifiable cyObj : network.getNodeList()) {
-				// skip if node/edge does not exist anymore
-				if (!table.rowExists(cyObj.getSUID())) {
-					continue;
-				}
-				CyRow row = table.getRow(cyObj.getSUID());
-				// iterate over attributes that contain structures
-				for (String column : attrsFound) {
-					CyColumn col = table.getColumn(column);
-					if (col == null) {
-						continue;
-					}
-
-					Class<?> colType = col.getType();
-					List<String> cellList = new ArrayList<String>();
-					if (colType == String.class) {
-						String cell = row.get(column, String.class, "").trim();
-						if (cell.equals("")) {
-							continue;
-						}
-						String[] cellArray = cell.split(",");
-						for (String str : cellArray) {
-							cellList.add(str.trim());
-						}
-					} else if (colType == List.class && col.getListElementType() == String.class) {
-						for (String str : row.getList(column, String.class)) {
-							cellList.add(str.trim());
-						}
-					} else {
-						continue;
-					}
-
-					for (String cell : cellList) {
-						// skip if the structure is already open
-						// add structure name to map
-						if (!mapChimObjNames.containsKey(cyObj)) {
-							mapChimObjNames.put(cyObj, new ArrayList<String>());
-						}
-						mapChimObjNames.get(cyObj).add(cell);
-					}
-				}
-			}
+			List<CyIdentifiable> nodes = new ArrayList<CyIdentifiable>();
+			nodes.addAll(network.getNodeList());
+			Map<CyIdentifiable, List<String>> mapChimObjNames = getChimObjNames(network, nodes, ModelType.PDB_MODEL, true);			
 			// System.out.println("nodes with pdb found: " +
 			// mapChimObjNames.size());
 			for (CyIdentifiable cyObj : mapChimObjNames.keySet()) {

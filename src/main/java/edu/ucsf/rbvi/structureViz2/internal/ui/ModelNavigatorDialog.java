@@ -70,8 +70,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraTreeModel;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 /**
- * The ModelNavigatorDialog class is the class that implements the main
- * interface for structureViz.
+ * The ModelNavigatorDialog class is the class that implements the main interface for structureViz.
  */
 public class ModelNavigatorDialog extends JDialog implements TreeSelectionListener,
 		TreeExpansionListener, TreeWillExpandListener {
@@ -150,8 +149,8 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	}
 
 	/**
-	 * Call this method when something significant has changed in the model such
-	 * as a new model opened or closed
+	 * Call this method when something significant has changed in the model such as a new model
+	 * opened or closed
 	 */
 	public void modelChanged() {
 		// Something significant changed in the model (new open/closed
@@ -276,7 +275,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 			return;
 		}
 
-		//System.out.println("dialog selection changed");
+		// System.out.println("dialog selection changed");
 		for (int i = 0; i < cPaths.length; i++) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) cPaths[i].getLastPathComponent();
 			if (!ChimeraStructuralObject.class.isInstance(node.getUserObject()))
@@ -304,8 +303,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	}
 
 	/**
-	 * This method is called to update the selected items in the navigation
-	 * tree.
+	 * This method is called to update the selected items in the navigation tree.
 	 * 
 	 * @param selectionList
 	 *            the List of ChimeraStructuralObjects to be selected
@@ -325,9 +323,9 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	}
 
 	/**
-	 * This method is called to clear the selection state of all
-	 * ChimeraStructuralObjects. It is accomplished by iterating over all models
-	 * and recursively decending through the chains to the residues.
+	 * This method is called to clear the selection state of all ChimeraStructuralObjects. It is
+	 * accomplished by iterating over all models and recursively decending through the chains to the
+	 * residues.
 	 */
 	private void resetSelectionState(List<TreePath> setPaths) {
 		navigationTree.removeSelectionPaths(navigationTree.getSelectionPaths());
@@ -514,8 +512,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	}
 
 	/**
-	 * Build the preset menu by inquiring the list of available presets from
-	 * Chimera
+	 * Build the preset menu by inquiring the list of available presets from Chimera
 	 * 
 	 * @param menu
 	 *            the menu to add the preset items to
@@ -585,8 +582,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	// Embedded classes
 
 	/**
-	 * The MenuActionListener class is used to attach a listener to menu items
-	 * to handle commands
+	 * The MenuActionListener class is used to attach a listener to menu items to handle commands
 	 */
 	private class MenuActionListener extends AbstractAction {
 		int type;
@@ -597,8 +593,8 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		 * Create a new MenuActionListener
 		 * 
 		 * @param type
-		 *            the listener type (COMMAND, CLEAR, EXIT, REFRESH, ALIGN,
-		 *            or the residue display type
+		 *            the listener type (COMMAND, CLEAR, EXIT, REFRESH, ALIGN, or the residue
+		 *            display type
 		 * @param command
 		 *            the command to execute when this menu is selected
 		 */
@@ -671,7 +667,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				}
 			} else if (type == SYNCCOLORS) {
 				if (selectedObjectsCount > 0) {
-					structureManager.syncColors();
+					structureManager.getRINManager().syncColors();
 				} else {
 					JOptionPane.showMessageDialog(dialog,
 							"You must select something to syncronize colors", "Nothing Selected",
@@ -686,10 +682,9 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	}
 
 	/**
-	 * The ObjectRenderer class is used to provide special rendering
-	 * capabilities for each row of the tree. We use this to provide a colored
-	 * border around the model rows of the tree that matches the Chimera model
-	 * color and to set the color of collapsed models and chains that have
+	 * The ObjectRenderer class is used to provide special rendering capabilities for each row of
+	 * the tree. We use this to provide a colored border around the model rows of the tree that
+	 * matches the Chimera model color and to set the color of collapsed models and chains that have
 	 * selected children.
 	 */
 	private class ObjectRenderer extends DefaultTreeCellRenderer {

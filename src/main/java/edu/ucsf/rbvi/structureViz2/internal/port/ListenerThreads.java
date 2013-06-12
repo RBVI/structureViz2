@@ -112,7 +112,7 @@ public class ListenerThreads extends Thread {
 				(new ModelUpdater()).start();
 			} else if (line.startsWith("SelectionChanged: ")) {
 				(new SelectionUpdater()).start();
-			} else if (line.startsWith("Trajectory residue network files:")) {
+			} else if (line.startsWith("Trajectory residue network info:")) {
 				(new NetworkUpdater(line)).start();
 			}
 		}
@@ -148,7 +148,7 @@ public class ListenerThreads extends Thread {
 					continue;
 				} else if (!line.startsWith("CMD")) {
 					reply.add(line);
-				} else if (line.startsWith("Trajectory residue network files:")) {
+				} else if (line.startsWith("Trajectory residue network info:")) {
 					importNetwork = true;
 				}
 			}

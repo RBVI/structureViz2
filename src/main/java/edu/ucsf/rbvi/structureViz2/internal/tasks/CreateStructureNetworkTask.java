@@ -259,7 +259,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			TunableSetter tunableSetter = (TunableSetter) structureManager
 					.getService(TunableSetter.class);
 			Map<String, Object> tunables = new HashMap<String, Object>();
-			List<String> resAttr = structureManager.getAllResidueAttributes();
+			List<String> resAttr = structureManager.getAllChimeraResidueAttributes();
 			ListMultipleSelection<String> resAttrTun = new ListMultipleSelection<String>(resAttr);
 			resAttrTun.setSelectedValues(resAttr);
 			tunables.put("residueAttributes", resAttrTun);

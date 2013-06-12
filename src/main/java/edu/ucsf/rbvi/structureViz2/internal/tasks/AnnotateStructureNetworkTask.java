@@ -23,7 +23,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 		this.rinManager = structureManager.getRINManager();
 		network = aNetwork;
 		residueAttributes = new ListMultipleSelection<String>(
-				structureManager.getAllResidueAttributes());
+				structureManager.getAllChimeraResidueAttributes());
 	}
 
 	@ProvidesTitle

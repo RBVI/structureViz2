@@ -1,6 +1,7 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -14,10 +15,13 @@ import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.task.read.LoadVizmapFileTaskFactory;
 import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
@@ -28,49 +32,82 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 public class ImportTrajectoryRINTask extends AbstractTask {
 
 	private StructureManager structureManager;
-	private String fileNames;
+	private String trajInfo;
 	private CyNetwork newNetwork;
 	private Map<String, CyNode> nodesMap;
+	private VisualStyle visualStyle;
 
-	public ImportTrajectoryRINTask(StructureManager structureManager, String fileNames) {
+	public ImportTrajectoryRINTask(StructureManager structureManager, String trajInfo) {
 		this.structureManager = structureManager;
-		this.fileNames = fileNames;
+		this.trajInfo = trajInfo;
 		newNetwork = null;
 		nodesMap = null;
+		visualStyle = null;
 	}
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		if (fileNames == null) {
+		if (trajInfo == null) {
 			return;
 		}
-		System.out.println(fileNames);
-		String[] fileNamesParts = fileNames.split(",");
-		if (fileNamesParts.length == 2) {
-			String networkFile = fileNamesParts[0].trim();
-			networkFile = networkFile.substring(networkFile.indexOf("'") + 1, networkFile.length() - 1);
-			System.out.println(networkFile);
+		// Trajectory residue network info: [1, u'c:\\users\\admini~1\\appdata\\local\\temp
+		// \\tmpytlcfw_network.txt', u'c:\\users\\admini~1\\appdata\\local\\temp\\tmpbth1xp
+		// _nattr.txt', u'c:\\users\\admini~1\\appdata\\local\\temp\\tmplf0znj_netviz.xml']
+		// remove leading and trailing brackets
+		trajInfo = trajInfo.substring(trajInfo.indexOf("[") + 1, trajInfo.indexOf("]"));
+		// System.out.println(trajInfo);
+		// get file names
+		String[] fileNames = trajInfo.split(",");
+		if (fileNames.length == 4 && fileNames[0].trim().equals("1")) {
+			// get network file name
+			String networkFile = fileNames[1].trim();
+			networkFile = networkFile.substring(networkFile.indexOf("'") + 1,
+					networkFile.length() - 1);
+			// System.out.println(networkFile);
 			if (networkFile.endsWith("network.txt")) {
 				// import network data
 				importNetwork(networkFile);
 			}
-			String tableFile = fileNamesParts[1].trim();
-			tableFile = tableFile.substring(tableFile.indexOf("'") + 1, tableFile.length() - 2);
-			System.out.println(tableFile);
+			// get table file name
+			String tableFile = fileNames[2].trim();
+			tableFile = tableFile.substring(tableFile.indexOf("'") + 1, tableFile.length() - 1);
+			// System.out.println(tableFile);
 			if (tableFile.endsWith("nattr.txt") && newNetwork != null) {
 				// import node attributes
 				importTable(tableFile);
+			}
+			// get vizmap file name
+			String vizmapFile = fileNames[3].trim();
+			vizmapFile = vizmapFile.substring(vizmapFile.indexOf("'") + 1, vizmapFile.length() - 1);
+			if (vizmapFile.endsWith("netviz.xml") && newNetwork != null) {
+				// import vizmap file
+				System.out.println("Load visual style: " + vizmapFile);
+				LoadVizmapFileTaskFactory loadVizmapFileTaskFactory = (LoadVizmapFileTaskFactory) structureManager
+						.getService(LoadVizmapFileTaskFactory.class);
+				Set<VisualStyle> vsSet = loadVizmapFileTaskFactory.loadStyles(new File(vizmapFile));
+				// we assume there is only one visual style
+				// TODO: Consider multiple visual styles?
+				for (VisualStyle style : vsSet) {
+					// System.out.println(style.getTitle());
+					// if (style.getTitle().equals("Trajectory network style")) {
+					visualStyle = style;
+					// }
+				}
+			}
+			if (newNetwork.getNodeCount() > 0) {
+				finalizeNetwork();
 			}
 		}
 	}
 
 	private void importNetwork(String file) {
 		System.out.println("Import network " + file);
+		String name = file.substring(file.lastIndexOf("\\") + 1);
 		CyNetworkFactory netFactory = (CyNetworkFactory) structureManager
 				.getService(CyNetworkFactory.class);
 		newNetwork = netFactory.createNetwork();
 		newNetwork.getDefaultEdgeTable().createColumn("Weight", Double.class, false);
-		newNetwork.getRow(newNetwork).set(CyNetwork.NAME, file);
+		newNetwork.getRow(newNetwork).set(CyNetwork.NAME, name);
 		BufferedReader br = null;
 		nodesMap = new HashMap<String, CyNode>();
 		try {
@@ -119,9 +156,6 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 			} catch (IOException ex) {
 				// ignore
 			}
-		}
-		if (newNetwork.getNodeCount() > 0) {
-			finalizeNetwork();
 		}
 	}
 
@@ -188,7 +222,15 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		taskManager.execute(layoutTaskFactory.createTaskIterator(views));
 
 		// Set vizmap
-		// ...
+		VisualMappingManager cyVmManager = (VisualMappingManager) structureManager
+				.getService(VisualMappingManager.class);
+		if (visualStyle == null) {
+			visualStyle = cyVmManager.getDefaultVisualStyle();
+		}
+		visualStyle.apply(view);
+		cyVmManager.setVisualStyle(visualStyle, view);
+
+		// update view
 		view.updateView();
 	}
 

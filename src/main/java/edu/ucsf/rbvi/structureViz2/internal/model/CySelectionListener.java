@@ -2,6 +2,7 @@ package edu.ucsf.rbvi.structureViz2.internal.model;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.cytoscape.model.CyIdentifiable;
@@ -42,9 +43,10 @@ public class CySelectionListener implements RowsSetListener {
 			}
 		} else {
 			boolean update = false;
-			String[] defaultstructurekeys = structureManager.defaultStructureKeys;
-			for (int i = 0; i < defaultstructurekeys.length; i++) {
-				String structureKey = defaultstructurekeys[i];
+			// TODO: Is it fine if we check all attributes?
+			List<String> defaultstructurekeys = structureManager.getAllStructureKeys();
+			for (int i = 0; i < defaultstructurekeys.size(); i++) {
+				String structureKey = defaultstructurekeys.get(i);
 				if (e.containsColumn(structureKey)) {
 					Collection<RowSetRecord> records = e.getColumnRecords(structureKey);
 					for (RowSetRecord record : records) {

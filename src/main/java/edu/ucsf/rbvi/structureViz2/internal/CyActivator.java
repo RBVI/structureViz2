@@ -113,7 +113,8 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
 		openStructuresEdgeProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, openStructuresEdge, EdgeViewTaskFactory.class, openStructuresEdgeProps);
-		registerService(bc, openStructuresEdge, NetworkViewTaskFactory.class, openStructuresEdgeProps);
+		registerService(bc, openStructuresEdge, NetworkViewTaskFactory.class,
+				openStructuresEdgeProps);
 
 		TaskFactory alignStructures = new AlignStructuresTaskFactory(structureManager);
 		Properties alignStructuresProps = new Properties();
@@ -161,8 +162,10 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
 		closeStructuresEdgeProps.setProperty(MENU_GRAVITY, "4.0");
-		registerService(bc, closeStructuresEdge, EdgeViewTaskFactory.class, closeStructuresEdgeProps);
-		registerService(bc, closeStructuresEdge, NetworkViewTaskFactory.class, closeStructuresEdgeProps);
+		registerService(bc, closeStructuresEdge, EdgeViewTaskFactory.class,
+				closeStructuresEdgeProps);
+		registerService(bc, closeStructuresEdge, NetworkViewTaskFactory.class,
+				closeStructuresEdgeProps);
 
 		TaskFactory createStructureNet = new CreateStructureNetworkTaskFactory(structureManager);
 		Properties createStructureNetProps = new Properties();

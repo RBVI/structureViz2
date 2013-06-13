@@ -96,7 +96,7 @@ public class StructureManager {
 	public RINManager getRINManager() {
 		return rinManager;
 	}
-
+	
 	public Object getService(Class<?> serviceClass) {
 		return bundleContext.getService(bundleContext.getServiceReference(serviceClass.getName()));
 	}
@@ -151,7 +151,11 @@ public class StructureManager {
 				if (currentModels.size() == 0) {
 					// open and return models
 					currentModels = chimeraManager.openModel(chimObjName, type);
+					// if (type == ModelType.SMILES) {
+					// newModels.put("smiles:" + chimObjName, currentModels);
+					// } else {
 					newModels.put(chimObjName, currentModels);
+					// }
 					// for each model
 					for (ChimeraModel currentModel : currentModels) {
 						// check if it is a RIN
@@ -206,12 +210,13 @@ public class StructureManager {
 		}
 	}
 
+	// TODO: How can we make a screenshot of a single molecule?
 	public File saveChimeraImage() {
 		File tmpFile = null;
 		try {
 			tmpFile = File.createTempFile("structureViz", ".png");
 			String path = tmpFile.getAbsolutePath();
-			chimeraManager.sendChimeraCommand("copy file " + path + " png", true);
+			chimeraManager.sendChimeraCommand("copy file " + path + " png", false);
 		} catch (IOException ioe) {
 			// Log error
 		}
@@ -393,7 +398,7 @@ public class StructureManager {
 			return;
 		}
 		// clearSelectionList();
-		// System.out.println("cytoscape selection changed");
+		//System.out.println("cytoscape selection changed");
 		// iterate over all cy objects with associated models
 		for (CyIdentifiable cyObj : currentCyMap.keySet()) {
 			if (cyObj instanceof CyNetwork || !selectedRows.containsKey(cyObj.getSUID())) {
@@ -837,12 +842,11 @@ public class StructureManager {
 	 * @param nodeSet
 	 * @return
 	 */
-	public Map<CyIdentifiable, List<String>> getChimObjNames(CyNetwork network,
-			List<CyIdentifiable> cyObjSet, ModelType type, boolean all) {
+	public void getChimObjNames(Map<CyIdentifiable, List<String>> mapChimObjNames,
+			CyNetwork network, List<CyIdentifiable> cyObjSet, ModelType type, boolean all) {
 
-		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
 		if (network == null || cyObjSet.size() == 0)
-			return mapChimObjNames;
+			return;
 		CyTable table = null;
 		if (cyObjSet.get(0) instanceof CyNode) {
 			table = network.getDefaultNodeTable();
@@ -850,7 +854,7 @@ public class StructureManager {
 			table = network.getDefaultEdgeTable();
 		}
 		if (table == null) {
-			return mapChimObjNames;
+			return;
 		}
 		List<String> attrsFound = null;
 		if (type == ModelType.PDB_MODEL)
@@ -861,7 +865,7 @@ public class StructureManager {
 
 		// if something is null, just return an empty map
 		if (attrsFound == null || attrsFound.size() == 0)
-			return mapChimObjNames;
+			return;
 		// iterate over cytoscape objects
 		for (CyIdentifiable cyObj : cyObjSet) {
 			// skip if node/edge does not exist anymore
@@ -885,11 +889,17 @@ public class StructureManager {
 					}
 					String[] cellArray = cell.split(",");
 					for (String str : cellArray) {
-						cellList.add(str.trim());
+						if (type == ModelType.SMILES)
+							cellList.add("smiles:" + str.trim());
+						else
+							cellList.add(str.trim());
 					}
 				} else if (colType == List.class && col.getListElementType() == String.class) {
 					for (String str : row.getList(column, String.class)) {
-						cellList.add(str.trim());
+						if (type == ModelType.SMILES)
+							cellList.add("smiles:" + str.trim());
+						else
+							cellList.add(str.trim());
 					}
 				} else {
 					continue;
@@ -909,7 +919,6 @@ public class StructureManager {
 				}
 			}
 		}
-		return mapChimObjNames;
 	}
 
 	public void setStructureSettings(CyNetwork network, StructureSettings newSettings) {
@@ -1106,14 +1115,15 @@ public class StructureManager {
 			// for each network get the pdb names associated with its nodes
 			List<CyIdentifiable> nodes = new ArrayList<CyIdentifiable>();
 			nodes.addAll(network.getNodeList());
-			Map<CyIdentifiable, List<String>> mapChimObjNames = getChimObjNames(network, nodes,
-					ModelType.PDB_MODEL, true);
-			// System.out.println("nodes with pdb found: " +
-			// mapChimObjNames.size());
+			Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+			getChimObjNames(mapChimObjNames, network, nodes, ModelType.PDB_MODEL, true);
+			getChimObjNames(mapChimObjNames, network, nodes, ModelType.SMILES, true);
+			// System.out.println("nodes with pdb found: " + mapChimObjNames.size());
+			// iterate over all nodes with associated structures
 			for (CyIdentifiable cyObj : mapChimObjNames.keySet()) {
+				// iterate over all associated structures for a node
 				for (String modelName : mapChimObjNames.get(cyObj)) {
 					// node should be associated with current model
-					// System.out.println(modelName);
 					if (newModels.containsKey(modelName)) {
 						// add it to the map
 						if (!currentCyMap.containsKey(cyObj)) {
@@ -1126,7 +1136,8 @@ public class StructureManager {
 						networkMap.get(cyObj).add(network);
 						// check if it is a RIN
 						ChimeraResidue residue = null;
-						if (cyObj instanceof CyNode
+						if (!modelName.startsWith("smiles:")
+								&& cyObj instanceof CyNode
 								&& network.containsNode((CyNode) cyObj)
 								&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)
 								&& network.getDefaultNodeTable().getColumn(ChimUtils.RESIDUE_ATTR)
@@ -1159,7 +1170,8 @@ public class StructureManager {
 						}
 					}
 				}
-			}
+			} // end of for loop
+				// if network was a RIN, add associations
 			if (rinModel != null) {
 				rinModel.addCyObject(network, network);
 				if (!currentCyMap.containsKey(network)) {
@@ -1168,7 +1180,6 @@ public class StructureManager {
 				currentCyMap.get(network).add(rinModel);
 				rinModel = null;
 			}
-
 		}
 	}
 

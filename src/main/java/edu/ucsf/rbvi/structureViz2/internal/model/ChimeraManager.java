@@ -118,13 +118,15 @@ public class ChimeraManager {
 	}
 
 	public List<ChimeraModel> openModel(String modelName, ModelType type) {
-		System.out.println("open model " + modelName);
+		System.out.println("open " + modelName);
 		stopListening();
 		List<String> response = null;
-		if (type == StructureManager.ModelType.MODBASE_MODEL) {
+		// TODO: How to handle modbase models?
+		if (type == ModelType.MODBASE_MODEL) {
 			response = sendChimeraCommand("open modbase:" + modelName, true);
-		} else if (type == StructureManager.ModelType.SMILES) {
-			response = sendChimeraCommand("open smiles:" + modelName, true);
+			// } else if (type == ModelType.SMILES) {
+			// response = sendChimeraCommand("open smiles:" + modelName, true);
+			// modelName = "smiles:" + modelName;
 		} else {
 			response = sendChimeraCommand("open " + modelName, true);
 		}
@@ -134,35 +136,33 @@ public class ChimeraManager {
 		}
 		List<ChimeraModel> models = new ArrayList<ChimeraModel>();
 		int[] modelNumbers = null;
-		for (String line : response) {
-			// TODO: What to do if multiple models?
-			if (line.startsWith("#")) {
-				modelNumbers = ChimUtils.parseOpenedModelNumber(line);
-			} else if (line.startsWith("smiles")) {
-				List<String> reply = sendChimeraCommand("list model type molecule spec #"
-						+ getChimeraModelsCount(true), true);
-				if (reply != null && reply.size() == 1) {
-					modelNumbers = ChimUtils.parseModelNumber(reply.get(0));
-					// TODO: Create new smiles model each time?
+		if (type == ModelType.PDB_MODEL) {
+			for (String line : response) {
+				if (line.startsWith("#")) {
+					modelNumbers = ChimUtils.parseOpenedModelNumber(line);
+					if (modelNumbers != null) {
+						int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);
+						if (currentModelsMap.containsKey(modelNumber)) {
+							continue;
+						}
+						ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0],
+								modelNumbers[1]);
+						currentModelsMap.put(modelNumber, newModel);
+						models.add(newModel);
+						modelNumbers = null;
+					}
 				}
 			}
-			if (modelNumbers != null) {
-				int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);
-				if (currentModelsMap.containsKey(modelNumber)) {
-					continue;
-				}
-				ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0],
-						modelNumbers[1]);
-				currentModelsMap.put(modelNumber, newModel);
-				models.add(newModel);
-				modelNumbers = null;
-			}
-		}
-		if (models.size() == 0) {
+		} else {
 			// If parsing fails, iterate over all open models to get the right one
 			List<ChimeraModel> openModels = getModelList();
 			for (ChimeraModel openModel : openModels) {
-				if (modelName.equals(openModel.getModelName())) {
+				String openModelName = openModel.getModelName();
+				if (openModelName.endsWith("...")) {
+					openModelName = openModelName.substring(0, openModelName.length() - 3);
+				}
+				if (modelName.startsWith(openModelName)) {
+					openModel.setModelName(modelName);
 					int modelNumber = ChimUtils.makeModelKey(openModel.getModelNumber(),
 							openModel.getSubModelNumber());
 					if (!currentModelsMap.containsKey(modelNumber)) {
@@ -172,6 +172,7 @@ public class ChimeraManager {
 				}
 			}
 		}
+
 		// assign color and residues to open models
 		for (ChimeraModel newModel : models) {
 			// get model color
@@ -299,10 +300,13 @@ public class ChimeraManager {
 	}
 
 	/**
-	 * Return the list of ChimeraModels currently open
+	 * Return the list of ChimeraModels currently open. Warning: if smiles model name too long, only
+	 * part of it with "..." is printed.
+	 * 
 	 * 
 	 * @return List of ChimeraModel's
 	 */
+	// TODO: Handle smiles in a better way in Chimera?
 	public List<ChimeraModel> getModelList() {
 		List<ChimeraModel> modelList = new ArrayList<ChimeraModel>();
 		List<String> list = sendChimeraCommand("list models type molecule", true);
@@ -348,7 +352,6 @@ public class ChimeraManager {
 
 	public boolean launchChimera(List<String> chimeraPaths) {
 		// Do nothing if Chimera is already launched
-		System.out.println("launchChimera method");
 		if (isChimeraLaunched()) {
 			return true;
 		}
@@ -380,7 +383,6 @@ public class ChimeraManager {
 		}
 		// If no error, then Chimera was launched successfully
 		if (error.length() == 0) {
-			System.out.println("Starting listener threads");
 			// Initialize the listener threads
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
@@ -482,6 +484,15 @@ public class ChimeraManager {
 		return values;
 	}
 
+	/**
+	 * Send a command to Chimera.
+	 * 
+	 * @param command
+	 *            Command string to be send.
+	 * @param reply
+	 *            Flag indicating whether the method should return the reply from Chimera or not.
+	 * @return List of Strings corresponding to the lines in the Chimera reply or <code>null</code>.
+	 */
 	public List<String> sendChimeraCommand(String command, boolean reply) {
 		// if (!isChimeraLaunched()) {
 		// return null;

@@ -1,7 +1,9 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -30,8 +32,10 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		// Get all of the selected nodes
 		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL,
-				true).size() > 1) {
+		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), nodeList,
+				ModelType.PDB_MODEL, true);
+		if (mapChimObjNames.size() > 1) {
 			return true;
 		}
 		return false;
@@ -42,8 +46,10 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.add(nodeView.getModel());
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
-		if (structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL,
-				true).size() > 1) {
+		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), nodeList,
+				ModelType.PDB_MODEL, true);
+		if (mapChimObjNames.size() > 1) {
 			return true;
 		}
 		return false;

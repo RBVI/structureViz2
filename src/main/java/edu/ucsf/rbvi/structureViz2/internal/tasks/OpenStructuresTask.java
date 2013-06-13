@@ -1,6 +1,7 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,10 +35,14 @@ public class OpenStructuresTask extends AbstractTask {
 		// this.nodeList = nodeList;
 		this.netView = netView;
 		this.structureManager = structureManager;
-		structruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), structureManager
-				.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL, false));
-		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), structureManager
-				.getChimObjNames(netView.getModel(), nodeList, ModelType.SMILES, false));
+		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), nodeList,
+				ModelType.PDB_MODEL, false);
+		structruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), mapChimObjNames);
+		mapChimObjNames.clear();
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), nodeList,
+				ModelType.SMILES, false);
+		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), mapChimObjNames);
 		initTunables();
 	}
 

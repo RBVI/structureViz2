@@ -1,6 +1,7 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +30,11 @@ public class AlignStructuresTask extends AbstractTask {
 			StructureManager structureManager) {
 		this.netView = netView;
 		this.structureManager = structureManager;
-		availableChimObjMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(),
-				structureManager.getChimObjNames(netView.getModel(), nodeList, ModelType.PDB_MODEL, true));
+		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), nodeList,
+				ModelType.PDB_MODEL, true);
+		availableChimObjMap = CytoUtils
+				.getCyChimPiarsToStrings(netView.getModel(), mapChimObjNames);
 		initTunables();
 	}
 

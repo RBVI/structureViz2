@@ -24,7 +24,7 @@ public class CySelectionListener implements RowsSetListener {
 		if (!structureManager.getChimeraManager().isChimeraLaunched()) {
 			return;
 		}
-		if (e.getSource().toString().indexOf("network") >= 0) {
+		if (e.getSource().toString().endsWith("default network")) {
 			return;
 		}
 		if (e.containsColumn(CyNetwork.SELECTED)) {

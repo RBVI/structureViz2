@@ -1,7 +1,9 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -35,10 +37,12 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
 		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
 				true));
-		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES,
-				false).size() > 0
-				|| structureManager.getChimObjNames(netView.getModel(), selectedList,
-						ModelType.PDB_MODEL, false).size() > 0) {
+		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), selectedList,
+				ModelType.PDB_MODEL, false);
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), selectedList,
+				ModelType.SMILES, false);
+		if (mapChimObjNames.size() > 0) {
 			return true;
 		}
 		return false;
@@ -50,10 +54,12 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		selectedList.add(nodeView.getModel());
 		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
 				true));
-		if (structureManager.getChimObjNames(netView.getModel(), selectedList, ModelType.SMILES,
-				false).size() > 0
-				|| structureManager.getChimObjNames(netView.getModel(), selectedList,
-						ModelType.PDB_MODEL, false).size() > 0) {
+		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), selectedList,
+				ModelType.PDB_MODEL, false);
+		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), selectedList,
+				ModelType.SMILES, false);
+		if (mapChimObjNames.size() > 0) {
 			return true;
 		}
 		return false;

@@ -58,30 +58,47 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		// System.out.println(trajInfo);
 		// get file names
 		String[] fileNames = trajInfo.split(",");
+		String networkFile = null;
+		String tableFile = null;
+		String vizmapFile = null;
+		String networkName = "";
 		if (fileNames.length == 4 && fileNames[0].trim().equals("1")) {
-			// get network file name
-			String networkFile = fileNames[1].trim();
+			// get file names
+			networkFile = fileNames[1].trim();
+			tableFile = fileNames[2].trim();
+			vizmapFile = fileNames[3].trim();
+		} else if (fileNames.length == 5 && fileNames[0].trim().equals("2")) {
+			networkName = fileNames[1].trim();
+			networkName = networkName.substring(1, networkName.length() - 1);
+			networkFile = fileNames[2].trim();
+			tableFile = fileNames[3].trim();
+			vizmapFile = fileNames[4].trim();
+		}
+		if (networkFile != null) {
+			// import network
 			networkFile = networkFile.substring(networkFile.indexOf("'") + 1,
 					networkFile.length() - 1);
 			// System.out.println(networkFile);
 			if (networkFile.endsWith("network.txt")) {
 				// import network data
-				importNetwork(networkFile);
+				importNetwork(networkName, networkFile);
 			}
-			// get table file name
-			String tableFile = fileNames[2].trim();
+		}
+		if (tableFile != null) {
+			// import table
 			tableFile = tableFile.substring(tableFile.indexOf("'") + 1, tableFile.length() - 1);
 			// System.out.println(tableFile);
 			if (tableFile.endsWith("nattr.txt") && newNetwork != null) {
 				// import node attributes
 				importTable(tableFile);
 			}
-			// get vizmap file name
-			String vizmapFile = fileNames[3].trim();
+		}
+		if (vizmapFile != null) {
+			// load vizmap file
 			vizmapFile = vizmapFile.substring(vizmapFile.indexOf("'") + 1, vizmapFile.length() - 1);
 			if (vizmapFile.endsWith("netviz.xml") && newNetwork != null) {
 				// import vizmap file
-				System.out.println("Load visual style: " + vizmapFile);
+				// System.out.println("Load visual style: " + vizmapFile);
 				LoadVizmapFileTaskFactory loadVizmapFileTaskFactory = (LoadVizmapFileTaskFactory) structureManager
 						.getService(LoadVizmapFileTaskFactory.class);
 				Set<VisualStyle> vsSet = loadVizmapFileTaskFactory.loadStyles(new File(vizmapFile));
@@ -94,15 +111,17 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 					// }
 				}
 			}
-			if (newNetwork.getNodeCount() > 0) {
-				finalizeNetwork();
-			}
+		}
+		if (newNetwork.getNodeCount() > 0) {
+			finalizeNetwork();
 		}
 	}
 
-	private void importNetwork(String file) {
-		System.out.println("Import network " + file);
-		String name = file.substring(file.lastIndexOf("\\") + 1);
+	private void importNetwork(String name, String file) {
+		// System.out.println("Import network " + file);
+		if (name.equals("")) {
+			name = file.substring(file.lastIndexOf("\\") + 1);
+		}
 		CyNetworkFactory netFactory = (CyNetworkFactory) structureManager
 				.getService(CyNetworkFactory.class);
 		newNetwork = netFactory.createNetwork();
@@ -160,7 +179,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 	}
 
 	private void importTable(String file) {
-		System.out.println("Import table " + file);
+		// System.out.println("Import table " + file);
 		CyTable table = newNetwork.getDefaultNodeTable();
 		BufferedReader br = null;
 		String attr1 = "ChimeraResidue";

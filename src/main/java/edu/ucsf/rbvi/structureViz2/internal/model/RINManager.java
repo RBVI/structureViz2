@@ -540,7 +540,10 @@ public class RINManager {
 		int displayType = ChimeraResidue.getDisplayType();
 		ChimeraResidue.setDisplayType(ChimeraResidue.THREE_LETTER);
 		// OK, now we have everything we need, create the node
-		String nodeName = residue.toString().trim() + "." + residue.getChainId();
+		String nodeName = residue.toString().trim();
+		if (residue.getChainId() != "_") {
+			nodeName += "." + residue.getChainId();
+		}
 		ChimeraResidue.setDisplayType(displayType);
 
 		// if (!singleModel)
@@ -554,8 +557,11 @@ public class RINManager {
 			nodeMap.put(nodeName, node);
 
 			// Add attributes from Chimera
-			rin.getRow(node).set(ChimUtils.RESIDUE_ATTR,
-					model.getModelName() + "#" + residue.getIndex() + "." + residue.getChainId());
+			String chimRes = model.getModelName() + "#" + residue.getIndex();
+			if (residue.getChainId() != "_") {
+				chimRes += "." + residue.getChainId();
+			}
+			rin.getRow(node).set(ChimUtils.RESIDUE_ATTR, chimRes);
 			rin.getRow(node).set(
 					ChimUtils.RINALYZER_ATTR,
 					model.getModelName() + ":" + residue.getChainId() + ":" + residue.getIndex()

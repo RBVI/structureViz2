@@ -96,7 +96,7 @@ public class StructureManager {
 	public RINManager getRINManager() {
 		return rinManager;
 	}
-	
+
 	public Object getService(Class<?> serviceClass) {
 		return bundleContext.getService(bundleContext.getServiceReference(serviceClass.getName()));
 	}
@@ -262,10 +262,9 @@ public class StructureManager {
 			}
 			networkMap.get(node).add(rin);
 			String residueSpec = rin.getRow(node).get(ChimUtils.RESIDUE_ATTR, String.class);
-			ChimeraResidue chimObj = (ChimeraResidue) ChimUtils.fromAttribute(residueSpec,
-					chimeraManager);
+			ChimeraStructuralObject chimObj = ChimUtils.fromAttribute(residueSpec, chimeraManager);
 			// chimObj.getChimeraModel().addCyObject(node, rin);
-			if (chimObj == null) {
+			if (chimObj == null || chimObj instanceof ChimeraModel) {
 				continue;
 			}
 			model = chimObj.getChimeraModel();
@@ -398,7 +397,7 @@ public class StructureManager {
 			return;
 		}
 		// clearSelectionList();
-		//System.out.println("cytoscape selection changed");
+		// System.out.println("cytoscape selection changed");
 		// iterate over all cy objects with associated models
 		for (CyIdentifiable cyObj : currentCyMap.keySet()) {
 			if (cyObj instanceof CyNetwork || !selectedRows.containsKey(cyObj.getSUID())) {
@@ -800,9 +799,6 @@ public class StructureManager {
 	}
 
 	public void launchStructureNetworkDialog() {
-		if (!haveGUI) {
-			return;
-		}
 		DialogTaskManager taskManager = (DialogTaskManager) getService(DialogTaskManager.class);
 		if (taskManager != null) {
 			taskManager.execute(structureNetFactory.createTaskIterator());
@@ -1135,18 +1131,20 @@ public class StructureManager {
 						}
 						networkMap.get(cyObj).add(network);
 						// check if it is a RIN
-						ChimeraResidue residue = null;
+						ChimeraStructuralObject residue = null;
 						if (!modelName.startsWith("smiles:")
 								&& cyObj instanceof CyNode
 								&& network.containsNode((CyNode) cyObj)
 								&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)
 								&& network.getDefaultNodeTable().getColumn(ChimUtils.RESIDUE_ATTR)
 										.getType() == String.class) {
-							residue = (ChimeraResidue) ChimUtils.fromAttribute(network
-									.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class),
-									chimeraManager);
+							residue = ChimUtils
+									.fromAttribute(
+											network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR,
+													String.class), chimeraManager);
 						}
-						if (residue != null) {
+						if (residue != null
+								&& (residue instanceof ChimeraResidue || residue instanceof ChimeraChain)) {
 							// if it is a RIN save only node <-> residue
 							// association
 							currentCyMap.get(cyObj).add(residue);

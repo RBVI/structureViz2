@@ -26,6 +26,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 
+import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
@@ -126,6 +127,8 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 				.getService(CyNetworkFactory.class);
 		newNetwork = netFactory.createNetwork();
 		newNetwork.getDefaultEdgeTable().createColumn("Weight", Double.class, false);
+		newNetwork.getDefaultNodeTable()
+				.createColumn(ChimUtils.RINALYZER_ATTR, String.class, false);
 		newNetwork.getRow(newNetwork).set(CyNetwork.NAME, name);
 		BufferedReader br = null;
 		nodesMap = new HashMap<String, CyNode>();
@@ -133,25 +136,42 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 			br = new BufferedReader(new FileReader(file));
 			String line = null;
 			while ((line = br.readLine()) != null) {
+				System.out.println(line);
 				String[] words = line.split("\t");
 				if (words.length != 4) {
 					continue;
 				}
+				// TODO: may contain model number if more than one models open
+				String sourceName = words[0];
+				String targetName = words[2];
 				CyNode source = null;
 				CyNode target = null;
-				if (!nodesMap.containsKey(words[0])) {
+				if (!nodesMap.containsKey(sourceName)) {
 					source = newNetwork.addNode();
-					nodesMap.put(words[0], source);
-					newNetwork.getRow(source).set(CyNetwork.NAME, words[0]);
+					nodesMap.put(sourceName, source);
+					newNetwork.getRow(source).set(CyNetwork.NAME, sourceName);
+					String[] sourceNameParts = sourceName.split("\\s");
+					if (sourceNameParts.length == 2) {
+						newNetwork.getRow(source).set(ChimUtils.RINALYZER_ATTR,
+								"_:_:" + sourceNameParts[0] + ":" + sourceNameParts[1]);
+					} else if (sourceNameParts.length == 3) {
+						newNetwork.getRow(source).set(ChimUtils.RINALYZER_ATTR,
+								sourceNameParts[0] + ":_:_:" + sourceNameParts[1] + ":" + sourceNameParts[2]);
+					}
 				} else {
-					source = nodesMap.get(words[0]);
+					source = nodesMap.get(sourceName);
 				}
-				if (!nodesMap.containsKey(words[2])) {
+				if (!nodesMap.containsKey(targetName)) {
 					target = newNetwork.addNode();
-					nodesMap.put(words[2], target);
-					newNetwork.getRow(target).set(CyNetwork.NAME, words[2]);
+					nodesMap.put(targetName, target);
+					newNetwork.getRow(target).set(CyNetwork.NAME, targetName);
+					String[] targetNameParts = sourceName.split("\\s");
+					if (targetNameParts.length == 2) {
+						newNetwork.getRow(target).set(ChimUtils.RINALYZER_ATTR,
+								"_:" + targetNameParts[0] + ":_:" + targetNameParts[1]);
+					}
 				} else {
-					target = nodesMap.get(words[2]);
+					target = nodesMap.get(targetName);
 				}
 				if (source != null && target != null) {
 					CyEdge edge = newNetwork.addEdge(source, target, true);
@@ -182,7 +202,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		// System.out.println("Import table " + file);
 		CyTable table = newNetwork.getDefaultNodeTable();
 		BufferedReader br = null;
-		String attr1 = "ChimeraResidue";
+		String attr1 = ChimUtils.RESIDUE_ATTR;
 		String attr2 = "ModelName";
 		table.createColumn(attr1, String.class, false);
 		table.createColumn(attr2, String.class, false);

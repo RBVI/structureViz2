@@ -38,8 +38,8 @@ public abstract class ChimUtils {
 			}
 			modelNumber = Integer.parseInt(inputLine.substring(hash + 1, space));
 		} catch (Exception e) {
-			LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils.class).error(
-					"Unexpected return from Chimera: " + inputLine);
+			LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils.class)
+					.error("Unexpected return from Chimera: " + inputLine);
 		}
 		return new int[] { modelNumber, subModelNumber };
 	}
@@ -63,8 +63,8 @@ public abstract class ChimUtils {
 			}
 			modelNumber = Integer.parseInt(inputLine.substring(hash + 1, space));
 		} catch (Exception e) {
-			LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils.class).error(
-					"Unexpected return from Chimera: " + inputLine);
+			LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils.class)
+					.error("Unexpected return from Chimera: " + inputLine);
 		}
 		return new int[] { modelNumber, subModelNumber };
 	}
@@ -111,9 +111,9 @@ public abstract class ChimUtils {
 	 * Create the key to use for forming the model/submodel key into the modelHash
 	 * 
 	 * @param model
-	 *          the model number
+	 *            the model number
 	 * @param subModel
-	 *          the submodel number
+	 *            the submodel number
 	 * @return the model key as an Integer
 	 */
 	public static Integer makeModelKey(int model, int subModel) {
@@ -232,13 +232,14 @@ public abstract class ChimUtils {
 	 * etc.
 	 * 
 	 * @param attrSpec
-	 *          the specification string
+	 *            the specification string
 	 * @param chimeraManager
-	 *          the Chimera object we're currently using
+	 *            the Chimera object we're currently using
 	 * @return a ChimeraStructuralObject of the lowest type
 	 */
 	// TODO: Adapt residue from attribute method for new specs
-	public static ChimeraStructuralObject fromAttribute(String attrSpec, ChimeraManager chimeraManager) {
+	public static ChimeraStructuralObject fromAttribute(String attrSpec,
+			ChimeraManager chimeraManager) {
 		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
 			return null;
@@ -254,28 +255,56 @@ public abstract class ChimUtils {
 
 		// System.out.println("Getting object from attribute: "+attrSpec);
 		try {
-			String[] split = attrSpec.split("#|\\.");
+			String[] split = attrSpec.split("#");
+			String resChain = null;
 			if (split.length == 1) {
-				// Residue only
-				residue = split[0];
-			} else if (split.length == 3) {
-				// We have all three
+				// no model
+				resChain = split[0];
+			} else if (split.length == 2) {
+				// model and rest
 				model = split[0];
-				residue = split[1];
-				chain = split[2];
-			} else if (split.length == 2 && attrSpec.indexOf('#') > 0) {
-				// Model and Residue
-				model = split[0];
-				residue = split[1];
+				resChain = split[1];
 			} else {
-				// Residue and Chain
-				residue = split[0];
-				chain = split[1];
+				// model string with "#"
+				model = attrSpec.substring(0, attrSpec.lastIndexOf("#"));
+				resChain = attrSpec.substring(attrSpec.lastIndexOf("#") + 1, attrSpec.length());
+			}
+			if (resChain != null) {
+				String[] resChainSplit = resChain.split("\\.");
+				if (resChainSplit.length == 1) {
+					residue = resChainSplit[0];
+				} else if (resChainSplit.length == 2) {
+					residue = resChainSplit[0];
+					chain = resChainSplit[1];
+				} else {
+					// too many dots?
+					System.err.println("Cannot parse residue identifier");
+				}
 			}
 
-			// System.out.println("model = " + model + " chain = " + chain + " residue = " + residue);
+			// if (split.length == 1) {
+			// // No model
+			// residue = split[0];
+			// } else if (split.length == 3) {
+			// // We have all three
+			// model = split[0];
+			// residue = split[1];
+			// chain = split[2];
+			// } else if (split.length == 2 && attrSpec.indexOf('#') > 0) {
+			// // Model and Residue
+			// model = split[0];
+			// residue = split[1];
+			// } else {
+			// // Residue and Chain
+			// residue = split[0];
+			// chain = split[1];
+			// }
+
+			// System.out.println("model = " + model + " chain = " + chain + " residue = " +
+			// residue);
 			if (model != null) {
-				List<ChimeraModel> models = chimeraManager.getChimeraModels(model, ModelType.PDB_MODEL);
+				List<ChimeraModel> models = chimeraManager.getChimeraModels(model,
+						ModelType.PDB_MODEL);
 				if (models.size() == 1) {
 					chimeraModel = models.get(0);
 				} else {
@@ -302,8 +331,10 @@ public abstract class ChimUtils {
 					chimeraResidue = chimeraModel.getResidue("_", residue);
 				}
 				// System.out.println("ChimeraResidue = " + chimeraResidue);
-				return chimeraResidue;
 			}
+
+			if (chimeraResidue != null)
+				return chimeraResidue;
 
 			if (chimeraChain != null)
 				return chimeraChain;
@@ -322,7 +353,7 @@ public abstract class ChimUtils {
 	 * Search for structure references in the residue list
 	 * 
 	 * @param residueList
-	 *          the list of residues
+	 *            the list of residues
 	 * @return a concatenated list of structures encoded in the list
 	 */
 	public static String findStructures(String residueList) {
@@ -444,7 +475,7 @@ public abstract class ChimUtils {
 	 * Convert the amino acid type to a full name
 	 * 
 	 * @param aaType
-	 *          the residue type to convert
+	 *            the residue type to convert
 	 * @return the full name of the residue
 	 */
 	public static String toFullName(String aaType) {
@@ -458,7 +489,7 @@ public abstract class ChimUtils {
 	 * Convert the amino acid type to a single letter
 	 * 
 	 * @param aaType
-	 *          the residue type to convert
+	 *            the residue type to convert
 	 * @return the single letter representation of the residue
 	 */
 	public static String toSingleLetter(String aaType) {
@@ -472,7 +503,7 @@ public abstract class ChimUtils {
 	 * Convert the amino acid type to three letters
 	 * 
 	 * @param aaType
-	 *          the residue type to convert
+	 *            the residue type to convert
 	 * @return the three letter representation of the residue
 	 */
 	public static String toThreeLetter(String aaType) {
@@ -486,7 +517,7 @@ public abstract class ChimUtils {
 	 * Convert the amino acid type to its SMILES string
 	 * 
 	 * @param aaType
-	 *          the residue type to convert
+	 *            the residue type to convert
 	 * @return the SMILES representation of the residue
 	 */
 	public static String toSMILES(String aaType) {

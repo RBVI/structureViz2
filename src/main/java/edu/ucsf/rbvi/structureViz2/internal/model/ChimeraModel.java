@@ -43,13 +43,13 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Constructor to create a model
 	 * 
 	 * @param name
-	 *          the name of this model
+	 *            the name of this model
 	 * @param color
-	 *          the model Color
+	 *            the model Color
 	 * @param modelNumber
-	 *          the model number
+	 *            the model number
 	 * @param subModelNumber
-	 *          the sub-model number
+	 *            the sub-model number
 	 */
 	public ChimeraModel(String name, ModelType type, int modelNumber, int subModelNumber) {
 		this.name = name;
@@ -66,13 +66,13 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Constructor to create a model from the Chimera input line
 	 * 
 	 * @param inputLine
-	 *          Chimera input line from which to construct this model
+	 *            Chimera input line from which to construct this model
 	 */
 	// invoked when listing models: listm type molecule; lists level molecule
 	// line = model id #0 type Molecule name 1ert
 	public ChimeraModel(String inputLine) {
 		this.name = ChimUtils.parseModelName(inputLine);
-		// TODO: Write a method to get model type
+		// TODO: [Optional] Write a separate method to get model type
 		if (name.startsWith("smiles")) {
 			this.type = ModelType.SMILES;
 		} else {
@@ -90,7 +90,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Add a residue to this model
 	 * 
 	 * @param residue
-	 *          to add to the model
+	 *            to add to the model
 	 */
 	public void addResidue(ChimeraResidue residue) {
 		residue.setChimeraModel(this);
@@ -106,13 +106,13 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Add a residue to a chain in this model. If the chain associated with chainId doesn't exist, it
-	 * will be created.
+	 * Add a residue to a chain in this model. If the chain associated with chainId doesn't exist,
+	 * it will be created.
 	 * 
 	 * @param chainId
-	 *          to add the residue to
+	 *            to add the residue to
 	 * @param residue
-	 *          to add to the chain
+	 *            to add to the chain
 	 */
 	public void addResidue(String chainId, ChimeraResidue residue) {
 		ChimeraChain chain = null;
@@ -148,7 +148,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Set the color of this model
 	 * 
 	 * @param color
-	 *          Color of this model
+	 *            Color of this model
 	 */
 	public void setModelColor(Color color) {
 		this.modelColor = color;
@@ -167,7 +167,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Set the name of this model
 	 * 
 	 * @param name
-	 *          model name
+	 *            model name
 	 */
 	public void setModelName(String name) {
 		this.name = name;
@@ -186,7 +186,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Set the model number of this model
 	 * 
 	 * @param modelNumber
-	 *          integer model number
+	 *            integer model number
 	 */
 	public void setModelNumber(int modelNumber) {
 		this.modelNumber = modelNumber;
@@ -205,7 +205,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Set the sub-model number of this model
 	 * 
 	 * @param subModelNumber
-	 *          integer model number
+	 *            integer model number
 	 */
 	public void setSubModelNumber(int subModelNumber) {
 		this.subModelNumber = subModelNumber;
@@ -224,7 +224,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	}
 
 	public void setFuncResidues(List<String> residues) {
-		// TODO: Make functional residues work
+		// TODO: [!] Make functional residues work
 		for (String residue : residues) {
 			for (ChimeraChain chain : getChains()) {
 				funcResidues.add(chain.getResidue(residue));
@@ -245,7 +245,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Set the user data for this model
 	 * 
 	 * @param data
-	 *          user data to associate with this model
+	 *            user data to associate with this model
 	 */
 	public void setUserData(Object data) {
 		this.userData = data;
@@ -264,7 +264,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Set the selected state of this model
 	 * 
 	 * @param selected
-	 *          a boolean to set the selected state to
+	 *            a boolean to set the selected state to
 	 */
 	public void setSelected(boolean selected) {
 		this.selected = selected;
@@ -336,7 +336,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Get a specific chain from the model
 	 * 
 	 * @param chain
-	 *          the ID of the chain to return
+	 *            the ID of the chain to return
 	 * @return ChimeraChain associated with the chain
 	 */
 	public ChimeraChain getChain(String chain) {
@@ -350,7 +350,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Return a specific residue based on its index
 	 * 
 	 * @param index
-	 *          of the residue to return
+	 *            of the residue to return
 	 * @return the residue associated with that index
 	 */
 	public ChimeraResidue getResidue(String chainId, String index) {
@@ -416,9 +416,9 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Add a new Cytoscape object associated with this model and the network it belongs to.
 	 * 
 	 * @param newObj
-	 *          {@link CyIdentifiable} associated with this model.
+	 *            {@link CyIdentifiable} associated with this model.
 	 * @param network
-	 *          Network the {@link CyIdentifiable} belongs to.
+	 *            Network the {@link CyIdentifiable} belongs to.
 	 */
 	public void addCyObject(CyIdentifiable newObj, CyNetwork network) {
 		if (newObj != null && network != null) {
@@ -430,7 +430,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * Remove Cytoscape object associated with this model.
 	 * 
 	 * @param cyObj
-	 *          {@link CyIdentifiable} associated with this model.
+	 *            {@link CyIdentifiable} associated with this model.
 	 */
 	public void removeCyObjectName(CyIdentifiable cyObj) {
 		if (cyObjects.containsKey(cyObj)) {
@@ -450,36 +450,46 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	/**
 	 * Return a string representation for the model.
 	 */
-	// TODO: Important! Still throws a NullPointerException null after network is deleted...
+	// TODO: [Bug] Throws a NullPointerException null after network is deleted...
 	public String toString() {
 		String nodeName = "Cytoscape";
-		if (cyObjects.size() == 0) {
-			nodeName += " {none}";
-		} else if (cyObjects.size() == 1) {
-			CyIdentifiable cyObj = cyObjects.keySet().iterator().next();
-			CyNetwork network = cyObjects.get(cyObj);
-			if (network != null
-					&& (cyObj instanceof CyNetwork
-							|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) || (cyObj instanceof CyEdge && network
-							.containsEdge((CyEdge) cyObj)))) {
-				nodeName += " " + network.getRow(cyObj).get(CyNetwork.NAME, String.class);
-			}
-		} else {
-			nodeName += " {";
-			for (CyIdentifiable cyObj : cyObjects.keySet()) {
+		try {
+			if (cyObjects.size() == 1) {
+				CyIdentifiable cyObj = cyObjects.keySet().iterator().next();
 				CyNetwork network = cyObjects.get(cyObj);
 				if (network != null
 						&& (cyObj instanceof CyNetwork
 								|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) || (cyObj instanceof CyEdge && network
 								.containsEdge((CyEdge) cyObj)))) {
-					nodeName += network.getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
+					nodeName += " " + network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 				}
+			} else if (cyObjects.size() > 1) {
+				nodeName += " {";
+				for (CyIdentifiable cyObj : cyObjects.keySet()) {
+					CyNetwork network = cyObjects.get(cyObj);
+					if (network != null
+							&& (cyObj instanceof CyNetwork
+									|| (cyObj instanceof CyNode && network
+											.containsNode((CyNode) cyObj)) || (cyObj instanceof CyEdge && network
+									.containsEdge((CyEdge) cyObj)))) {
+						nodeName += network.getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
+					}
+				}
+				nodeName = nodeName.substring(0, nodeName.length() - 1) + "}";
 			}
-			nodeName = nodeName.substring(0, nodeName.length() - 1) + "}";
+		} catch (Exception ex) {
+			nodeName = null;
+			// ignore
 		}
+		if (nodeName == null) {
+			nodeName = "Cytoscape {none}";
+		}
+
 		String displayName = name;
-		if (name.length() > 14)
-			displayName = name.substring(0, 13) + "...";
+		// TODO: [Optional] Show model name first and then Cytoscape objects associated with it 
+		// TODO: [Optional] Shorten model names in the MND
+		// if (name.length() > 14)
+		// displayName = name.substring(0, 13) + "...";
 		if (getChainCount() > 0) {
 			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getChainCount()
 					+ " chains, " + getResidueCount() + " residues)]");

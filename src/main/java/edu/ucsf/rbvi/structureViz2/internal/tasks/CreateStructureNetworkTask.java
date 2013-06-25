@@ -31,9 +31,9 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraModel;
 import edu.ucsf.rbvi.structureViz2.internal.model.RINManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-// TODO: Bug?: different number of nodes and edges in consecutive runs (only when adding hydrogens?)
-// TODO: Bug?: Selection disappears sometimes upon RIN creation
-// TODO: Add menus for adding each type of edges to an already existing network?
+// TODO: [Bug] Different number of nodes and edges in consecutive runs (only when adding hydrogens?)
+// TODO: [Bug] Selection disappears sometimes upon RIN creation
+// TODO: [Optional] Add menus for adding each type of edges to an already existing network?
 public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Tunable(description = "Name of new network", groups = "General")
@@ -112,7 +112,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	private ChimeraManager chimeraManager;
 	private RINManager rinManager;
 
-	// TODO: Pass rinManager and not the structureManager?
 	public CreateStructureNetworkTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
 		this.chimeraManager = structureManager.getChimeraManager();
@@ -240,6 +239,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
 		cyNetworkViewManager.addNetworkView(rinView);
 		// Do a layout
+		// TODO: [3.1] Do a RIN Layout
 		// CyLayoutAlgorithmManager cyLayoutManager = (CyLayoutAlgorithmManager)
 		// structureViz
 		// .getService(CyLayoutAlgorithmManager.class);

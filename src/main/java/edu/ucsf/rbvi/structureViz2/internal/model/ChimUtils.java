@@ -237,7 +237,7 @@ public abstract class ChimUtils {
 	 *            the Chimera object we're currently using
 	 * @return a ChimeraStructuralObject of the lowest type
 	 */
-	// TODO: Adapt residue from attribute method for new specs
+	// TODO: [!] Adapt residue from attribute method for new specs
 	public static ChimeraStructuralObject fromAttribute(String attrSpec,
 			ChimeraManager chimeraManager) {
 		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
@@ -381,7 +381,7 @@ public abstract class ChimUtils {
 		return structure;
 	}
 
-	// TODO: Rewrite parsing functional residues
+	// TODO: [!] Check parsing functional residues
 	// invoked by openStructures in StructureManager
 	public static List<String> parseFuncRes(List<String> residueNames, String modelName) {
 		List<String> resRanges = new ArrayList<String>();

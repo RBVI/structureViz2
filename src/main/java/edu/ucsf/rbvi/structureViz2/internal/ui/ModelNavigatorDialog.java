@@ -90,7 +90,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 	private static final int COLLAPSEALL = 19;
 	private static final int EXPANDMODELS = 20;
 	private static final int EXPANDCHAINS = 21;
-	private static final int CREATENETWORK = 22;
+	private static final int GENERATENETWORK = 22;
 	private static final int SYNCCOLORS = 24;
 	private static final int SELECT = 23;
 	private boolean ignoreDialogSelection = false;
@@ -335,7 +335,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		if (setPaths != null && setPaths.size() > 0) {
 			navigationTree.addSelectionPaths(setPaths.toArray(new TreePath[1]));
 		} else {
-			// TODO: Collapse tree when no selection
+			// TODO: [Optional] Collapse tree when no selection
 			// collapseAll();
 		}
 	}
@@ -419,7 +419,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		chimeraMenu.add(hBondMenu);
 
 		chimeraMenu.add(new JSeparator());
-		item = addMenuItem(chimeraMenu, "Residue network generation", CREATENETWORK, null);
+		item = addMenuItem(chimeraMenu, "Residue network generation", GENERATENETWORK, null);
 		selectionDependentMenus.add(item);
 		item = addMenuItem(chimeraMenu, "Color synchronization", SYNCCOLORS, null);
 		selectionDependentMenus.add(item);
@@ -657,7 +657,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 							"You must select something to find hydrogen bonds", "Nothing Selected",
 							JOptionPane.ERROR_MESSAGE);
 				}
-			} else if (type == CREATENETWORK) {
+			} else if (type == GENERATENETWORK) {
 				if (selectedObjectsCount > 0) {
 					structureManager.launchStructureNetworkDialog();
 				} else {

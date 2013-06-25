@@ -12,14 +12,15 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 public class AnnotateStructureNetworkTask extends AbstractTask {
 
+	private StructureManager structureManager;
 	private RINManager rinManager;
 	private CyNetwork network;
 
 	@Tunable(description = "Available residue attributes")
 	public ListMultipleSelection<String> residueAttributes;
 
-	// TODO: Pass rinManager and not the structureManager?
 	public AnnotateStructureNetworkTask(StructureManager structureManager, CyNetwork aNetwork) {
+		this.structureManager = structureManager;
 		this.rinManager = structureManager.getRINManager();
 		network = aNetwork;
 		residueAttributes = new ListMultipleSelection<String>(

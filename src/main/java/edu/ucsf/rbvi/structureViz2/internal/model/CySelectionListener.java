@@ -43,7 +43,7 @@ public class CySelectionListener implements RowsSetListener {
 			}
 		} else {
 			boolean update = false;
-			// TODO: Is it fine if we check all attributes?
+			// TODO: [Optional] Rewrite if too slow (ckeck only selected attributes?)
 			List<String> defaultstructurekeys = structureManager.getAllStructureKeys();
 			for (int i = 0; i < defaultstructurekeys.size(); i++) {
 				String structureKey = defaultstructurekeys.get(i);

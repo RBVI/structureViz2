@@ -121,7 +121,7 @@ public class ChimeraManager {
 		System.out.println("open " + modelName);
 		stopListening();
 		List<String> response = null;
-		// TODO: How to handle modbase models?
+		// TODO: [Optional] Handle modbase models
 		if (type == ModelType.MODBASE_MODEL) {
 			response = sendChimeraCommand("open modbase:" + modelName, true);
 			// } else if (type == ModelType.SMILES) {
@@ -306,7 +306,7 @@ public class ChimeraManager {
 	 * 
 	 * @return List of ChimeraModel's
 	 */
-	// TODO: Handle smiles in a better way in Chimera?
+	// TODO: [Chimera] Handle smiles names in a better way in Chimera?
 	public List<ChimeraModel> getModelList() {
 		List<ChimeraModel> modelList = new ArrayList<ChimeraModel>();
 		List<String> list = sendChimeraCommand("list models type molecule", true);
@@ -341,7 +341,7 @@ public class ChimeraManager {
 	}
 
 	public boolean isChimeraLaunched() {
-		// TODO: What is the best way to test if chimera is launched?
+		// TODO: [Chimera] What is the best way to test if chimera is launched?
 
 		// sendChimeraCommand("test", true) !=null
 		if (chimera != null) {
@@ -387,7 +387,7 @@ public class ChimeraManager {
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
 			structureManager.initChimTable();
-			// TODO: Check Chimera version and show a warning if below 1.8
+			// TODO: [Chimera] Check Chimera version and show a warning if below 1.8
 			// Ask Chimera to give us updates
 			startListening();
 			return true;

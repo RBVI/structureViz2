@@ -34,6 +34,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
+// TODO: [Bug] NullPointerException if name contains ","
+
 public class ImportTrajectoryRINTask extends AbstractTask {
 
 	private StructureManager structureManager;
@@ -108,7 +110,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 						.getService(LoadVizmapFileTaskFactory.class);
 				Set<VisualStyle> vsSet = loadVizmapFileTaskFactory.loadStyles(new File(vizmapFile));
 				// we assume there is only one visual style
-				// TODO: Consider multiple visual styles?
+				// TODO: [Optional] Consider multiple visual styles?
 				for (VisualStyle style : vsSet) {
 					// System.out.println(style.getTitle());
 					// if (style.getTitle().equals("Trajectory network style")) {
@@ -144,7 +146,6 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 				if (words.length != 4) {
 					continue;
 				}
-				// TODO: may contain model number if more than one models open
 				String sourceName = words[0];
 				String targetName = words[2];
 				CyNode source = null;
@@ -265,6 +266,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		}
 
 		// Do a layout
+		// TODO: [3.1] Do a RIN Layout
 		taskManager.execute(layoutTaskFactory.createTaskIterator(views));
 
 		// Set vizmap
@@ -286,11 +288,9 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 			newNetwork.getRow(source).set(ChimUtils.RINALYZER_ATTR,
 					"_:" + sourceNameParts[1] + ":_:" + sourceNameParts[0]);
 		} else if (sourceNameParts.length == 3) {
-			newNetwork.getRow(source).set(
-					ChimUtils.RINALYZER_ATTR,
-					sourceNameParts[0] + ":_:" + sourceNameParts[2] + ":_:"
-							+ sourceNameParts[1]);
+			newNetwork.getRow(source).set(ChimUtils.RINALYZER_ATTR,
+					sourceNameParts[0] + ":_:" + sourceNameParts[2] + ":_:" + sourceNameParts[1]);
 		}
 	}
-	
+
 }

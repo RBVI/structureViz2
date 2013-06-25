@@ -10,6 +10,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
 public class SyncColorsTask extends AbstractTask {
 
+	private StructureManager structureManager;
 	private RINManager rinManager;
 	private CyNetworkView networkView;
 
@@ -19,8 +20,8 @@ public class SyncColorsTask extends AbstractTask {
 	@Tunable(description = "Apply colors from current network view to associated Chimera models", dependsOn = "chimeraToCytoscape=false")
 	public boolean cytoscapeToChimera;
 
-	// TODO: Pass rinManager and not the structureManager?
 	public SyncColorsTask(StructureManager structureManager, CyNetworkView networkView) {
+		this.structureManager = structureManager;
 		this.rinManager = structureManager.getRINManager();
 		this.networkView = networkView;
 		chimeraToCytoscape = false;

@@ -242,14 +242,14 @@ public class RINManager {
 		// "Between selection and all other atoms"
 		else if (includeInteractions == 1) {
 			// between the specified atoms and all other atoms
-			// TODO: How to get the distances between selection and other atoms
+			// TODO: [!] Get the distances between selection and other atoms
 			// atomspec = "@CA&sel|@CA";
 		}
 		// "All of the above"
 		else if (includeInteractions == 2) {
 			// intra-model interactions between the specified atoms and all
 			// other atoms
-			// TODO: How to get the distances within selection and other atoms
+			// TODO: [!] Get the distances within selection and other atoms
 			// atomspec = "@CA";
 		}
 		// Create the command

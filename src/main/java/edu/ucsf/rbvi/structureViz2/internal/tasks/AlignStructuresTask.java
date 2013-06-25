@@ -55,7 +55,6 @@ public class AlignStructuresTask extends AbstractTask {
 				ModelType.PDB_MODEL);
 		structureManager.launchModelNavigatorDialog();
 		taskMonitor.setStatusMessage("Aligning structures ...");
-		// TODO: How to start alignment in headless mode?
 		structureManager.launchAlignDialog(false);
 	}
 

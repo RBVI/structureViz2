@@ -38,7 +38,7 @@ import edu.ucsf.rbvi.structureViz2.internal.ui.ModelNavigatorDialog;
  * This object maintains the relationship between Chimera objects and Cytoscape objects.
  */
 
-// TODO: Fix: Why do dialogs sometimes fail to show up in Windows?
+// TODO: [Bug] Dialogs fail to show up in Windows sometimes when the non-gui flag is used
 public class StructureManager {
 	static final String[] defaultStructureKeys = { "Structure", "pdb", "pdbFileName", "PDB ID",
 			"structure", "biopax.xref.PDB", "pdb_ids", "ModelName", "ModelNumber" };
@@ -102,7 +102,7 @@ public class StructureManager {
 	}
 
 	public Object getService(Class<?> serviceClass, String filter) {
-		// TODO: Revise getService based on filters
+		// TODO: [Optional] Revise getService based on filters
 		try {
 			ServiceReference[] services = bundleContext.getServiceReferences(
 					serviceClass.getName(), filter);
@@ -210,7 +210,7 @@ public class StructureManager {
 		}
 	}
 
-	// TODO: How can we make a screenshot of a single molecule?
+	// TODO: [Chimera] Can we make a screenshot of a single molecule?
 	public File saveChimeraImage() {
 		File tmpFile = null;
 		try {
@@ -741,7 +741,7 @@ public class StructureManager {
 		// return;
 		// }
 		if (mnDialog == null) {
-			// TODO: Should the MNDialog be modal?
+			// TODO: [!] Should the MNDialog be modal?
 			CySwingApplication cyApplication = (CySwingApplication) getService(CySwingApplication.class);
 			mnDialog = new ModelNavigatorDialog(cyApplication.getJFrame(), this);
 			mnDialog.pack();
@@ -987,7 +987,7 @@ public class StructureManager {
 	public List<String> getChimeraPaths(CyNetwork network) {
 		List<String> pathList = new ArrayList<String>();
 		// get default user's settings
-		// TODO: Chnage order?
+		// TODO: [Optional] Change priority of CHimera paths
 		if (network == null && defaultSettings != null) {
 			pathList.add(defaultSettings.getChimeraPath());
 			return pathList;

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.read.LoadVizmapFileTaskFactory;
 import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
@@ -25,6 +27,8 @@ import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.TunableSetter;
+import org.cytoscape.work.util.ListMultipleSelection;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
@@ -113,7 +117,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 				}
 			}
 		}
-		if (newNetwork.getNodeCount() > 0) {
+		if (newNetwork != null && newNetwork.getNodeCount() > 0) {
 			finalizeNetwork();
 		}
 	}
@@ -136,7 +140,6 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 			br = new BufferedReader(new FileReader(file));
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				System.out.println(line);
 				String[] words = line.split("\t");
 				if (words.length != 4) {
 					continue;
@@ -150,14 +153,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 					source = newNetwork.addNode();
 					nodesMap.put(sourceName, source);
 					newNetwork.getRow(source).set(CyNetwork.NAME, sourceName);
-					String[] sourceNameParts = sourceName.split("\\s");
-					if (sourceNameParts.length == 2) {
-						newNetwork.getRow(source).set(ChimUtils.RINALYZER_ATTR,
-								"_:_:" + sourceNameParts[0] + ":" + sourceNameParts[1]);
-					} else if (sourceNameParts.length == 3) {
-						newNetwork.getRow(source).set(ChimUtils.RINALYZER_ATTR,
-								sourceNameParts[0] + ":_:_:" + sourceNameParts[1] + ":" + sourceNameParts[2]);
-					}
+					setRINalyzerID(source, sourceName);
 				} else {
 					source = nodesMap.get(sourceName);
 				}
@@ -165,11 +161,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 					target = newNetwork.addNode();
 					nodesMap.put(targetName, target);
 					newNetwork.getRow(target).set(CyNetwork.NAME, targetName);
-					String[] targetNameParts = sourceName.split("\\s");
-					if (targetNameParts.length == 2) {
-						newNetwork.getRow(target).set(ChimUtils.RINALYZER_ATTR,
-								"_:" + targetNameParts[0] + ":_:" + targetNameParts[1]);
-					}
+					setRINalyzerID(target, targetName);
 				} else {
 					target = nodesMap.get(targetName);
 				}
@@ -257,6 +249,21 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		Set<CyNetworkView> views = new HashSet<CyNetworkView>();
 		views.add(view);
 
+		// annotate
+		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
+				structureManager);
+		if (annotateFactory != null) {
+			TunableSetter tunableSetter = (TunableSetter) structureManager
+					.getService(TunableSetter.class);
+			Map<String, Object> tunables = new HashMap<String, Object>();
+			List<String> resAttr = structureManager.getAllChimeraResidueAttributes();
+			ListMultipleSelection<String> resAttrTun = new ListMultipleSelection<String>(resAttr);
+			resAttrTun.setSelectedValues(resAttr);
+			tunables.put("residueAttributes", resAttrTun);
+			insertTasksAfterCurrentTask(tunableSetter.createTaskIterator(
+					annotateFactory.createTaskIterator(newNetwork), tunables));
+		}
+
 		// Do a layout
 		taskManager.execute(layoutTaskFactory.createTaskIterator(views));
 
@@ -273,4 +280,17 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		view.updateView();
 	}
 
+	private void setRINalyzerID(CyNode source, String sourceName) {
+		String[] sourceNameParts = sourceName.split("\\s");
+		if (sourceNameParts.length == 2) {
+			newNetwork.getRow(source).set(ChimUtils.RINALYZER_ATTR,
+					"_:" + sourceNameParts[1] + ":_:" + sourceNameParts[0]);
+		} else if (sourceNameParts.length == 3) {
+			newNetwork.getRow(source).set(
+					ChimUtils.RINALYZER_ATTR,
+					sourceNameParts[0] + ":_:" + sourceNameParts[2] + ":_:"
+							+ sourceNameParts[1]);
+		}
+	}
+	
 }

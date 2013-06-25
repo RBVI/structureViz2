@@ -112,7 +112,7 @@ public class RINManager {
 				getDistanceCommand(includeInteractions), true);
 		if (replyList != null) {
 			parseDistanceReplies(replyList, rin, nodeMap, ignoreWater, removeRedContacts,
-					distCutoff);
+					distCutoff, includeInteractions);
 		}
 	}
 
@@ -239,19 +239,12 @@ public class RINManager {
 			// among the specified atoms
 			atomspec = "@CA&sel";
 		}
-		// "Between selection and all other atoms"
-		else if (includeInteractions == 1) {
+		// "Between selection and all other atoms" or "All of the above"
+		else if (includeInteractions == 1 || includeInteractions == 2) {
 			// between the specified atoms and all other atoms
-			// TODO: [!] Get the distances between selection and other atoms
-			// atomspec = "@CA&sel|@CA";
+			atomspec = "@CA";
 		}
-		// "All of the above"
-		else if (includeInteractions == 2) {
-			// intra-model interactions between the specified atoms and all
-			// other atoms
-			// TODO: [!] Get the distances within selection and other atoms
-			// atomspec = "@CA";
-		}
+
 		// Create the command
 		String command = "list distmat " + atomspec;
 		return command;
@@ -432,7 +425,8 @@ public class RINManager {
 	 */
 	private List<CyEdge> parseDistanceReplies(List<String> replyLog, CyNetwork rin,
 			Map<String, CyNode> nodeMap, boolean ignoreWater, boolean removeRedContacts,
-			double distCutoff) {
+			double distCutoff, int includeInteractions) {
+		List<String> selectedResidues = chimeraManager.getSelectedResidueSpecs();
 		List<CyEdge> distEdges = new ArrayList<CyEdge>();
 		for (int index = 0; index < replyLog.size(); index++) {
 			// System.out.println(replyLog.get(index));
@@ -445,7 +439,22 @@ public class RINManager {
 			// special case of cutoff = 0: create all edges
 			try {
 				Double distNum = Double.parseDouble(distance);
-				if (distCutoff == 0.0 || distNum <= distCutoff) {
+				String res1 = line[1].substring(0, line[1].indexOf("@"));
+				String res2 = line[2].substring(0, line[2].indexOf("@"));
+				// continue
+				// if distance is below cutoff or if cutoff is not set, i.e. equal to 0 (to retrieve
+				// all distance) and
+				// 1) if retrieve only for selected residues
+				// 2) if retrieve for selected and neighbors and the first residue is selected and
+				// the second is not
+				// 3) if retrieve for both selected and neighbors and the first residue is selected
+				if ((distCutoff == 0.0 || distNum <= distCutoff)
+						&& (includeInteractions == 0
+								|| (includeInteractions == 1
+										&& ((selectedResidues.contains(res1) && !selectedResidues
+												.contains(res2))) || (selectedResidues
+										.contains(res2) && !selectedResidues.contains(res1))) || (includeInteractions == 2 && (selectedResidues
+								.contains(res1) || selectedResidues.contains(res2))))) {
 					CyEdge edge = createEdge(rin, nodeMap, ignoreWater, removeRedContacts, line[1],
 							line[2], DISTEDGE);
 					if (edge == null) {

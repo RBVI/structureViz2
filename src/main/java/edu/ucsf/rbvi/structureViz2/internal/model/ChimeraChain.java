@@ -202,7 +202,7 @@ public class ChimeraChain implements ChimeraStructuralObject {
 		List<ChimeraResidue> resultRange = new ArrayList<ChimeraResidue>();
 		int start = Integer.parseInt(range[0]);
 		int end = Integer.parseInt(range[1]);
-		for (int i = start; i < end; i++) {
+		for (int i = start; i <= end; i++) {
 			String index = String.valueOf(i);
 			if (residueMap.containsKey(index))
 				resultRange.add(residueMap.get(index));

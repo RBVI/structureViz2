@@ -224,10 +224,13 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	}
 
 	public void setFuncResidues(List<String> residues) {
-		// TODO: [!] Make functional residues work
 		for (String residue : residues) {
 			for (ChimeraChain chain : getChains()) {
-				funcResidues.add(chain.getResidue(residue));
+				if (residue.indexOf("-") > 0) {
+					funcResidues.addAll(chain.getResidueRange(residue));
+				} else {
+					funcResidues.add(chain.getResidue(residue));
+				}
 			}
 		}
 	}
@@ -486,7 +489,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 		}
 
 		String displayName = name;
-		// TODO: [Optional] Show model name first and then Cytoscape objects associated with it 
+		// TODO: [Optional] Show model name first and then Cytoscape objects associated with it
 		// TODO: [Optional] Shorten model names in the MND
 		// if (name.length() > 14)
 		// displayName = name.substring(0, 13) + "...";

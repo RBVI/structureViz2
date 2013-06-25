@@ -381,7 +381,6 @@ public abstract class ChimUtils {
 		return structure;
 	}
 
-	// TODO: [!] Check parsing functional residues
 	// invoked by openStructures in StructureManager
 	public static List<String> parseFuncRes(List<String> residueNames, String modelName) {
 		List<String> resRanges = new ArrayList<String>();

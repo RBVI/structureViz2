@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -482,13 +483,13 @@ public class RINManager {
 		String interactingAtoms = sourceAlias + "," + targetAlias;
 		String sourceAtom = ChimUtils.getAtomName(sourceAlias);
 		String targetAtom = ChimUtils.getAtomName(targetAlias);
-		String interactionSubtype = type
-				+ " "
-				+ ChimUtils.getIntSubtype(rin.getRow(source).get(CyNetwork.NAME, String.class),
-						sourceAtom)
-				+ SUBTYPEDELIM
-				+ ChimUtils.getIntSubtype(rin.getRow(target).get(CyNetwork.NAME, String.class),
-						targetAtom);
+		List<String> subtype = new ArrayList<String>();
+		subtype.add(ChimUtils.getIntSubtype(rin.getRow(source).get(CyNetwork.NAME, String.class),
+				sourceAtom));
+		subtype.add(ChimUtils.getIntSubtype(rin.getRow(target).get(CyNetwork.NAME, String.class),
+				targetAtom));
+		Collections.sort(subtype);
+		String interactionSubtype = type + " " + subtype.get(0) + SUBTYPEDELIM + subtype.get(1);
 
 		// Create our edge
 		CyEdge edge = null;

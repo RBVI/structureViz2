@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.cytoscape.model.CyEdge;
@@ -455,52 +456,81 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 */
 	// TODO: [Bug] Throws a NullPointerException null after network is deleted...
 	public String toString() {
-		String nodeName = "Cytoscape";
-		try {
-			if (cyObjects.size() == 1) {
-				CyIdentifiable cyObj = cyObjects.keySet().iterator().next();
-				CyNetwork network = cyObjects.get(cyObj);
-				if (network != null
-						&& (cyObj instanceof CyNetwork
-								|| (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) || (cyObj instanceof CyEdge && network
-								.containsEdge((CyEdge) cyObj)))) {
-					nodeName += " " + network.getRow(cyObj).get(CyNetwork.NAME, String.class);
-				}
-			} else if (cyObjects.size() > 1) {
-				nodeName += " {";
-				for (CyIdentifiable cyObj : cyObjects.keySet()) {
-					CyNetwork network = cyObjects.get(cyObj);
-					if (network != null
-							&& (cyObj instanceof CyNetwork
-									|| (cyObj instanceof CyNode && network
-											.containsNode((CyNode) cyObj)) || (cyObj instanceof CyEdge && network
-									.containsEdge((CyEdge) cyObj)))) {
-						nodeName += network.getRow(cyObj).get(CyNetwork.NAME, String.class) + ",";
-					}
-				}
-				nodeName = nodeName.substring(0, nodeName.length() - 1) + "}";
-			}
-		} catch (Exception ex) {
-			nodeName = null;
-			// ignore
-		}
-		if (nodeName == null) {
-			nodeName = "Cytoscape {none}";
-		}
-
-		String displayName = name;
-		// TODO: [Optional] Show model name first and then Cytoscape objects associated with it
+		String modelName = "";
+		// String displayName = name;
 		// TODO: [Optional] Shorten model names in the MND
-		// if (name.length() > 14)
-		// displayName = name.substring(0, 13) + "...";
 		if (getChainCount() > 0) {
-			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getChainCount()
-					+ " chains, " + getResidueCount() + " residues)]");
+			modelName = "Model " + toSpec() + " " + name + " (" + getChainCount() + " chains, "
+					+ getResidueCount() + " residues)";
 		} else if (getResidueCount() > 0) {
-			return (nodeName + "[Model " + toSpec() + " " + displayName + " (" + getResidueCount() + " residues)]");
+			modelName = "Model " + toSpec() + " " + name + " (" + getResidueCount() + " residues)";
 		} else {
-			return (nodeName + "[Model " + toSpec() + " " + displayName + "]");
+			modelName = "Model " + toSpec() + " " + name + "";
 		}
 
+		Set<String> networkNames = new HashSet<String>();
+		Set<String> nodeNames = new HashSet<String>();
+		Set<String> edgeNames = new HashSet<String>();
+		for (CyIdentifiable cyObj : cyObjects.keySet()) {
+			CyNetwork network = cyObjects.get(cyObj);
+			if (network != null) {
+				try {
+					if (cyObj instanceof CyNetwork) {
+						networkNames.add(network.getRow(cyObj).get(CyNetwork.NAME, String.class));
+					} else if (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)) {
+						nodeNames.add(network.getRow(cyObj).get(CyNetwork.NAME, String.class));
+					} else if (cyObj instanceof CyEdge && network.containsEdge((CyEdge) cyObj)) {
+						edgeNames.add(network.getRow(cyObj).get(CyNetwork.NAME, String.class));
+					}
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+
+		String cytoName = " [";
+		if (networkNames.size() > 0) {
+			if (networkNames.size() == 1) {
+				cytoName += "Network {";
+			} else if (networkNames.size() > 1) {
+				cytoName += "Networks {";
+			}
+			for (String cName : networkNames) {
+				cytoName += cName + ",";
+			}
+			cytoName = cytoName.substring(0, cytoName.length() - 1) + "}, ";
+		}
+		if (nodeNames.size() > 0) {
+			if (nodeNames.size() == 1) {
+				cytoName += "Node {";
+			} else if (nodeNames.size() > 1) {
+				cytoName += "Nodes {";
+			}
+			for (String cName : nodeNames) {
+				cytoName += cName + ",";
+			}
+			cytoName = cytoName.substring(0, cytoName.length() - 1) + "}, ";
+		}
+		if (edgeNames.size() > 0) {
+			if (edgeNames.size() == 1) {
+				cytoName += "Edge {";
+			} else if (edgeNames.size() > 1) {
+				cytoName += "Edges {";
+			}
+			for (String cName : edgeNames) {
+				cytoName += cName + ",";
+			}
+			cytoName = cytoName.substring(0, cytoName.length() - 1) + "}, ";
+		}
+		if (cytoName.endsWith(", ")) {
+			cytoName = cytoName.substring(0, cytoName.length() - 2);
+		}
+		cytoName += "]";
+
+		String nodeName = modelName + cytoName;
+		// if (nodeName.length() > 30) {
+		// nodeName = nodeName.substring(0, 30) + "...";
+		// }
+		return nodeName;
 	}
 }

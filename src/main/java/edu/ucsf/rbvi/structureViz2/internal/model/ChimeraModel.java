@@ -454,7 +454,6 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	/**
 	 * Return a string representation for the model.
 	 */
-	// TODO: [Bug] Throws a NullPointerException null after network is deleted...
 	public String toString() {
 		String modelName = "";
 		// String displayName = name;

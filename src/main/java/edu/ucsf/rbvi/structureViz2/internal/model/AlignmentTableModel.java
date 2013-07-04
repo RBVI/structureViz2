@@ -62,10 +62,10 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 			"Score" };
 
 	private String referenceModel = null;
+	private List<String> allModels = null;
 	private List<ChimeraStructuralObject> matchModels = null;
-	private List<ChimeraStructuralObject> allModels = null;
 	private List<ChimeraStructuralObject> selectedModels = null;
-	private HashMap resultsMap;
+	private HashMap<String, float[]> resultsMap;
 	private int state = NOREFERENCE;
 	AlignStructuresDialog asDialog = null;
 
@@ -73,13 +73,13 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * Create the table model
 	 * 
 	 * @param chimeraObject
-	 *          the Chimera object that links to Chimera
+	 *            the Chimera object that links to Chimera
 	 * @param models
-	 *          the list of Structures involved
+	 *            the list of Structures involved
 	 * @param asDialog
-	 *          a back-pointer to the dialog itself
+	 *            a back-pointer to the dialog itself
 	 */
-	public AlignmentTableModel(List<ChimeraStructuralObject> models, AlignStructuresDialog asDialog) {
+	public AlignmentTableModel(List<String> models, AlignStructuresDialog asDialog) {
 		this.allModels = models;
 		this.asDialog = asDialog;
 	}
@@ -109,9 +109,9 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * about our Structure and the column indicates the specific data we want.
 	 * 
 	 * @param row
-	 *          the row number
+	 *            the row number
 	 * @param col
-	 *          the column number
+	 *            the column number
 	 * @return an Object which represents the value at the requested row and column
 	 */
 	public Object getValueAt(int row, int col) {
@@ -119,7 +119,7 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 			return null;
 
 		ChimeraStructuralObject match = matchModels.get(row);
-		String matchValue = match.toString();
+		String matchValue = ChimUtils.getAlignName(match);
 		if (col == 0) {
 			return matchValue;
 		} else {
@@ -141,9 +141,9 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * This method indicates whether this cell is editable. We always return false.
 	 * 
 	 * @param row
-	 *          row number as an integer
+	 *            row number as an integer
 	 * @param col
-	 *          column number as an integer
+	 *            column number as an integer
 	 * @return false
 	 */
 	public boolean isCellEditable(int row, int col) {
@@ -154,7 +154,7 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * Return the name of a column.
 	 * 
 	 * @param col
-	 *          column number as an integer
+	 *            column number as an integer
 	 * @return column name as a String
 	 */
 	public String getColumnName(int col) {
@@ -165,10 +165,10 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * Get the object class of a column. This is used to determine how the columns will be displayed
 	 * 
 	 * @param c
-	 *          the column number as an integer
+	 *            the column number as an integer
 	 * @return object Class of this column
 	 */
-	public Class getColumnClass(int c) {
+	public Class<?> getColumnClass(int c) {
 		if (c == 0)
 			return String.class;
 		if (c == 1)
@@ -180,7 +180,7 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * Set the reference structure to use for the alignments
 	 * 
 	 * @param refModel
-	 *          the name of the structure
+	 *            the name of the structure
 	 */
 	public void setReferenceModel(ChimeraStructuralObject refModel) {
 		if (refModel == null) {
@@ -188,18 +188,19 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 			this.resultsMap = null;
 			this.referenceModel = null;
 		} else {
-			String refName = refModel.toString();
-			String refModelName = refModel.getChimeraModel().toString();
+			String refName = ChimUtils.getAlignName(refModel);
+			String refModelName = ChimUtils.getAlignName(refModel.getChimeraModel());
 
 			this.referenceModel = refName;
 			this.matchModels = new ArrayList<ChimeraStructuralObject>();
-			this.resultsMap = new HashMap();
-			for (ChimeraStructuralObject chimObject : allModels) {
-				if (refName.equals(chimObject.toString())
-						|| refModelName.equals(chimObject.getChimeraModel().toString())) {
+			this.resultsMap = new HashMap<String, float[]>();
+			for (String chimObjectName : allModels) {
+				if (refName.equals(chimObjectName)
+						|| refModelName.equals(ChimUtils.getAlignName(asDialog.getChimObj(
+								chimObjectName).getChimeraModel()))) {
 					continue;
 				}
-				matchModels.add(chimObject);
+				matchModels.add(asDialog.getChimObj(chimObjectName));
 			}
 		}
 		// Update the table
@@ -217,9 +218,9 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	 * Sets the results from an alignment in the table.
 	 * 
 	 * @param matchStruct
-	 *          the name of the structure that was aligned
+	 *            the name of the structure that was aligned
 	 * @param results
-	 *          the 3 result values from the alignment
+	 *            the 3 result values from the alignment
 	 */
 	public void setResults(String matchStruct, float[] results) {
 		resultsMap.put(matchStruct, results);
@@ -235,11 +236,11 @@ public class AlignmentTableModel extends AbstractTableModel implements ListSelec
 	}
 
 	/**
-	 * This method is called whenever a value in the table is changed. It is used to detect selection
-	 * and add the selection to the list of structures to be used for the alignment
+	 * This method is called whenever a value in the table is changed. It is used to detect
+	 * selection and add the selection to the list of structures to be used for the alignment
 	 * 
 	 * @param e
-	 *          a ListSelectionEvent
+	 *            a ListSelectionEvent
 	 */
 	public void valueChanged(ListSelectionEvent e) {
 		ListSelectionModel lsm = (ListSelectionModel) e.getSource();

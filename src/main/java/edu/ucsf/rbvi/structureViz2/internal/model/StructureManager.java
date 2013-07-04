@@ -741,12 +741,18 @@ public class StructureManager {
 		// return;
 		// }
 		if (mnDialog == null) {
-			// TODO: [!] Should the MNDialog be modal?
 			CySwingApplication cyApplication = (CySwingApplication) getService(CySwingApplication.class);
 			mnDialog = new ModelNavigatorDialog(cyApplication.getJFrame(), this);
 			mnDialog.pack();
 		}
 		mnDialog.setVisible(true);
+	}
+
+	public boolean isMNDialogOpen() {
+		if (mnDialog != null && mnDialog.isVisible()) {
+			return true;
+		}
+		return false;
 	}
 
 	/**

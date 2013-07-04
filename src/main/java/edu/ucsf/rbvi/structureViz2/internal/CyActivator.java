@@ -40,6 +40,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureNavigatorTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.PaintStructureTaskFactory;
@@ -216,6 +217,16 @@ public class CyActivator extends AbstractCyActivator {
 		launchChimeraProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		registerService(bc, launchChimera, TaskFactory.class, launchChimeraProps);
 
+		TaskFactory openDialog = new OpenStructureNavigatorTaskFactory(structureManager);
+		Properties openDialogProps = new Properties();
+		openDialogProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		openDialogProps.setProperty(TITLE, "Open Structure Navigator");
+		openDialogProps.setProperty(COMMAND, "openStructureNavigator");
+		openDialogProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		openDialogProps.setProperty(IN_MENU_BAR, "true");
+		openDialogProps.setProperty(MENU_GRAVITY, "9.0");
+		registerService(bc, openDialog, TaskFactory.class, openDialogProps);		
+		
 		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
 		Properties exitChimeraProps = new Properties();
 		exitChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
@@ -223,7 +234,7 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(COMMAND, "exitChimera");
 		exitChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		exitChimeraProps.setProperty(IN_MENU_BAR, "true");
-		exitChimeraProps.setProperty(MENU_GRAVITY, "9.0");
+		exitChimeraProps.setProperty(MENU_GRAVITY, "10.0");
 		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
 
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(
@@ -236,7 +247,7 @@ public class CyActivator extends AbstractCyActivator {
 		settingsProps.setProperty(IN_MENU_BAR, "true");
 		// settingsProps.setProperty(ENABLE_FOR, "network");
 		settingsProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
-		settingsProps.setProperty(MENU_GRAVITY, "10.0");
+		settingsProps.setProperty(MENU_GRAVITY, "11.0");
 		registerService(bc, settingsTask, NetworkTaskFactory.class, settingsProps);
 
 		// Command task factories

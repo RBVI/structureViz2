@@ -528,4 +528,11 @@ public abstract class ChimUtils {
 		return ids[3];
 	}
 
+	public static String getAlignName(ChimeraStructuralObject chimObj) {
+		String name = chimObj.getChimeraModel().toString();
+		if (chimObj instanceof ChimeraChain) {
+			name = ((ChimeraChain) chimObj).toString() + " [" + name + "]";
+		}
+		return name;
+	}
 }

@@ -73,9 +73,9 @@ public class AlignManager {
 	 * results
 	 */
 	public static final String structureInteraction = "structuralSimilarity";
-	private StructureManager structureManager = null;
+	// private StructureManager structureManager = null;
 	private ChimeraManager chimeraManager = null;
-	private HashMap results = null;
+	private HashMap<String, float[]> results = null;
 	private boolean assignResults = false;
 	private boolean showSequence = false;
 	private boolean createNewEdges = false;
@@ -84,10 +84,10 @@ public class AlignManager {
 	 * Create a new Align object
 	 * 
 	 * @param chimeraManager
-	 *          the Chimera interface object that provides our link to Chimera
+	 *            the Chimera interface object that provides our link to Chimera
 	 */
 	public AlignManager(StructureManager structureManager) {
-		this.structureManager = structureManager;
+		// this.structureManager = structureManager;
 		chimeraManager = structureManager.getChimeraManager();
 	}
 
@@ -95,7 +95,7 @@ public class AlignManager {
 	 * Set the flag that tells us whether to assign the results to existing edges or not.
 	 * 
 	 * @param val
-	 *          the flag to set
+	 *            the flag to set
 	 */
 	public void setAssignResults(boolean val) {
 		this.assignResults = val;
@@ -105,17 +105,18 @@ public class AlignManager {
 	 * Set the flag that tells us whether to create a new edge based on the results or not.
 	 * 
 	 * @param val
-	 *          the flag to set
+	 *            the flag to set
 	 */
 	public void setCreateNewEdges(boolean val) {
 		this.createNewEdges = val;
 	};
 
 	/**
-	 * Set the flag that tells us whether to show the sequence results when an alignment is performed.
+	 * Set the flag that tells us whether to show the sequence results when an alignment is
+	 * performed.
 	 * 
 	 * @param val
-	 *          the flag to set
+	 *            the flag to set
 	 */
 	public void setShowSequence(boolean val) {
 		this.showSequence = val;
@@ -125,7 +126,7 @@ public class AlignManager {
 	 * Get the results
 	 * 
 	 * @param modelName
-	 *          the name of the model to return the results for
+	 *            the name of the model to return the results for
 	 * @return the array of 3 float results
 	 */
 	public float[] getResults(String modelName) {
@@ -139,7 +140,7 @@ public class AlignManager {
 	 * and all other currently open Chimera models.
 	 * 
 	 * @param reference
-	 *          the reference model
+	 *            the reference model
 	 */
 	public void alignAll(ChimeraModel reference) {
 		Collection<ChimeraModel> modelList = chimeraManager.getChimeraModels();
@@ -159,9 +160,9 @@ public class AlignManager {
 	 * and a List of models.
 	 * 
 	 * @param reference
-	 *          the reference model
+	 *            the reference model
 	 * @param models
-	 *          a List of ChimeraModels to align to the reference
+	 *            a List of ChimeraModels to align to the reference
 	 */
 	public void align(ChimeraStructuralObject reference, List<ChimeraStructuralObject> models) {
 		results = new HashMap<String, float[]>();
@@ -169,24 +170,26 @@ public class AlignManager {
 		for (ChimeraStructuralObject match : models) {
 			List<String> matchResult = singleAlign(reference, match);
 			if (matchResult != null) {
-				results.put(match.toString(), parseResults(matchResult));
+				results.put(ChimUtils.getAlignName(match), parseResults(matchResult));
 			}
 		}
 		chimeraManager.focus();
-		if (assignResults)
+		if (assignResults) {
 			setAllAttributes(reference, models);
+		}
 	}
 
 	/**
 	 * Ask Chimera to align a single ChimeraModel to a reference ChimeraModel
 	 * 
 	 * @param reference
-	 *          the ChimeraModel to use as a reference model
+	 *            the ChimeraModel to use as a reference model
 	 * @param match
-	 *          the ChimeraModel to align to the reference
+	 *            the ChimeraModel to align to the reference
 	 * @return an Iterator over the results
 	 */
-	private List<String> singleAlign(ChimeraStructuralObject reference, ChimeraStructuralObject match) {
+	private List<String> singleAlign(ChimeraStructuralObject reference,
+			ChimeraStructuralObject match) {
 		String command = "matchmaker " + reference.toSpec() + " " + match.toSpec();
 		if (reference instanceof ChimeraChain || match instanceof ChimeraChain)
 			command = command + " pair ss";
@@ -201,7 +204,7 @@ public class AlignManager {
 	 * results of an alignment.
 	 * 
 	 * @param lineIter
-	 *          the iterator over the lines of responses from Chimera
+	 *            the iterator over the lines of responses from Chimera
 	 * @return the array of floats containing the results from a single alignment
 	 */
 	private float[] parseResults(List<String> resultsList) {
@@ -229,24 +232,16 @@ public class AlignManager {
 	 * alignments.
 	 * 
 	 * @param source
-	 *          the ChimeraModel representing the source of the edge (the reference structure)
+	 *            the ChimeraModel representing the source of the edge (the reference structure)
 	 * @param targetList
-	 *          the list of targets (aligned structures)
+	 *            the list of targets (aligned structures)
 	 */
 	private void setAllAttributes(ChimeraStructuralObject source,
 			List<ChimeraStructuralObject> targetList) {
 		ChimeraModel sourceModel = source.getChimeraModel();
 		for (ChimeraStructuralObject target : targetList) {
-			// TODO: [!] Check usage of model/chain names in the alignment dialog?
-			// If our target is a ChimeraModel, we want the model name, otherwise
-			// we want the toString
-			// String modelKey = null;
-			// if (target instanceof ChimeraModel)
-			// modelKey = ((ChimeraModel) target).getModelName();
-			// else
-			String modelKey = target.toString();
 			ChimeraModel targetModel = target.getChimeraModel();
-			float[] results = getResults(modelKey);
+			float[] results = getResults(ChimUtils.getAlignName(source));
 			setEdgeAttributes(results, sourceModel, targetModel);
 		}
 	}
@@ -254,11 +249,11 @@ public class AlignManager {
 	/**
 	 * 
 	 * @param results
-	 *          the results values to assign to the edge as attributes
+	 *            the results values to assign to the edge as attributes
 	 * @param from
-	 *          the ChimeraModel that represents the CyNode to use as the source of the edge
+	 *            the ChimeraModel that represents the CyNode to use as the source of the edge
 	 * @param to
-	 *          the ChimeraModel that represents the CyNode to use as the destination of the edge
+	 *            the ChimeraModel that represents the CyNode to use as the destination of the edge
 	 */
 	private void setEdgeAttributes(float[] results, ChimeraModel reference, ChimeraModel match) {
 		// System.out.println("From: "+from+" To: "+to+" results: "+results);
@@ -303,8 +298,9 @@ public class AlignManager {
 					network.getRow(edge).set(CyEdge.INTERACTION, structureInteraction);
 					network.getRow(edge).set(
 							CyNetwork.NAME,
-							network.getRow(node1).get(CyNetwork.NAME, String.class) + " (" + structureInteraction
-									+ ") " + network.getRow(node2).get(CyNetwork.NAME, String.class));
+							network.getRow(node1).get(CyNetwork.NAME, String.class) + " ("
+									+ structureInteraction + ") "
+									+ network.getRow(node2).get(CyNetwork.NAME, String.class));
 					edgeList.add(edge);
 				}
 				for (CyEdge edge : edgeList) {
@@ -317,4 +313,5 @@ public class AlignManager {
 			}
 		}
 	}
+
 }

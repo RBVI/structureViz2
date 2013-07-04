@@ -34,7 +34,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-// TODO: [Bug] NullPointerException if name contains ","
+// TODO: [Bug] NullPointerException if network name contains ","
 
 public class ImportTrajectoryRINTask extends AbstractTask {
 

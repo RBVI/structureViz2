@@ -38,6 +38,8 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -58,6 +60,7 @@ import javax.swing.border.TitledBorder;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.AlignManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.AlignmentTableModel;
+import edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils;
 import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
@@ -69,7 +72,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 public class AlignStructuresDialog extends JDialog implements ActionListener {
 	// Instance variables
 	private StructureManager structureManager;
-	List<ChimeraStructuralObject> chimObjects;
+	HashMap<String, ChimeraStructuralObject> chimObjects;
+	List<String> chimObjectNames;
 	boolean status;
 	// boolean useChains;
 	ChimeraStructuralObject referenceModel;
@@ -91,17 +95,23 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	 * Create an AlignStructuresDialog
 	 * 
 	 * @param parent
-	 *          the Frame acting as the parent of this Dialog
+	 *            the Frame acting as the parent of this Dialog
 	 * @param object
-	 *          the Chimera interface object
+	 *            the Chimera interface object
 	 * @param chimObjects
-	 *          the List of models (or chains) open in Chimera
+	 *            the List of models (or chains) open in Chimera
 	 */
 	public AlignStructuresDialog(Frame parent, StructureManager structureManager,
 			List<ChimeraStructuralObject> chimObjects) {
 		super(parent, false);
 		this.structureManager = structureManager;
-		this.chimObjects = chimObjects;
+		this.chimObjects = new HashMap<String, ChimeraStructuralObject>();
+		this.chimObjectNames = new ArrayList<String>();
+		for (ChimeraStructuralObject chimObj : chimObjects) {
+			String name = ChimUtils.getAlignName(chimObj);
+			this.chimObjects.put(name, chimObj);
+			this.chimObjectNames.add(name);
+		}
 		initComponents();
 		status = false;
 	}
@@ -110,7 +120,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	 * Set the reference structure for the pairwise alignments
 	 * 
 	 * @param ref
-	 *          the reference structure
+	 *            the reference structure
 	 */
 	public void setReferenceModel(ChimeraStructuralObject ref) {
 		this.referenceModel = ref;
@@ -124,7 +134,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	 * it.
 	 * 
 	 * @param value
-	 *          "true" to enable the button, "false" to disable it
+	 *            "true" to enable the button, "false" to disable it
 	 */
 	public void setAlignEnabled(boolean value) {
 		if (alignButton != null)
@@ -146,12 +156,13 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 
 		// Create the menu for the reference structure
 		JPanel refBox = new JPanel();
-		JComboBox refStruct = new JComboBox(structureList(chimObjects));
+		JComboBox refStruct = new JComboBox(structureList(chimObjectNames));
 		refStruct.addActionListener(new setRefModel());
 		refBox.add(refStruct);
 
 		Border refBorder = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-		TitledBorder titleBorder = BorderFactory.createTitledBorder(refBorder, "Reference Structure");
+		TitledBorder titleBorder = BorderFactory.createTitledBorder(refBorder,
+				"Reference Structure");
 		titleBorder.setTitlePosition(TitledBorder.LEFT);
 		titleBorder.setTitlePosition(TitledBorder.TOP);
 
@@ -160,7 +171,7 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 		dataPanel.add(refBox);
 
 		// Create the results table
-		tableModel = new AlignmentTableModel(chimObjects, this);
+		tableModel = new AlignmentTableModel(chimObjectNames, this);
 
 		AlignTableSorter sorter = new AlignTableSorter(tableModel);
 		JTable results = new JTable(sorter);
@@ -182,8 +193,8 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 		checkBoxes.add(assignResults);
 		createNewEdges = new JCheckBox("Create new structure interaction edges");
 		checkBoxes.add(createNewEdges);
-		checkBoxes.setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-				new EmptyBorder(10, 10, 10, 10)));
+		checkBoxes.setBorder(new CompoundBorder(BorderFactory
+				.createEtchedBorder(EtchedBorder.LOWERED), new EmptyBorder(10, 10, 10, 10)));
 		checkBoxes.setMaximumSize(new Dimension(1000, 80));
 		dataPanel.add(checkBoxes);
 
@@ -208,21 +219,28 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 	}
 
 	/**
-	 * Return an array of objects that represent a List of structures, with the first element being a
-	 * String that indicates that nothing is selected.
+	 * Return an array of objects that represent a List of structures, with the first element being
+	 * a String that indicates that nothing is selected.
 	 * 
 	 * @param structures
-	 *          a List of structures to be included in the menu
+	 *            a List of structures to be included in the menu
 	 * @return an array of Objects to be used in a menu
 	 */
-	private Object[] structureList(List<ChimeraStructuralObject> models) {
-		Object[] structureList = new Object[models.size() + 1];
+	private Object[] structureList(List<String> modelNames) {
+		String[] structureList = new String[modelNames.size() + 1];
 		int index = 0;
 		structureList[index++] = new String("      ---------");
-		for (Object st : models) {
+		for (String st : modelNames) {
 			structureList[index++] = st;
 		}
 		return structureList;
+	}
+
+	public ChimeraStructuralObject getChimObj(String name) {
+		if (chimObjects.containsKey(name)) {
+			return chimObjects.get(name);
+		}
+		return null;
 	}
 
 	/**
@@ -251,8 +269,8 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 
 			// Display the results
 			for (ChimeraStructuralObject chimObject : tableModel.getSelectedModels()) {
-				float[] results = alignment.getResults(chimObject.toString());
-				tableModel.setResults(chimObject.toString(), results);
+				float[] results = alignment.getResults(ChimUtils.getAlignName(chimObject));
+				tableModel.setResults(ChimUtils.getAlignName(chimObject), results);
 			}
 			tableModel.updateTable();
 		}
@@ -263,8 +281,8 @@ public class AlignStructuresDialog extends JDialog implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			JComboBox cb = (JComboBox) e.getSource();
 			Object sel = cb.getSelectedItem();
-			if (sel instanceof ChimeraStructuralObject) {
-				setReferenceModel((ChimeraStructuralObject) sel);
+			if (chimObjects.containsKey(sel)) {
+				setReferenceModel(chimObjects.get(sel));
 			} else {
 				setReferenceModel(null);
 			}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.cytoscape.model.CyIdentifiable;
@@ -11,6 +12,11 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
+import org.cytoscape.property.CyProperty;
+import org.cytoscape.property.SimpleCyProperty;
+import org.cytoscape.session.CySession;
+import org.cytoscape.session.CySessionManager;
+import org.osgi.framework.BundleContext;
 
 public abstract class CytoUtils {
 
@@ -64,6 +70,66 @@ public abstract class CytoUtils {
 	public static String getNodeName(CyNetwork network, CyNode node, String attr) {
 		if (network.containsNode(node) && network.getRow(node).isSet(attr)) {
 			return network.getRow(node).get(attr, String.class);
+		}
+		return "";
+	}
+
+	public static void setDefaultChimeraPath(BundleContext bc, String pathPropertyKey, String pathPropertyValue) {
+
+		// Find if the CyProperty already exists, if not create one with default value.
+		CyProperty<Properties> chimeraPathProperty = null;
+		CySessionManager mySessionManager = (CySessionManager) bc.getService(bc
+				.getServiceReference(CySessionManager.class.getName()));
+		CySession session = mySessionManager.getCurrentSession();
+		if (session == null) {
+			return;
+		}
+		Set<CyProperty<?>> props = session.getProperties();
+		if (props == null) {
+			return;
+		}
+		boolean flag = false;
+		for (CyProperty<?> prop : props) {
+			if (prop.getName() != null) {
+				if (prop.getName().equals(pathPropertyKey)) {
+					chimeraPathProperty = (CyProperty<Properties>) prop;
+					chimeraPathProperty.getProperties().setProperty(pathPropertyKey, pathPropertyValue);
+					flag = true;
+					break;
+				}
+			}
+		}
+
+		// If the property does not exist, create it
+		if (!flag) {
+			Properties chimeraPathProps = new Properties();
+			chimeraPathProps.setProperty(pathPropertyKey, pathPropertyValue);
+			chimeraPathProperty = new SimpleCyProperty(pathPropertyKey, chimeraPathProps,
+					String.class, CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
+		}
+		bc.registerService(CyProperty.class.getName(), chimeraPathProperty, new Properties());
+	}
+
+	public static String getDefaultChimeraPath(BundleContext bc, String pathPropertyKey) {
+		// Find if the CyProperty already exists, if not create one with default value.
+		CyProperty<Properties> chimeraPathProperty = null;
+		CySessionManager mySessionManager = (CySessionManager) bc.getService(bc
+				.getServiceReference(CySessionManager.class.getName()));
+		CySession session = mySessionManager.getCurrentSession();
+		if (session == null) {
+			return "";
+		}
+		Set<CyProperty<?>> props = session.getProperties();
+		if (props == null) {
+			return "";
+		}
+		for (CyProperty<?> prop : props) {
+			if (prop.getName() != null) {
+				if (prop.getName().equals(pathPropertyKey)) {
+					chimeraPathProperty = (CyProperty<Properties>) prop;
+					return chimeraPathProperty.getProperties().getProperty(pathPropertyKey);
+				}
+			}
 		}
 		return "";
 	}

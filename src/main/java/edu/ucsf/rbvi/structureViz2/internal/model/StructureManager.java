@@ -990,23 +990,35 @@ public class StructureManager {
 		return attributes;
 	}
 
+	// TODO: [Optional] Change priority of Chimera paths
 	public List<String> getChimeraPaths(CyNetwork network) {
 		List<String> pathList = new ArrayList<String>();
-		// get default user's settings
-		// TODO: [Optional] Change priority of CHimera paths
-		if (network == null && defaultSettings != null) {
+
+		// if no network is available and the settings have been modified by the user, check for a
+		// path to chimera
+		if (network == null && defaultSettings != null
+				&& !defaultSettings.getChimeraPath().equals("")) {
 			pathList.add(defaultSettings.getChimeraPath());
 			return pathList;
 		}
-		// get network specific settings
+
+		// if a network is available, check if a path to chimera is specified
 		if (settings.containsKey(network)) {
 			String path = settings.get(network).getChimeraPath();
-			if (path != null) {
+			if (path != null && !path.equals("")) {
 				pathList.add(path);
 				return pathList;
 			}
 		}
-		// get default system's settings
+
+		// if no network settings, check if the last chimera path is savd in the session
+		String lastPath = CytoUtils.getDefaultChimeraPath(bundleContext, "LastChimeraPath");
+		if (!lastPath.equals("")) {
+			pathList.add(lastPath);
+			return pathList;
+		}
+
+		// if no user settings and no last path, get default system's settings
 		String os = System.getProperty("os.name");
 		if (os.startsWith("Linux")) {
 			pathList.add("/usr/local/chimera/bin/chimera");
@@ -1018,8 +1030,12 @@ public class StructureManager {
 		} else if (os.startsWith("Mac")) {
 			pathList.add("/Applications/Chimera.app/Contents/MacOS/chimera");
 		}
-
 		return pathList;
+	}
+
+	// TODO: Is this ok?
+	public void setChimeraPathProeprty(String path) {
+		CytoUtils.setDefaultChimeraPath(bundleContext, "LastChimeraPath", path);
 	}
 
 	/**

@@ -358,6 +358,7 @@ public class ChimeraManager {
 
 		// Try to launch Chimera (eventually using one of the possible paths)
 		String error = "Error message: ";
+		String workingPath = "";
 		// iterate over possible paths for starting Chimera
 		for (String chimeraPath : chimeraPaths) {
 			File path = new File(chimeraPath);
@@ -374,6 +375,7 @@ public class ChimeraManager {
 				ProcessBuilder pb = new ProcessBuilder(args);
 				chimera = pb.start();
 				error = "";
+				workingPath = chimeraPath;
 				break;
 			} catch (Exception e) {
 				// Chimera could not be started
@@ -387,6 +389,7 @@ public class ChimeraManager {
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
 			structureManager.initChimTable();
+			structureManager.setChimeraPathProeprty(workingPath);
 			// TODO: [Chimera] Check Chimera version and show a warning if below 1.8
 			// Ask Chimera to give us updates
 			startListening();

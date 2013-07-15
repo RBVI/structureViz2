@@ -51,11 +51,12 @@ public class AlignStructuresTask extends AbstractTask {
 				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
 		// open structures
 		taskMonitor.setStatusMessage("Opening structures ...");
-		structureManager.openStructures(netView.getModel(), selectedChimeraObjNames,
-				ModelType.PDB_MODEL);
-		structureManager.launchModelNavigatorDialog();
-		taskMonitor.setStatusMessage("Aligning structures ...");
-		structureManager.launchAlignDialog(false);
+		if (structureManager.openStructures(netView.getModel(), selectedChimeraObjNames,
+				ModelType.PDB_MODEL)) {
+			structureManager.launchModelNavigatorDialog();
+			taskMonitor.setStatusMessage("Aligning structures ...");
+			structureManager.launchAlignDialog(false);
+		}
 	}
 
 	private void initTunables() {

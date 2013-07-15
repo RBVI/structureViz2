@@ -71,7 +71,9 @@ public class OpenStructuresTask extends AbstractTask {
 		structureManager.openStructures(netView.getModel(), selectedChemNames, ModelType.SMILES);
 
 		// open dialog
-		structureManager.launchModelNavigatorDialog();
+		if (structureManager.getChimeraManager().isChimeraLaunched()) {
+			structureManager.launchModelNavigatorDialog();
+		}
 	}
 
 	private void initTunables() {

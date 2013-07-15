@@ -363,7 +363,7 @@ public class ChimeraManager {
 		for (String chimeraPath : chimeraPaths) {
 			File path = new File(chimeraPath);
 			if (!path.canExecute()) {
-				error = "Path does not exist";
+				error += "File '" + path + "' does not exist.\n";
 				continue;
 			}
 			try {

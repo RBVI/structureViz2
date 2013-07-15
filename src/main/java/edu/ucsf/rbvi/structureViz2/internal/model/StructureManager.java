@@ -29,6 +29,8 @@ import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.ui.AlignStructuresDialog;
@@ -72,6 +74,9 @@ public class StructureManager {
 
 	static private List<ChimeraStructuralObject> chimSelectionList;
 	private boolean ignoreCySelection = false;
+
+	private static Logger logger = LoggerFactory
+			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.class);
 
 	public StructureManager(BundleContext bc, boolean haveGUI) {
 		this.bundleContext = bc;
@@ -120,14 +125,16 @@ public class StructureManager {
 		this.structureNetFactory = (CreateStructureNetworkTaskFactory) factory;
 	}
 
-	public void openStructures(CyNetwork network, Map<CyIdentifiable, List<String>> chimObjNames,
-			ModelType type) {
-		if (network == null
-				|| chimObjNames.size() == 0
-				|| (!chimeraManager.isChimeraLaunched() && !chimeraManager
-						.launchChimera(getChimeraPaths(network)))) {
-			return;
+	public boolean openStructures(CyNetwork network,
+			Map<CyIdentifiable, List<String>> chimObjNames, ModelType type) {
+		if (network == null || chimObjNames.size() == 0) {
+			return false;
+		} else if (!chimeraManager.isChimeraLaunched()
+				&& !chimeraManager.launchChimera(getChimeraPaths(network))) {
+			logger.error("Chimera cannot be started.");
+			return false;
 		}
+
 		// potential rins
 		Set<CyNetwork> potentialRINs = new HashSet<CyNetwork>();
 		// new models
@@ -159,14 +166,19 @@ public class StructureManager {
 					// for each model
 					for (ChimeraModel currentModel : currentModels) {
 						// check if it is a RIN
-						if (currentModel.getModelType().equals(ModelType.PDB_MODEL)
-								&& cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)
-								&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)) {
-							ChimeraStructuralObject res = ChimUtils
-									.fromAttribute(
-											network.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR,
-													String.class), chimeraManager);
-							if (res != null) {
+						if (currentModel.getModelType().equals(ModelType.PDB_MODEL)) {
+							if (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)
+									&& network.getRow(cyObj).isSet(ChimUtils.RESIDUE_ATTR)) {
+								ChimeraStructuralObject res = ChimUtils.fromAttribute(network
+										.getRow(cyObj).get(ChimUtils.RESIDUE_ATTR, String.class),
+										chimeraManager);
+								if (res != null) {
+									potentialRINs.add(network);
+									continue;
+								}
+							} else if (cyObj instanceof CyNetwork
+									&& network.getDefaultNodeTable().getColumn(
+											ChimUtils.RESIDUE_ATTR) != null) {
 								potentialRINs.add(network);
 								continue;
 							}
@@ -195,6 +207,7 @@ public class StructureManager {
 			mnDialog.modelChanged();
 		}
 		aTask.associate(newModels);
+		return true;
 	}
 
 	public void closeStructures(Set<String> chimObjNames) {
@@ -261,6 +274,9 @@ public class StructureManager {
 				networkMap.put(node, new HashSet<CyNetwork>());
 			}
 			networkMap.get(node).add(rin);
+			if (!rin.getRow(node).isSet(ChimUtils.RESIDUE_ATTR)) {
+				continue;
+			}
 			String residueSpec = rin.getRow(node).get(ChimUtils.RESIDUE_ATTR, String.class);
 			ChimeraStructuralObject chimObj = ChimUtils.fromAttribute(residueSpec, chimeraManager);
 			// chimObj.getChimeraModel().addCyObject(node, rin);

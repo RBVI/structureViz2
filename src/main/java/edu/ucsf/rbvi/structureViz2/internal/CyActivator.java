@@ -40,6 +40,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureFileTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureNavigatorTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
@@ -118,6 +119,17 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, openStructuresEdge, EdgeViewTaskFactory.class, openStructuresEdgeProps);
 		registerService(bc, openStructuresEdge, NetworkViewTaskFactory.class,
 				openStructuresEdgeProps);
+
+		TaskFactory openStructureFile = new OpenStructureFileTaskFactory(structureManager);
+		Properties openStructureFileProps = new Properties();
+		// openStructureFileProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		openStructureFileProps.setProperty(TITLE, "Open Structure From File");
+		openStructureFileProps.setProperty(COMMAND, "openStructureFile");
+		openStructureFileProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		openStructureFileProps.setProperty(ENABLE_FOR, "networkAndView");
+		// openStructureFileProps.setProperty(IN_MENU_BAR, "true");
+		// openStructureFileProps.setProperty(MENU_GRAVITY, "1.0");
+		registerService(bc, openStructureFile, NetworkViewTaskFactory.class, openStructureFileProps);
 
 		TaskFactory alignStructures = new AlignStructuresTaskFactory(structureManager);
 		Properties alignStructuresProps = new Properties();
@@ -225,8 +237,8 @@ public class CyActivator extends AbstractCyActivator {
 		openDialogProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openDialogProps.setProperty(IN_MENU_BAR, "true");
 		openDialogProps.setProperty(MENU_GRAVITY, "9.0");
-		registerService(bc, openDialog, TaskFactory.class, openDialogProps);		
-		
+		registerService(bc, openDialog, TaskFactory.class, openDialogProps);
+
 		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
 		Properties exitChimeraProps = new Properties();
 		exitChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");

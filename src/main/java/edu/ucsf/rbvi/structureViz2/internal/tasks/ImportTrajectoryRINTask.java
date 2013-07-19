@@ -195,10 +195,9 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		// System.out.println("Import table " + file);
 		CyTable table = newNetwork.getDefaultNodeTable();
 		BufferedReader br = null;
-		String attr1 = ChimUtils.RESIDUE_ATTR;
-		String attr2 = "ModelName";
+		// TODO: [!] Adapt Chimera output to new pdb/residue specs
+		String attr1 = ChimUtils.DEFAULT_STRUCTURE_KEY;
 		table.createColumn(attr1, String.class, false);
-		table.createColumn(attr2, String.class, false);
 		try {
 			br = new BufferedReader(new FileReader(file));
 			String line = null;
@@ -209,8 +208,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 				}
 				if (nodesMap.containsKey(words[0])) {
 					CyNode node = nodesMap.get(words[0]);
-					table.getRow(node.getSUID()).set(attr1, words[1]);
-					table.getRow(node.getSUID()).set(attr2, words[2]);
+					table.getRow(node.getSUID()).set(attr1, "\"" + words[2] + "\"#" + words[1]);
 				}
 			}
 			br.close();

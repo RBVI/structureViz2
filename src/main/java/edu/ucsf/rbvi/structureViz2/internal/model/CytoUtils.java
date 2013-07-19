@@ -28,7 +28,6 @@ public abstract class CytoUtils {
 			if (columnNames.contains(attribute))
 				columnsFound.add(attribute);
 		}
-
 		return columnsFound;
 	}
 
@@ -74,7 +73,8 @@ public abstract class CytoUtils {
 		return "";
 	}
 
-	public static void setDefaultChimeraPath(BundleContext bc, String pathPropertyKey, String pathPropertyValue) {
+	public static void setDefaultChimeraPath(BundleContext bc, String pathPropertyKey,
+			String pathPropertyValue) {
 
 		// Find if the CyProperty already exists, if not create one with default value.
 		CyProperty<Properties> chimeraPathProperty = null;
@@ -93,7 +93,8 @@ public abstract class CytoUtils {
 			if (prop.getName() != null) {
 				if (prop.getName().equals(pathPropertyKey)) {
 					chimeraPathProperty = (CyProperty<Properties>) prop;
-					chimeraPathProperty.getProperties().setProperty(pathPropertyKey, pathPropertyValue);
+					chimeraPathProperty.getProperties().setProperty(pathPropertyKey,
+							pathPropertyValue);
 					flag = true;
 					break;
 				}

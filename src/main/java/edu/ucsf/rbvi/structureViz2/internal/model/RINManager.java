@@ -21,6 +21,7 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
+// TODO: [Bug] No dist edges between ligands and others 
 public class RINManager {
 
 	private StructureManager structureManager;
@@ -43,7 +44,6 @@ public class RINManager {
 	private static final String NUMINT_ATTR = "NumberInteractions";
 	// Node attributes
 	private static final String SMILES_ATTR = "SMILES";
-	private static final String STRUCTURE_ATTR = "pdbFileName";
 	private static final String SEED_ATTR = "SeedResidues";
 	private static final String CHAIN_ATTR = "Chain";
 	// static final String BACKBONE_ATTR = "BackboneInteraction";
@@ -571,7 +571,8 @@ public class RINManager {
 			if (residue.getChainId() != "_") {
 				chimRes += "." + residue.getChainId();
 			}
-			rin.getRow(node).set(ChimUtils.RESIDUE_ATTR, chimRes);
+			// TODO: [!] Check all possible attributes that could contain the id
+			rin.getRow(node).set(ChimUtils.DEFAULT_STRUCTURE_KEY, chimRes);
 			rin.getRow(node).set(
 					ChimUtils.RINALYZER_ATTR,
 					model.getModelName() + ":" + residue.getChainId() + ":" + residue.getIndex()
@@ -588,7 +589,7 @@ public class RINManager {
 			if (smiles != null) {
 				rin.getRow(node).set(SMILES_ATTR, smiles);
 			}
-			rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
+			// rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
 		} else {
 			node = nodeMap.get(nodeName);
 		}
@@ -617,7 +618,7 @@ public class RINManager {
 	}
 
 	private boolean inRange(ChimeraResidue[] range, CyNode node, CyNetwork rin) {
-		String residueAttr = rin.getRow(node).get(ChimUtils.RESIDUE_ATTR, String.class);
+		String residueAttr = rin.getRow(node).get(ChimUtils.DEFAULT_STRUCTURE_KEY, String.class);
 		ChimeraStructuralObject cso = ChimUtils.fromAttribute(residueAttr, chimeraManager);
 		// Models can't be in a range...
 		if (cso == null || cso instanceof ChimeraModel)
@@ -653,9 +654,11 @@ public class RINManager {
 
 	private boolean inRange2(ChimeraResidue[] range, CyNode node1, CyNode node2, CyNetwork rin) {
 		ChimeraStructuralObject cso1 = ChimUtils.fromAttribute(
-				rin.getRow(node1).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
+				rin.getRow(node1).get(ChimUtils.DEFAULT_STRUCTURE_KEY, String.class),
+				chimeraManager);
 		ChimeraStructuralObject cso2 = ChimUtils.fromAttribute(
-				rin.getRow(node2).get(ChimUtils.RESIDUE_ATTR, String.class), chimeraManager);
+				rin.getRow(node2).get(ChimUtils.DEFAULT_STRUCTURE_KEY, String.class),
+				chimeraManager);
 		// Models can't be in a range...
 		if (cso1 == null || cso1 instanceof ChimeraModel || cso1 instanceof ChimeraChain
 				|| cso2 == null || cso2 instanceof ChimeraModel || cso2 instanceof ChimeraChain)
@@ -713,10 +716,11 @@ public class RINManager {
 		rin.getRow(rin).set(CyNetwork.NAME, networkName);
 
 		// Create new attributes
-		rin.getDefaultNodeTable().createColumn(ChimUtils.RESIDUE_ATTR, String.class, false);
+		// rin.getDefaultNodeTable().createColumn(ChimUtils.RESIDUE_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(ChimUtils.RINALYZER_ATTR, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SMILES_ATTR, String.class, false);
-		rin.getDefaultNodeTable().createColumn(STRUCTURE_ATTR, String.class, false);
+		rin.getDefaultNodeTable()
+				.createColumn(ChimUtils.DEFAULT_STRUCTURE_KEY, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SEED_ATTR, Boolean.class, false);
 		rin.getDefaultNodeTable().createColumn(CHAIN_ATTR, String.class, false);
 
@@ -753,6 +757,8 @@ public class RINManager {
 		if (chimObjs == null) {
 			return;
 		}
+		System.out.println("Annotate from " + chimObjs.size() + " chimera objects.");
+		// TODO: [!] What to do if there are two open models associated with the same network
 		for (ChimeraStructuralObject chimObj : chimObjs) {
 			if (chimObj instanceof ChimeraModel) {
 				// get attribute values

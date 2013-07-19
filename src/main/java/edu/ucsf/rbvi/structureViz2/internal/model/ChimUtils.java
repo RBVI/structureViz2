@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyIdentifiable;
+import org.cytoscape.model.CyRow;
+import org.cytoscape.model.CyTable;
 import org.slf4j.LoggerFactory;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
@@ -18,6 +22,7 @@ public abstract class ChimUtils {
 
 	public static String RESIDUE_ATTR = "ChimeraResidue";
 	public static String RINALYZER_ATTR = "RINalyzerResidue";
+	public static String DEFAULT_STRUCTURE_KEY = "pdbFileName";
 
 	/**
 	 * Parse the model number returned by Chimera and return the int value
@@ -225,6 +230,185 @@ public abstract class ChimUtils {
 		}
 	}
 
+	public static List<String> getStructureKeys(CyTable table, CyIdentifiable cyObj,
+			List<String> attrsFound) {
+		CyRow row = table.getRow(cyObj.getSUID());
+		List<String> cellList = new ArrayList<String>();
+		// iterate over attributes that contain structures
+		for (String column : attrsFound) {
+			CyColumn col = table.getColumn(column);
+			if (col == null) {
+				continue;
+			}
+
+			Class<?> colType = col.getType();
+			if (colType == String.class) {
+				String cell = row.get(column, String.class, "").trim();
+				if (cell.equals("")) {
+					continue;
+				}
+				// TODO: [Bug] Will break parsing if residueID contains commas
+				String[] cellArray = cell.split(",");
+				for (String str : cellArray) {
+					String[] keyParts = ChimUtils.getResKeyParts(str.trim());
+					if (keyParts[0] != null) {
+						cellList.add(keyParts[0]);
+					}
+				}
+			} else if (colType == List.class && col.getListElementType() == String.class) {
+				for (String str : row.getList(column, String.class)) {
+					String[] keyParts = ChimUtils.getResKeyParts(str.trim());
+					if (keyParts[0] != null) {
+						cellList.add(keyParts[0]);
+					}
+				}
+			} else {
+				continue;
+			}
+		}
+		return cellList;
+	}
+
+	public static List<String> getResidueKeys(CyTable table, CyIdentifiable cyObj,
+			List<String> attrsFound) {
+		CyRow row = table.getRow(cyObj.getSUID());
+		List<String> cellList = new ArrayList<String>();
+		// iterate over attributes that contain structures
+		for (String column : attrsFound) {
+			CyColumn col = table.getColumn(column);
+			if (col == null) {
+				continue;
+			}
+			Class<?> colType = col.getType();
+			if (colType == String.class) {
+				String cell = row.get(column, String.class, "").trim();
+				if (cell.equals("")) {
+					continue;
+				}
+				// TODO: [Bug] Will break parsing if residueID contains commas
+				String[] cellArray = cell.split(",");
+				for (String str : cellArray) {
+					if (!str.trim().equals("")) {
+						cellList.add(str.trim());
+					}
+				}
+			} else if (colType == List.class && col.getListElementType() == String.class) {
+				for (String str : row.getList(column, String.class)) {
+					if (!str.trim().equals("")) {
+						cellList.add(str.trim());
+					}
+				}
+			} else {
+				continue;
+			}
+		}
+		return cellList;
+	}
+
+	public static String[] getResKeyParts(String resKey) {
+		// [pdbID[.modelNo]#][residueID][.chainID]
+		// pdbID := 4-character code | "URL" | "path"
+		String[] resKeyParts = new String[4];
+		String[] split = resKey.split("#");
+		String resChain = null;
+		// if no "#" then it is either only a pdb id or a residue or a chain
+		if (split.length == 1) {
+			// pdb id without model
+			if (resKey.length() == 4 && resKey.indexOf("\\.") < 0) {
+				parseModelID(resKey, resKeyParts);
+			}
+			// pdb link or file
+			else if (resKey.startsWith("\"")) {
+				parseModelID(resKey, resKeyParts);
+			} else {
+				String[] splitSplit = resKey.split("\\.");
+				if (splitSplit.length == 1 || splitSplit[0].length() == 0) {
+					// only a chain or a residue
+					resChain = resKey;
+				} else {
+					try {
+						// residue and chain
+						Integer.parseInt(splitSplit[0]);
+						resChain = resKey;
+					} catch (NumberFormatException ex) {
+						// pdb with a model
+						parseModelID(resKey, resKeyParts);
+					}
+				}
+			}
+		} else if (split.length == 2) {
+			// model and residue+chain
+			parseModelID(split[0], resKeyParts);
+			resChain = split[1];
+		} else {
+			// model string with "#"
+			// TODO: [!] Are other possibilities?
+			parseModelID(resKey.substring(0, resKey.lastIndexOf("#")), resKeyParts);
+			resChain = resKey.substring(resKey.lastIndexOf("#") + 1, resKey.length());
+		}
+		if (resChain != null) {
+			String[] resChainSplit = resChain.split("\\.");
+			if (resChainSplit.length == 1) {
+				resKeyParts[2] = resChainSplit[0];
+			} else if (resChainSplit.length == 2) {
+				resKeyParts[2] = resChainSplit[0];
+				resKeyParts[3] = resChainSplit[1];
+			} else {
+				// too many dots?
+				System.err.println("Cannot parse residue identifier");
+			}
+		}
+		// String print = "";
+		// for (int i = 0; i < resKeyParts.length; i++) {
+		// if (resKeyParts[i] == null) {
+		// print += i + ": null\t";
+		// } else {
+		// print += i + ": " + resKeyParts[i] + ";";
+		// }
+		// }
+		// System.out.println(print);
+		return resKeyParts;
+	}
+
+	// TODO: [!] Test new specs for submodels!
+	public static void parseModelID(String modelID, String[] resKeyParts) {
+		if (modelID.startsWith("\"")) {
+			if (modelID.endsWith("\"")) {
+				resKeyParts[0] = modelID.substring(1, modelID.length() - 1);
+				return;
+			} else {
+				try {
+					Integer.parseInt(modelID.substring(modelID.lastIndexOf("\"") + 2,
+							modelID.length()));
+					resKeyParts[0] = modelID.substring(0, modelID.lastIndexOf("\"") - 1);
+					resKeyParts[1] = modelID.substring(modelID.lastIndexOf("\"") + 2,
+							modelID.length());
+				} catch (NumberFormatException ex) {
+					resKeyParts[0] = modelID.substring(1);
+				}
+			}
+		} else {
+			String[] modelIDNo = modelID.split("\\.");
+			if (modelIDNo.length == 1) {
+				resKeyParts[0] = modelIDNo[0];
+			} else if (modelIDNo.length == 2) {
+				try {
+					Integer.parseInt(modelIDNo[1]);
+					resKeyParts[0] = modelIDNo[0];
+					resKeyParts[1] = modelIDNo[1];
+				} catch (NumberFormatException ex) {
+					resKeyParts[0] = modelID;
+				}
+			} else {
+				System.out.println("Cannot parse residue identifier.");
+			}
+		}
+	}
+
+	public static String toModelName(String structureKey) {
+		return "";
+	}
+
 	/**
 	 * This method takes a Cytoscape attribute specification ([structure#][residue][.chainID]) and
 	 * returns the lowest-level object referenced by the spec. For example, if the spec is "1tkk",
@@ -237,8 +421,7 @@ public abstract class ChimUtils {
 	 *            the Chimera object we're currently using
 	 * @return a ChimeraStructuralObject of the lowest type
 	 */
-	// TODO: [!] Adapt residue from attribute method for new specs
-	public static ChimeraStructuralObject fromAttribute(String attrSpec,
+	public static ChimeraStructuralObject fromAttributeOld(String attrSpec,
 			ChimeraManager chimeraManager) {
 		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
@@ -344,6 +527,70 @@ public abstract class ChimUtils {
 
 		} catch (Exception ex) {
 			// ex.printStackTrace();
+			// ignore
+		}
+		return null;
+	}
+
+	public static ChimeraStructuralObject fromAttribute(String attrSpec,
+			ChimeraManager chimeraManager) {
+		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
+			// No support for either lists or ranges
+			return null;
+		}
+		String[] modelIDNoResChain = getResKeyParts(attrSpec);
+
+		ChimeraModel chimeraModel = null;
+		ChimeraChain chimeraChain = null;
+		ChimeraResidue chimeraResidue = null;
+
+		// System.out.println("Getting object from attribute: "+attrSpec);
+		try {
+			if (modelIDNoResChain[0] != null) {
+				String model = modelIDNoResChain[0];
+				List<ChimeraModel> models = chimeraManager.getChimeraModels(model,
+						ModelType.PDB_MODEL);
+				if (models.size() == 1) {
+					chimeraModel = models.get(0);
+				} else {
+					try {
+						chimeraModel = chimeraManager.getChimeraModel(Integer.valueOf(model), 0);
+					} catch (NumberFormatException ex) {
+						// ignore
+					}
+				}
+			}
+			if (chimeraModel == null) {
+				// TODO: [!] Figure out what to do if no model can be matched!
+				chimeraModel = chimeraManager.getChimeraModel();
+			}
+			// System.out.println("ChimeraModel = " + chimeraModel);
+
+			if (modelIDNoResChain[3] != null) {
+				chimeraChain = chimeraModel.getChain(modelIDNoResChain[3]);
+				// System.out.println("ChimeraChain = " + chimeraChain);
+			}
+			if (modelIDNoResChain[2] != null) {
+				String residue = modelIDNoResChain[2];
+				if (chimeraChain != null) {
+					chimeraResidue = chimeraChain.getResidue(residue);
+				} else {
+					chimeraResidue = chimeraModel.getResidue("_", residue);
+				}
+				// System.out.println("ChimeraResidue = " + chimeraResidue);
+			}
+
+			if (chimeraResidue != null)
+				return chimeraResidue;
+
+			if (chimeraChain != null)
+				return chimeraChain;
+
+			if (chimeraModel != null)
+				return chimeraModel;
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			// ignore
 		}
 		return null;

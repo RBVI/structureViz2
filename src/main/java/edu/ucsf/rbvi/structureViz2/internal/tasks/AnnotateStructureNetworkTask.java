@@ -42,8 +42,6 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 					rinManager.annotateSS(network);
 				} else if (resAttr.equals("Coordinates")) {
 					rinManager.annotateCoord(network, "resCoord");
-				} else if (resAttr.equals("averageBFactor") || resAttr.equals("averageOccupancy")) {
-					rinManager.annotate(network, resAttr, rinManager.getAttrCommand(resAttr));
 				} else {
 					rinManager.annotate(network, resAttr, resAttr);
 				}

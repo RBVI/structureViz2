@@ -117,18 +117,18 @@ public class ChimeraManager {
 		}
 	}
 
-	public List<ChimeraModel> openModel(String modelName, ModelType type) {
-		System.out.println("open " + modelName);
+	public List<ChimeraModel> openModel(String modelPath, ModelType type) {
+		System.out.println("open " + modelPath);
 		stopListening();
 		List<String> response = null;
 		// TODO: [Optional] Handle modbase models
 		if (type == ModelType.MODBASE_MODEL) {
-			response = sendChimeraCommand("open modbase:" + modelName, true);
+			response = sendChimeraCommand("open modbase:" + modelPath, true);
 			// } else if (type == ModelType.SMILES) {
 			// response = sendChimeraCommand("open smiles:" + modelName, true);
 			// modelName = "smiles:" + modelName;
 		} else {
-			response = sendChimeraCommand("open " + modelName, true);
+			response = sendChimeraCommand("open " + modelPath, true);
 		}
 		if (response == null) {
 			// something went wrong
@@ -145,6 +145,14 @@ public class ChimeraManager {
 						if (currentModelsMap.containsKey(modelNumber)) {
 							continue;
 						}
+						String modelName = modelPath;
+						// TODO: [!] Convert path to name in a better way!
+						if (modelPath.lastIndexOf(File.separator) > 0) {
+							modelName = modelPath
+									.substring(modelPath.lastIndexOf(File.separator) + 1);
+						} else if (modelPath.lastIndexOf("/") > 0) {
+							modelName = modelPath.substring(modelPath.lastIndexOf("/") + 1);
+						}
 						ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0],
 								modelNumbers[1]);
 						currentModelsMap.put(modelNumber, newModel);
@@ -154,6 +162,7 @@ public class ChimeraManager {
 				}
 			}
 		} else {
+			// TODO: [!] Open smiles from file would fail. Do we need it?
 			// If parsing fails, iterate over all open models to get the right one
 			List<ChimeraModel> openModels = getModelList();
 			for (ChimeraModel openModel : openModels) {
@@ -161,8 +170,8 @@ public class ChimeraManager {
 				if (openModelName.endsWith("...")) {
 					openModelName = openModelName.substring(0, openModelName.length() - 3);
 				}
-				if (modelName.startsWith(openModelName)) {
-					openModel.setModelName(modelName);
+				if (modelPath.startsWith(openModelName)) {
+					openModel.setModelName(modelPath);
 					int modelNumber = ChimUtils.makeModelKey(openModel.getModelNumber(),
 							openModel.getSubModelNumber());
 					if (!currentModelsMap.containsKey(modelNumber)) {

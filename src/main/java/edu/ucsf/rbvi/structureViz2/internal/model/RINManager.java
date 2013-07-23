@@ -89,7 +89,7 @@ public class RINManager {
 	public void includeHBonds(CyNetwork rin, Map<String, CyNode> nodeMap, int includeInteractions,
 			boolean ignoreWater, boolean removeRedContacts, boolean addHydrogens,
 			boolean relaxHBonds, double angleSlop, double distSlop) {
-		System.out.println("Getting Hydrogen Bonds");
+		System.out.println("Getting hydrogen bonds");
 		List<String> replyList = chimeraManager.sendChimeraCommand(
 				getHBondCommand(includeInteractions, relaxHBonds, angleSlop, distSlop), true);
 		if (replyList != null) {
@@ -98,7 +98,7 @@ public class RINManager {
 	}
 
 	public void includeConnectivity(CyNetwork rin) {
-		System.out.println("Getting connectivity ...");
+		System.out.println("Getting connectivity");
 		List<String> replyList = chimeraManager.sendChimeraCommand("list physicalchains", true);
 		if (replyList != null) {
 			parseConnectivityReplies(replyList, rin);
@@ -108,7 +108,7 @@ public class RINManager {
 	public void includeDistances(CyNetwork rin, Map<String, CyNode> nodeMap,
 			int includeInteractions, boolean ignoreWater, boolean removeRedContacts,
 			double distCutoff) {
-		System.out.println("Getting distances ...");
+		System.out.println("Getting distances");
 		List<String> replyList = chimeraManager.sendChimeraCommand(
 				getDistanceCommand(includeInteractions), true);
 		if (replyList != null) {
@@ -133,7 +133,7 @@ public class RINManager {
 					rin.getRow(edge).set(
 							CyNetwork.NAME,
 							rin.getRow(source).get(CyNetwork.NAME, String.class) + " (" + COMBIEDGE
-									+ ")" + rin.getRow(target).get(CyNetwork.NAME, String.class));
+									+ ") " + rin.getRow(target).get(CyNetwork.NAME, String.class));
 					rin.getRow(edge).set(CyEdge.INTERACTION, COMBIEDGE);
 					rin.getRow(edge)
 							.set(INTSUBTYPE_ATTR, COMBIEDGE + " all" + SUBTYPEDELIM + "all");
@@ -388,6 +388,7 @@ public class RINManager {
 			range[1] = ChimUtils.getResidue(end, chimeraManager);
 			if (range[0] != null && range[1] != null) {
 				rangeList.add(range);
+				// System.out.println("Added range: " + range[0] + " and " + range[1]);
 			}
 		}
 
@@ -522,8 +523,8 @@ public class RINManager {
 
 	private CyEdge createConnectivityEdge(CyNetwork rin, CyNode node1, CyNode node2) {
 		CyEdge edge = rin.addEdge(node1, node2, true);
-		String edgeName = rin.getRow(node1).get(CyNetwork.NAME, String.class) + " (" + BBEDGE + ")"
-				+ rin.getRow(node2).get(CyNetwork.NAME, String.class);
+		String edgeName = rin.getRow(node1).get(CyNetwork.NAME, String.class) + " (" + BBEDGE
+				+ ") " + rin.getRow(node2).get(CyNetwork.NAME, String.class);
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
 		rin.getRow(edge).set(CyEdge.INTERACTION, BBEDGE);
 		rin.getRow(edge).set(INTSUBTYPE_ATTR, BBEDGE + " mc" + SUBTYPEDELIM + "mc");
@@ -669,6 +670,12 @@ public class RINManager {
 		ChimeraResidue residue1 = (ChimeraResidue) cso1;
 		ChimeraResidue residue2 = (ChimeraResidue) cso2;
 
+		if (!inChainRange(range, residue1.getChainId())) {
+			return false;
+		} else if (!inChainRange(range, residue2.getChainId())) {
+			return false;
+		}
+
 		int startIndex = Integer.parseInt(range[0].getIndex());
 		int endIndex = Integer.parseInt(range[1].getIndex());
 		int residueIndex1 = Integer.parseInt(residue1.getIndex());
@@ -757,7 +764,7 @@ public class RINManager {
 		if (chimObjs == null) {
 			return;
 		}
-		System.out.println("Annotate from " + chimObjs.size() + " chimera objects.");
+		// System.out.println("Annotate from " + chimObjs.size() + " chimera objects.");
 		// TODO: [!] What to do if there are two open models associated with the same network
 		for (ChimeraStructuralObject chimObj : chimObjs) {
 			if (chimObj instanceof ChimeraModel) {

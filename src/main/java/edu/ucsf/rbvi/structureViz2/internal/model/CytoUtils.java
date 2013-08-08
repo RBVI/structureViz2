@@ -38,7 +38,7 @@ public abstract class CytoUtils {
 			if (pairs.get(cyObj).size() > 0) {
 				String nodeName = network.getRow(cyObj).get(CyNetwork.NAME, String.class);
 				for (String name : pairs.get(cyObj)) {
-					pairsMap.put(nodeName + " \t" + name, cyObj);
+					pairsMap.put(nodeName + "|" + name, cyObj);
 				}
 			}
 		}
@@ -49,10 +49,12 @@ public abstract class CytoUtils {
 			Map<String, CyIdentifiable> allPairs) {
 		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();
 		for (String selectedPair : selectedPairs) {
-			String[] names = selectedPair.split("\t");
+			String[] names = selectedPair.split("\\|");
+			System.out.println("Input: "+selectedPair);
 			if (names.length != 2) {
 				continue;
 			}
+			System.out.println("Names: "+names[0]+", "+names[1]);
 			CyIdentifiable cyObj = allPairs.get(selectedPair);
 			if (!selectedPairsMap.containsKey(cyObj)) {
 				selectedPairsMap.put(cyObj, new ArrayList<String>());

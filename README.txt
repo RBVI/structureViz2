@@ -15,7 +15,7 @@ Nature Protocol: http://dx.doi.org/doi:10.1038/nprot.2012.004
 
 2. Installation
 2.1. Requirements
-- Cytoscape 3.0.1 (http://www.cytoscape.org/download.html)
+- Cytoscape 3.1.0 (unofficial installer is available at http://www.cgl.ucsf.edu/home/scooter/Cytoscape310/)
 - Cytoscape apps: structureViz2, RINalyzer2, setsApp
 - UCSF Chimera 1.8 and above (http://www.cgl.ucsf.edu/chimera/download.html)
 - The daily build of UCSF Chimera for generating trajectory networks

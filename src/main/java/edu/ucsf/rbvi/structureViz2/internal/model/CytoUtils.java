@@ -50,11 +50,11 @@ public abstract class CytoUtils {
 		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();
 		for (String selectedPair : selectedPairs) {
 			String[] names = selectedPair.split("\\|");
-			System.out.println("Input: "+selectedPair);
+			System.out.println("Input: " + selectedPair);
 			if (names.length != 2) {
 				continue;
 			}
-			System.out.println("Names: "+names[0]+", "+names[1]);
+			System.out.println("Names: " + names[0] + ", " + names[1]);
 			CyIdentifiable cyObj = allPairs.get(selectedPair);
 			if (!selectedPairsMap.containsKey(cyObj)) {
 				selectedPairsMap.put(cyObj, new ArrayList<String>());
@@ -75,63 +75,60 @@ public abstract class CytoUtils {
 		return "";
 	}
 
-	public static void setDefaultChimeraPath(BundleContext bc, String pathPropertyKey,
-			String pathPropertyValue) {
+	public static void setDefaultChimeraPath(BundleContext bc, String chimeraPathPropertyName,
+			String chimeraPathPropertyKey, String chimeraPathPropertyValue) {
 
 		// Find if the CyProperty already exists, if not create one with default value.
-		CyProperty<Properties> chimeraPathProperty = null;
+		boolean flag = false;
 		CySessionManager mySessionManager = (CySessionManager) bc.getService(bc
 				.getServiceReference(CySessionManager.class.getName()));
 		CySession session = mySessionManager.getCurrentSession();
 		if (session == null) {
 			return;
 		}
-		Set<CyProperty<?>> props = session.getProperties();
-		if (props == null) {
+		Set<CyProperty<?>> sessionProperties = session.getProperties();
+		if (sessionProperties == null) {
 			return;
 		}
-		boolean flag = false;
-		for (CyProperty<?> prop : props) {
-			if (prop.getName() != null) {
-				if (prop.getName().equals(pathPropertyKey)) {
-					chimeraPathProperty = (CyProperty<Properties>) prop;
-					chimeraPathProperty.getProperties().setProperty(pathPropertyKey,
-							pathPropertyValue);
-					flag = true;
-					break;
-				}
+		for (CyProperty<?> cyProperty : sessionProperties) {
+			if (cyProperty.getName() != null
+					&& cyProperty.getName().equals(chimeraPathPropertyName)) {
+				Properties props = (Properties) cyProperty.getProperties();
+				props.setProperty(chimeraPathPropertyKey, chimeraPathPropertyValue);
+				flag = true;
+				break;
 			}
 		}
 
 		// If the property does not exist, create it
 		if (!flag) {
 			Properties chimeraPathProps = new Properties();
-			chimeraPathProps.setProperty(pathPropertyKey, pathPropertyValue);
-			chimeraPathProperty = new SimpleCyProperty(pathPropertyKey, chimeraPathProps,
-					String.class, CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
+			chimeraPathProps.setProperty(chimeraPathPropertyKey, chimeraPathPropertyValue);
+			CyProperty<?> chimeraPathProperty = new SimpleCyProperty(chimeraPathPropertyName,
+					chimeraPathProps, Properties.class,
+					CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
+			bc.registerService(CyProperty.class.getName(), chimeraPathProperty, new Properties());
 		}
-		bc.registerService(CyProperty.class.getName(), chimeraPathProperty, new Properties());
+
 	}
 
-	public static String getDefaultChimeraPath(BundleContext bc, String pathPropertyKey) {
+	public static String getDefaultChimeraPath(BundleContext bc, String chimeraPathPropertyName,
+			String chimeraPathPropertyKey) {
 		// Find if the CyProperty already exists, if not create one with default value.
-		CyProperty<Properties> chimeraPathProperty = null;
 		CySessionManager mySessionManager = (CySessionManager) bc.getService(bc
 				.getServiceReference(CySessionManager.class.getName()));
 		CySession session = mySessionManager.getCurrentSession();
 		if (session == null) {
 			return "";
 		}
-		Set<CyProperty<?>> props = session.getProperties();
-		if (props == null) {
+		Set<CyProperty<?>> sessionProperties = session.getProperties();
+		if (sessionProperties == null) {
 			return "";
 		}
-		for (CyProperty<?> prop : props) {
-			if (prop.getName() != null) {
-				if (prop.getName().equals(pathPropertyKey)) {
-					chimeraPathProperty = (CyProperty<Properties>) prop;
-					return chimeraPathProperty.getProperties().getProperty(pathPropertyKey);
-				}
+		for (CyProperty<?> prop : sessionProperties) {
+			if (prop.getName() != null && prop.getName().equals(chimeraPathPropertyName)) {
+				Properties chimeraPathProperties = (Properties) prop.getProperties();
+				return chimeraPathProperties.getProperty(chimeraPathPropertyKey);
 			}
 		}
 		return "";

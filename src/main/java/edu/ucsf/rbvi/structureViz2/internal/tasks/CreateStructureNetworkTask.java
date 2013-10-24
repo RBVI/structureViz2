@@ -10,7 +10,6 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.task.NetworkTaskFactory;
-import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
@@ -34,6 +33,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 // TODO: [Bug] Different number of nodes and edges in consecutive runs (only when adding hydrogens?)
 // TODO: [Bug] Selection disappears sometimes upon RIN creation
 // TODO: [Optional] Add menus for adding each type of edges to an already existing network?
+// TODO: Reduce number of same edges, e.g. create distinguishable interaction subtypes
 public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Tunable(description = "Name of new network", groups = "General")
@@ -267,11 +267,11 @@ public class CreateStructureNetworkTask extends AbstractTask {
 					annotateFactory.createTaskIterator(network), tunables));
 		}
 		// Set vizmap
-		NetworkViewTaskFactory rinalyzerVisProps = (NetworkViewTaskFactory) structureManager
-				.getService(NetworkViewTaskFactory.class,
-						"(&(commandNamespace=rinalyzer)(command=initRinVisProps))");
+		NetworkTaskFactory rinalyzerVisProps = (NetworkTaskFactory) structureManager.getService(
+				NetworkTaskFactory.class,
+				"(&(commandNamespace=rinalyzer)(command=initRinVisProps))");
 		if (rinalyzerVisProps != null) {
-			insertTasksAfterCurrentTask(rinalyzerVisProps.createTaskIterator(rinView));
+			insertTasksAfterCurrentTask(rinalyzerVisProps.createTaskIterator(network));
 		} else {
 			VisualMappingManager cyVmManager = (VisualMappingManager) structureManager
 					.getService(VisualMappingManager.class);

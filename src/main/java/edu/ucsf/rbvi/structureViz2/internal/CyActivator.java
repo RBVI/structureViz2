@@ -210,7 +210,7 @@ public class CyActivator extends AbstractCyActivator {
 		NetworkViewTaskFactory syncColorsFactory = new SyncColorsTaskFactory(structureManager);
 		Properties syncColorsProps = new Properties();
 		syncColorsProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		syncColorsProps.setProperty(TITLE, "Syncronize Colors");
+		syncColorsProps.setProperty(TITLE, "Syncronize Residue Colors");
 		syncColorsProps.setProperty(IN_MENU_BAR, "true");
 		syncColorsProps.setProperty(COMMAND, "syncColors");
 		syncColorsProps.setProperty(COMMAND_NAMESPACE, "structureViz");

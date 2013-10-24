@@ -47,6 +47,9 @@ public class StructureManager {
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList", "Residues" };
 
+	private final String chimeraPropertyName = "chimera";
+	private final String chimeraPathPropertyKey = "LastChimeraPath";
+
 	public enum ModelType {
 		PDB_MODEL, MODBASE_MODEL, SMILES
 	};
@@ -125,7 +128,8 @@ public class StructureManager {
 		this.structureNetFactory = (CreateStructureNetworkTaskFactory) factory;
 	}
 
-	// TODO: [!] Handle case where one network is associated with two models that are opened at the same time
+	// TODO: [!] Handle case where one network is associated with two models that are opened at the
+	// same time
 	public boolean openStructures(CyNetwork network,
 			Map<CyIdentifiable, List<String>> chimObjNames, ModelType type) {
 		if (network == null || chimObjNames.size() == 0) {
@@ -1033,8 +1037,9 @@ public class StructureManager {
 			}
 		}
 
-		// if no network settings, check if the last chimera path is savd in the session
-		String lastPath = CytoUtils.getDefaultChimeraPath(bundleContext, "LastChimeraPath");
+		// if no network settings, check if the last chimera path is saved in the session
+		String lastPath = CytoUtils.getDefaultChimeraPath(bundleContext, chimeraPropertyName,
+				chimeraPathPropertyKey);
 		if (!lastPath.equals("")) {
 			pathList.add(lastPath);
 			return pathList;
@@ -1056,7 +1061,8 @@ public class StructureManager {
 	}
 
 	public void setChimeraPathProeprty(String path) {
-		CytoUtils.setDefaultChimeraPath(bundleContext, "LastChimeraPath", path);
+		CytoUtils.setDefaultChimeraPath(bundleContext, chimeraPropertyName, chimeraPathPropertyKey,
+				path);
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,12 +19,11 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 public class OpenStructureFileTask extends AbstractTask {
 
 	private StructureManager structureManager;
+
 	private CyNetworkView netView;
 
-	// TODO: [!] Should be a file tunable
-	// @Tunable(description = "Structure file", params = "fileCategory=unspecified;input=true")
-	@Tunable(description = "Structure file")
-	public String structureFile = null;
+	@Tunable(description = "Structure file", params = "fileCategory=unspecified;input=true")
+	public File structureFile = null;
 
 	public OpenStructureFileTask(StructureManager structureManager, CyNetworkView netView) {
 		this.structureManager = structureManager;
@@ -32,7 +32,7 @@ public class OpenStructureFileTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		if (structureFile == null) {
+		if (structureFile == null || !structureFile.isFile()) {
 			return;
 		}
 		taskMonitor.setTitle("Open Structure from File");
@@ -40,7 +40,7 @@ public class OpenStructureFileTask extends AbstractTask {
 		Map<CyIdentifiable, List<String>> structuresToOpen = new HashMap<CyIdentifiable, List<String>>();
 		List<String> structures = new ArrayList<String>();
 		// structureFile.getAbsolutePath()
-		structures.add(structureFile);
+		structures.add(structureFile.getAbsolutePath());
 		structuresToOpen.put(netView.getModel(), structures);
 		structureManager.openStructures(netView.getModel(), structuresToOpen, ModelType.PDB_MODEL);
 

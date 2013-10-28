@@ -103,7 +103,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		openStructuresProps.setProperty(IN_MENU_BAR, "true");
-		openStructuresProps.setProperty(MENU_GRAVITY, "1.0");
+		openStructuresProps.setProperty(MENU_GRAVITY, "1.1");
 		registerService(bc, openStructures, NodeViewTaskFactory.class, openStructuresProps);
 		registerService(bc, openStructures, NetworkViewTaskFactory.class, openStructuresProps);
 
@@ -115,7 +115,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresEdgeProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
 		openStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
-		openStructuresEdgeProps.setProperty(MENU_GRAVITY, "1.0");
+		openStructuresEdgeProps.setProperty(MENU_GRAVITY, "1.2");
 		registerService(bc, openStructuresEdge, EdgeViewTaskFactory.class, openStructuresEdgeProps);
 		registerService(bc, openStructuresEdge, NetworkViewTaskFactory.class,
 				openStructuresEdgeProps);
@@ -128,7 +128,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStructureFileProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructureFileProps.setProperty(ENABLE_FOR, "networkAndView");
 		// openStructureFileProps.setProperty(IN_MENU_BAR, "true");
-		// openStructureFileProps.setProperty(MENU_GRAVITY, "1.0");
+		// openStructureFileProps.setProperty(MENU_GRAVITY, "1.3");
 		registerService(bc, openStructureFile, NetworkViewTaskFactory.class, openStructureFileProps);
 
 		TaskFactory alignStructures = new AlignStructuresTaskFactory(structureManager);
@@ -164,7 +164,7 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresProps.setProperty(IN_MENU_BAR, "true");
-		closeStructuresProps.setProperty(MENU_GRAVITY, "4.0");
+		closeStructuresProps.setProperty(MENU_GRAVITY, "4.1");
 		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
 
@@ -176,7 +176,7 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresEdgeProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
-		closeStructuresEdgeProps.setProperty(MENU_GRAVITY, "4.0");
+		closeStructuresEdgeProps.setProperty(MENU_GRAVITY, "4.2");
 		registerService(bc, closeStructuresEdge, EdgeViewTaskFactory.class,
 				closeStructuresEdgeProps);
 		registerService(bc, closeStructuresEdge, NetworkViewTaskFactory.class,
@@ -188,7 +188,6 @@ public class CyActivator extends AbstractCyActivator {
 		createStructureNetProps.setProperty(TITLE, "Create Residue Network");
 		createStructureNetProps.setProperty(COMMAND, "createRIN");
 		createStructureNetProps.setProperty(COMMAND_NAMESPACE, "structureViz");
-		createStructureNetProps.setProperty(ENABLE_FOR, "network");
 		createStructureNetProps.setProperty(IN_MENU_BAR, "true");
 		createStructureNetProps.setProperty(MENU_GRAVITY, "5.0");
 		createStructureNetProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
@@ -257,7 +256,6 @@ public class CyActivator extends AbstractCyActivator {
 		settingsProps.setProperty(COMMAND, "set");
 		settingsProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		settingsProps.setProperty(IN_MENU_BAR, "true");
-		// settingsProps.setProperty(ENABLE_FOR, "network");
 		settingsProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		settingsProps.setProperty(MENU_GRAVITY, "11.0");
 		registerService(bc, settingsTask, NetworkTaskFactory.class, settingsProps);

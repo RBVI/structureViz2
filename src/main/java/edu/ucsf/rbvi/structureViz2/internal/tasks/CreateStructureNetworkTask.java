@@ -36,67 +36,67 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 // TODO: Reduce number of same edges, e.g. create distinguishable interaction subtypes
 public class CreateStructureNetworkTask extends AbstractTask {
 
-	@Tunable(description = "Name of new network", groups = "General")
+	@Tunable(description = "Name of new network", groups = "General", gravity = 1.1)
 	public String networkName;
 
-	@Tunable(description = "Include interactions", groups = "General")
+	@Tunable(description = "Include interactions", groups = "General", gravity = 1.2)
 	public ListSingleSelection<String> includeInteracions;
 
-	@Tunable(description = "Add hydrogens", groups = "General")
+	@Tunable(description = "Add hydrogens", groups = "General", gravity = 1.3)
 	public boolean addHydrogens;
 
-	@Tunable(description = "Ignore water", groups = "General")
+	@Tunable(description = "Ignore water", groups = "General", gravity = 1.4)
 	public boolean ignoreWater;
 
-	@Tunable(description = "Include combined edges", groups = "General")
+	@Tunable(description = "Include combined edges", groups = "General", gravity = 1.5)
 	public boolean includeCombiEdges;
 
-	@Tunable(description = "Include contacts", groups = "Contacts")
+	@Tunable(description = "Include contacts", groups = "Contacts", gravity = 2.1)
 	public boolean includeContacts;
 
-	@Tunable(description = "Overlap cutoff", groups = "Contacts", dependsOn = "includeContacts=true")
+	@Tunable(description = "Overlap cutoff", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.2)
 	public double overlapCutoffCont;
 
-	@Tunable(description = "HBond allowance", groups = "Contacts", dependsOn = "includeContacts=true")
+	@Tunable(description = "HBond allowance", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.3)
 	public double hbondAllowanceCont;
 
-	@Tunable(description = "Bond separation", groups = "Contacts", dependsOn = "includeContacts=true")
+	@Tunable(description = "Bond separation", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.4)
 	public int bondSepCont;
 
-	@Tunable(description = "Include clashes", groups = "Clashes")
+	@Tunable(description = "Include clashes", groups = "Clashes", gravity = 3.1)
 	public boolean includeClashes;
 
-	@Tunable(description = "Overlap cutoff", groups = "Clashes", dependsOn = "includeClashes=true")
+	@Tunable(description = "Overlap cutoff", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.2)
 	public double overlapCutoffClash;
 
-	@Tunable(description = "HBond allowance", groups = "Clashes", dependsOn = "includeClashes=true")
+	@Tunable(description = "HBond allowance", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.3)
 	public double hbondAllowanceClash;
 
-	@Tunable(description = "Bond separation", groups = "Clashes", dependsOn = "includeClashes=true")
+	@Tunable(description = "Bond separation", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.4)
 	public int bondSepClash;
 
-	@Tunable(description = "Include hydrogen bonds", groups = "Hydrogen bonds")
+	@Tunable(description = "Include hydrogen bonds", groups = "Hydrogen bonds", gravity = 4.1)
 	public boolean includeHBonds;
 
-	@Tunable(description = "Remove redundant contacts", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true")
+	@Tunable(description = "Remove redundant contacts", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true", gravity = 4.2)
 	public boolean removeRedContacts;
 
-	@Tunable(description = "Add tolerances to strict criteria", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true")
+	@Tunable(description = "Add tolerances to strict criteria", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true", gravity = 4.3)
 	public boolean relaxHBonds;
 
-	@Tunable(description = "Distance tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true")
+	@Tunable(description = "Distance tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.4)
 	public double distSlop;
 
-	@Tunable(description = "Angle tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true")
+	@Tunable(description = "Angle tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.5)
 	public double angleSlop;
 
-	@Tunable(description = "Include connectivity", groups = "Connectivity")
+	@Tunable(description = "Include connectivity", groups = "Connectivity", gravity = 5.1)
 	public boolean includeConnectivity;
 
-	@Tunable(description = "Include distances between CA atoms", groups = "Distance")
+	@Tunable(description = "Include distances between CA atoms", groups = "Distance", gravity = 6.1)
 	public boolean includeDistance;
 
-	@Tunable(description = "Distance cutoff (in angstoms)", groups = "Distance")
+	@Tunable(description = "Distance cutoff (in angstoms)", groups = "Distance", gravity = 6.2)
 	public double distCutoff;
 
 	// @Tunable(description =

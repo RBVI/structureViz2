@@ -24,10 +24,10 @@ public class OpenStructuresTask extends AbstractTask {
 	private Map<String, CyIdentifiable> structruesMap;
 	private Map<String, CyIdentifiable> chemStructruesMap;
 
-	@Tunable(description = "Open structures")
+	@Tunable(description = "Open structures", gravity = 1.0)
 	public ListMultipleSelection<String> structureTunable;
 
-	@Tunable(description = "Open chemical structures")
+	@Tunable(description = "Open chemical structures", gravity = 2.0)
 	public ListMultipleSelection<String> chemTunable;
 
 	public OpenStructuresTask(List<CyIdentifiable> nodeList, CyNetworkView netView,

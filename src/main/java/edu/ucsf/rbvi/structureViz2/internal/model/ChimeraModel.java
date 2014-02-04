@@ -452,12 +452,11 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	}
 
 	/**
-	 * Return a string representation for the model.
+	 * Return a string representation for the model. Shorten if longer than 100 characters.
 	 */
 	public String toString() {
 		String modelName = "";
-		// String displayName = name;
-		// TODO: [Optional] Shorten model names in the MND
+		// TODO: [Optional] Change cutoff for shortening model names in the MND
 		if (getChainCount() > 0) {
 			modelName = "Model " + toSpec() + " " + name + " (" + getChainCount() + " chains, "
 					+ getResidueCount() + " residues)";
@@ -525,11 +524,10 @@ public class ChimeraModel implements ChimeraStructuralObject {
 			cytoName = cytoName.substring(0, cytoName.length() - 2);
 		}
 		cytoName += "]";
-
 		String nodeName = modelName + cytoName;
-		// if (nodeName.length() > 30) {
-		// nodeName = nodeName.substring(0, 30) + "...";
-		// }
+		if (nodeName.length() > 100) {
+			nodeName = nodeName.substring(0, 100) + "...";
+		}
 		return nodeName;
 	}
 }

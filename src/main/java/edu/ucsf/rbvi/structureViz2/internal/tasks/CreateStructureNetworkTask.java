@@ -11,6 +11,8 @@ import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
+import org.cytoscape.view.layout.CyLayoutAlgorithm;
+import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
@@ -19,6 +21,7 @@ import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
+import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.TunableSetter;
@@ -90,7 +93,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Tunable(description = "Angle tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.5)
 	public double angleSlop;
 
-	@Tunable(description = "Include connectivity", groups = "Connectivity", gravity = 5.1)
+	@Tunable(description = "Include (backbone) connectivity", groups = "Connectivity", gravity = 5.1)
 	public boolean includeConnectivity;
 
 	@Tunable(description = "Include distances between CA atoms", groups = "Distance", gravity = 6.1)
@@ -159,7 +162,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 		// add hydrogens first
 		if (addHydrogens) {
-			System.out.println("Adding hydrogens");
+			// System.out.println("Adding hydrogens");
 			taskMonitor.setStatusMessage("Adding hydrogens ...");
 			chimeraManager.sendChimeraCommand("addh hbond true", false);
 		}
@@ -226,32 +229,9 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		CyNetworkViewManager cyNetworkViewManager = (CyNetworkViewManager) structureManager
 				.getService(CyNetworkViewManager.class);
 
-		// remove single nodes
-		// List<CyNode> singleNodes = new ArrayList<CyNode>();
-		// for (CyNode node : network.getNodeList()) {
-		// if (network.getAdjacentEdgeList(node, Type.ANY).size() == 0) {
-		// singleNodes.add(node);
-		// }
-		// }
-		// network.removeNodes(singleNodes);
-
 		// Create a network view
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
 		cyNetworkViewManager.addNetworkView(rinView);
-		// Do a layout
-		// TODO: [3.1] Do a RIN Layout
-		// CyLayoutAlgorithmManager cyLayoutManager = (CyLayoutAlgorithmManager)
-		// structureViz
-		// .getService(CyLayoutAlgorithmManager.class);
-		// CyLayoutAlgorithm layout = cyLayoutManager.getDefaultLayout();
-		// insertTasksAfterCurrentTask(layout.createTaskIterator(rinView,
-		// layout.getDefaultLayoutContext(), layout.ALL_NODE_VIEWS, null));
-		ApplyPreferredLayoutTaskFactory layoutTaskFactory = (ApplyPreferredLayoutTaskFactory) structureManager
-				.getService(ApplyPreferredLayoutTaskFactory.class);
-		Set<CyNetworkView> views = new HashSet<CyNetworkView>();
-		views.add(rinView);
-		insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
-
 		// annotate
 		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
 				structureManager);
@@ -266,6 +246,25 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			insertTasksAfterCurrentTask(tunableSetter.createTaskIterator(
 					annotateFactory.createTaskIterator(network), tunables));
 		}
+
+		// Apply RIN Layout and if not found, do a preferred
+		// TODO: [Release] Enable once the layout is centered
+		// CyLayoutAlgorithmManager manager = (CyLayoutAlgorithmManager) structureManager
+		// .getService(CyLayoutAlgorithmManager.class);
+		// CyLayoutAlgorithm rinlayout = manager.getLayout("rin-layout");
+		// if (rinlayout != null) {
+		// TaskManager<?, ?> taskManager = (TaskManager<?, ?>) structureManager
+		// .getService(TaskManager.class);
+		// taskManager.execute(rinlayout.createTaskIterator(rinView,
+		// rinlayout.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null));
+		// } else {
+		ApplyPreferredLayoutTaskFactory layoutTaskFactory = (ApplyPreferredLayoutTaskFactory) structureManager
+				.getService(ApplyPreferredLayoutTaskFactory.class);
+		Set<CyNetworkView> views = new HashSet<CyNetworkView>();
+		views.add(rinView);
+		insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
+		// }
+
 		// Set vizmap
 		NetworkTaskFactory rinalyzerVisProps = (NetworkTaskFactory) structureManager.getService(
 				NetworkTaskFactory.class,

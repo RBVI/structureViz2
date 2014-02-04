@@ -21,7 +21,7 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
-// TODO: [Bug] No dist edges between ligands and others 
+// TODO: [Optional] No dist edges between ligands and others since we only consider distance between C_alphas
 public class RINManager {
 
 	private StructureManager structureManager;
@@ -34,6 +34,7 @@ public class RINManager {
 	private static final String COMBIEDGE = "combi";
 	private static final String DISTEDGE = "distance";
 	private static final String BBEDGE = "backbone";
+	// private static final String SUBTYPEDELIM1 = "_";
 	private static final String SUBTYPEDELIM = "_";
 
 	// Edge attributes
@@ -45,9 +46,9 @@ public class RINManager {
 	// Node attributes
 	private static final String SMILES_ATTR = "SMILES";
 	private static final String SEED_ATTR = "SeedResidues";
-	private static final String CHAIN_ATTR = "Chain";
-	// static final String BACKBONE_ATTR = "BackboneInteraction";
-	// static final String SIDECHAIN_ATTR = "SideChainInteraction";
+	private static final String CHAIN_ATTR = "ResChain";
+	private static final String TYPE_ATTR = "ResType";
+	private static final String RESINDEX_ATTR = "ResIndex";
 
 	public static final Map<String, String> residueAttrCommandMap = new HashMap<String, String>();
 
@@ -64,7 +65,7 @@ public class RINManager {
 	public void includeContacts(CyNetwork rin, Map<String, CyNode> nodeMap,
 			int includeInteractions, boolean ignoreWater, boolean removeRedContacts,
 			double overlapCutoff, double hbondAllowance, int bondSep) {
-		System.out.println("Getting contacts");
+		// System.out.println("Getting contacts");
 		List<String> replyList = chimeraManager.sendChimeraCommand(
 				getContactCommand(includeInteractions, overlapCutoff, hbondAllowance, bondSep),
 				true);
@@ -77,7 +78,7 @@ public class RINManager {
 	public void includeClashes(CyNetwork rin, Map<String, CyNode> nodeMap, int includeInteractions,
 			boolean ignoreWater, boolean removeRedContacts, double overlapCutoff,
 			double hbondAllowance, int bondSep) {
-		System.out.println("Getting clashes");
+		// System.out.println("Getting clashes");
 		List<String> replyList = chimeraManager.sendChimeraCommand(
 				getContactCommand(includeInteractions, overlapCutoff, hbondAllowance, bondSep),
 				true);
@@ -89,7 +90,7 @@ public class RINManager {
 	public void includeHBonds(CyNetwork rin, Map<String, CyNode> nodeMap, int includeInteractions,
 			boolean ignoreWater, boolean removeRedContacts, boolean addHydrogens,
 			boolean relaxHBonds, double angleSlop, double distSlop) {
-		System.out.println("Getting hydrogen bonds");
+		// System.out.println("Getting hydrogen bonds");
 		List<String> replyList = chimeraManager.sendChimeraCommand(
 				getHBondCommand(includeInteractions, relaxHBonds, angleSlop, distSlop), true);
 		if (replyList != null) {
@@ -98,7 +99,7 @@ public class RINManager {
 	}
 
 	public void includeConnectivity(CyNetwork rin) {
-		System.out.println("Getting connectivity");
+		// System.out.println("Getting connectivity");
 		List<String> replyList = chimeraManager.sendChimeraCommand("list physicalchains", true);
 		if (replyList != null) {
 			parseConnectivityReplies(replyList, rin);
@@ -108,7 +109,7 @@ public class RINManager {
 	public void includeDistances(CyNetwork rin, Map<String, CyNode> nodeMap,
 			int includeInteractions, boolean ignoreWater, boolean removeRedContacts,
 			double distCutoff) {
-		System.out.println("Getting distances");
+		// System.out.println("Getting distances");
 		List<String> replyList = chimeraManager.sendChimeraCommand(
 				getDistanceCommand(includeInteractions), true);
 		if (replyList != null) {
@@ -118,7 +119,7 @@ public class RINManager {
 	}
 
 	public void addCombinedEdges(CyNetwork rin) {
-		System.out.println("Getting combined edges");
+		// System.out.println("Getting combined edges");
 		if (rin == null || rin.getEdgeCount() == 0) {
 			return;
 		}
@@ -336,7 +337,6 @@ public class RINManager {
 
 		Map<CyEdge, Double> distanceMap = new HashMap<CyEdge, Double>();
 		for (++index; index < replyLog.size(); index++) {
-			// System.out.println(replyLog.get(index));
 			String[] line = replyLog.get(index).trim().split("\\s+");
 			if (line.length != 5 && line.length != 6)
 				continue;
@@ -346,8 +346,6 @@ public class RINManager {
 			if (edge == null) {
 				continue;
 			}
-			// System.out.println(rin.getRow(edge).get(CyNetwork.NAME,
-			// String.class));
 			String distance = line[3];
 			if ((line[2].equals("no") && line[3].equals("hydrogen")) || addHydrogens) {
 				distance = line[4];
@@ -369,7 +367,7 @@ public class RINManager {
 	 * #0:283.A #0:710.A physical chain #0:283.B #0:710.B physical chain #0:283.C #0:710.C
 	 * 
 	 * We don't use this data to create new nodes -- only new edges. If two nodes are within the
-	 * same physical chain, we connect them with a "Connected" edge
+	 * same physical chain, we connect them with a "backbone/connected" edge
 	 */
 	private List<CyEdge> parseConnectivityReplies(List<String> replyLog, CyNetwork rin) {
 		List<CyEdge> edgeList = new ArrayList<CyEdge>();
@@ -388,7 +386,6 @@ public class RINManager {
 			range[1] = ChimUtils.getResidue(end, chimeraManager);
 			if (range[0] != null && range[1] != null) {
 				rangeList.add(range);
-				// System.out.println("Added range: " + range[0] + " and " + range[1]);
 			}
 		}
 
@@ -396,15 +393,13 @@ public class RINManager {
 		List<CyNode> nodes = rin.getNodeList();
 		for (int i = 0; i < nodes.size(); i++) {
 			CyNode node1 = nodes.get(i);
-			// System.out.println("Getting the range for the first node..."+node1);
 			ChimeraResidue[] range = getRange(rangeList, node1, rin);
-			if (range == null)
+			if (range == null) {
 				continue;
+			}
 			for (int j = i + 1; j < nodes.size(); j++) {
 				CyNode node2 = nodes.get(j);
-				// System.out.println("Seeing if node2 "+node2+" is in the range...");
 				if (inRange2(range, node1, node2, rin)) {
-					// System.out.println("....it is");
 					// These two nodes are connected
 					edgeList.add(createConnectivityEdge(rin, node1, node2));
 				}
@@ -462,6 +457,7 @@ public class RINManager {
 					if (edge == null) {
 						continue;
 					}
+					distEdges.add(edge);
 					rin.getRow(edge).set(DISTANCE_ATTR, distNum);
 				}
 			} catch (Exception ex) {
@@ -567,12 +563,12 @@ public class RINManager {
 			rin.getRow(node).set(CyNetwork.NAME, nodeName);
 			nodeMap.put(nodeName, node);
 
-			// Add attributes from Chimera
+			// Add simple attributes such as name, type, index and association with the chimera
+			// model it was created from
 			String chimRes = model.getModelName() + "#" + residue.getIndex();
 			if (residue.getChainId() != "_") {
 				chimRes += "." + residue.getChainId();
 			}
-			// TODO: [!] Check all possible attributes that could contain the id
 			rin.getRow(node).set(ChimUtils.DEFAULT_STRUCTURE_KEY, chimRes);
 			rin.getRow(node).set(
 					ChimUtils.RINALYZER_ATTR,
@@ -580,17 +576,14 @@ public class RINManager {
 							+ ":_:" + residue.getType());
 			rin.getRow(node).set(SEED_ATTR, Boolean.valueOf(residue.isSelected()));
 			rin.getRow(node).set(CHAIN_ATTR, residue.getChainId());
-			// if (backbone)
-			// rin.getRow(node).set(BACKBONE_ATTR, Boolean.TRUE);
-			// else
-			// rin.getRow(node).set(SIDECHAIN_ATTR, Boolean.TRUE);
+			rin.getRow(node).set(TYPE_ATTR, residue.getType());
+			rin.getRow(node).set(RESINDEX_ATTR, residue.getIndex());
 
 			// Add structureViz attributes
 			String smiles = ChimUtils.toSMILES(residue.getType());
 			if (smiles != null) {
 				rin.getRow(node).set(SMILES_ATTR, smiles);
 			}
-			// rin.getRow(node).set(STRUCTURE_ATTR, model.getModelName());
 		} else {
 			node = nodeMap.get(nodeName);
 		}
@@ -634,8 +627,8 @@ public class RINManager {
 		// OK, we have a residue, but we need to be careful to make
 		// sure that the chains match
 		ChimeraResidue residue = (ChimeraResidue) cso;
-		if (inChainRange(range, residue.getChainId())) {
-			return true;
+		if (!inChainRange(range, residue.getChainId())) {
+			return false;
 		}
 
 		int startIndex = Integer.parseInt(range[0].getIndex());
@@ -697,18 +690,19 @@ public class RINManager {
 	private boolean inChainRange(ChimeraResidue[] range, String chainID) {
 		String start = range[0].getChainId();
 		String end = range[1].getChainId();
-
-		if (start.equals(end))
+		// range should contain residues from the same chain
+		if (!start.equals(end)) {
 			return false;
-
+		}
+		// change positions if necessary
 		if (start.compareTo(end) > 0) {
 			end = range[0].getChainId();
 			start = range[1].getChainId();
 		}
-
-		if (start.compareTo(chainID) <= 0 && chainID.compareTo(end) <= 0)
+		// chainID should be in the chain
+		if (start.compareTo(chainID) <= 0 && chainID.compareTo(end) <= 0) {
 			return true;
-
+		}
 		return false;
 	}
 
@@ -730,6 +724,8 @@ public class RINManager {
 				.createColumn(ChimUtils.DEFAULT_STRUCTURE_KEY, String.class, false);
 		rin.getDefaultNodeTable().createColumn(SEED_ATTR, Boolean.class, false);
 		rin.getDefaultNodeTable().createColumn(CHAIN_ATTR, String.class, false);
+		rin.getDefaultNodeTable().createColumn(TYPE_ATTR, String.class, false);
+		rin.getDefaultNodeTable().createColumn(RESINDEX_ATTR, Integer.class, false);
 
 		rin.getDefaultEdgeTable().createColumn(DISTANCE_ATTR, Double.class, false);
 		rin.getDefaultEdgeTable().createColumn(OVERLAP_ATTR, Double.class, false);
@@ -765,7 +761,8 @@ public class RINManager {
 			return;
 		}
 		// System.out.println("Annotate from " + chimObjs.size() + " chimera objects.");
-		// TODO: [!] What to do if there are two open models associated with the same network
+		// TODO: [Optional] What to do if there are two open models associated with the same network?
+		// Now, attributes are just overwritten
 		for (ChimeraStructuralObject chimObj : chimObjs) {
 			if (chimObj instanceof ChimeraModel) {
 				// get attribute values

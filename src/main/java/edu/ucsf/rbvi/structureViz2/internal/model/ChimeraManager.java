@@ -146,7 +146,7 @@ public class ChimeraManager {
 							continue;
 						}
 						String modelName = modelPath;
-						// TODO: [!] Convert path to name in a better way!
+						// TODO: [Release] Convert path to name in a better way!
 						if (modelPath.lastIndexOf(File.separator) > 0) {
 							modelName = modelPath
 									.substring(modelPath.lastIndexOf(File.separator) + 1);
@@ -162,7 +162,7 @@ public class ChimeraManager {
 				}
 			}
 		} else {
-			// TODO: [!] Open smiles from file would fail. Do we need it?
+			// TODO: [Optional] Open smiles from file would fail. Do we need it?
 			// If parsing fails, iterate over all open models to get the right one
 			List<ChimeraModel> openModels = getModelList();
 			for (ChimeraModel openModel : openModels) {
@@ -315,7 +315,7 @@ public class ChimeraManager {
 	 * 
 	 * @return List of ChimeraModel's
 	 */
-	// TODO: [Chimera] Handle smiles names in a better way in Chimera?
+	// TODO: [Optional] Handle smiles names in a better way in Chimera?
 	public List<ChimeraModel> getModelList() {
 		List<ChimeraModel> modelList = new ArrayList<ChimeraModel>();
 		List<String> list = sendChimeraCommand("list models type molecule", true);
@@ -350,7 +350,7 @@ public class ChimeraManager {
 	}
 
 	public boolean isChimeraLaunched() {
-		// TODO: [Chimera] What is the best way to test if chimera is launched?
+		// TODO: [Optional] What is the best way to test if chimera is launched?
 
 		// sendChimeraCommand("test", true) !=null
 		if (chimera != null) {
@@ -399,7 +399,7 @@ public class ChimeraManager {
 			chimeraListenerThreads.start();
 			structureManager.initChimTable();
 			structureManager.setChimeraPathProeprty(workingPath);
-			// TODO: [Chimera] Check Chimera version and show a warning if below 1.8
+			// TODO: [Optional] Check Chimera version and show a warning if below 1.8
 			// Ask Chimera to give us updates
 			startListening();
 			return true;

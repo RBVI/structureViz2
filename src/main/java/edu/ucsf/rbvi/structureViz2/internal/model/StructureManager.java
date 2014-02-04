@@ -40,7 +40,6 @@ import edu.ucsf.rbvi.structureViz2.internal.ui.ModelNavigatorDialog;
  * This object maintains the relationship between Chimera objects and Cytoscape objects.
  */
 
-// TODO: [Bug] Dialogs fail to show up in Windows sometimes when the non-gui flag is used
 public class StructureManager {
 	static final String[] defaultStructureKeys = { "Structure", "pdb", "pdbFileName", "PDB ID",
 			"structure", "biopax.xref.PDB", "pdb_ids", "ModelName", "ModelNumber" };
@@ -128,7 +127,7 @@ public class StructureManager {
 		this.structureNetFactory = (CreateStructureNetworkTaskFactory) factory;
 	}
 
-	// TODO: [!] Handle case where one network is associated with two models that are opened at the
+	// TODO: [Release] Handle case where one network is associated with two models that are opened at the
 	// same time
 	public boolean openStructures(CyNetwork network,
 			Map<CyIdentifiable, List<String>> chimObjNames, ModelType type) {
@@ -251,7 +250,7 @@ public class StructureManager {
 		}
 	}
 
-	// TODO: [Chimera] Can we make a screenshot of a single molecule?
+	// TODO: [Optional] Can we make a screenshot of a single molecule?
 	public File saveChimeraImage() {
 		File tmpFile = null;
 		try {

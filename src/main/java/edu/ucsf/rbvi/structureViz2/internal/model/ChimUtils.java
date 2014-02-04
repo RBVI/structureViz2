@@ -342,7 +342,7 @@ public abstract class ChimUtils {
 			resChain = split[1];
 		} else {
 			// model string with "#"
-			// TODO: [!] Are other possibilities?
+			// TODO: [Optional] Are there more possibilities?
 			parseModelID(resKey.substring(0, resKey.lastIndexOf("#")), resKeyParts);
 			resChain = resKey.substring(resKey.lastIndexOf("#") + 1, resKey.length());
 		}
@@ -370,7 +370,7 @@ public abstract class ChimUtils {
 		return resKeyParts;
 	}
 
-	// TODO: [!] Test new specs for submodels!
+	// TODO: [Release] Test new specs for submodels!
 	public static void parseModelID(String modelID, String[] resKeyParts) {
 		if (modelID.startsWith("\"")) {
 			if (modelID.endsWith("\"")) {
@@ -561,7 +561,7 @@ public abstract class ChimUtils {
 				}
 			}
 			if (chimeraModel == null) {
-				// TODO: [!] Figure out what to do if no model can be matched!
+				// TODO: [Release] Figure out what to do if no model can be matched!
 				chimeraModel = chimeraManager.getChimeraModel();
 			}
 			// System.out.println("ChimeraModel = " + chimeraModel);

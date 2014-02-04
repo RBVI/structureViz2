@@ -72,8 +72,8 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 /**
  * The ModelNavigatorDialog class is the class that implements the main interface for structureViz.
  */
-// TODO: [Bug] Something goes wrong when the tree has been collapsed with selected residues and is
-// expanded again
+// TODO: [Bug] Selection in tree
+// Something goes wrong when the tree has been collapsed with selected residues and is expanded again
 public class ModelNavigatorDialog extends JDialog implements TreeSelectionListener,
 		TreeExpansionListener, TreeWillExpandListener {
 

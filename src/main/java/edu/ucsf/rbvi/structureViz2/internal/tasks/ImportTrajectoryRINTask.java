@@ -195,7 +195,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		// System.out.println("Import table " + file);
 		CyTable table = newNetwork.getDefaultNodeTable();
 		BufferedReader br = null;
-		// TODO: [!] Adapt Chimera output to new pdb/residue specs
+		// TODO: [Release] Adapt Chimera output to new pdb/residue specs
 		String attr1 = ChimUtils.DEFAULT_STRUCTURE_KEY;
 		table.createColumn(attr1, String.class, false);
 		try {
@@ -264,7 +264,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		}
 
 		// Do a layout
-		// TODO: [3.1] Do a RIN Layout
+		// TODO: [Release] Do a RIN Layout?
 		taskManager.execute(layoutTaskFactory.createTaskIterator(views));
 
 		// Set vizmap

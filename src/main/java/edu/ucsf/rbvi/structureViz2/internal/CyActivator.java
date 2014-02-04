@@ -49,9 +49,8 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
-// TODO: [Optional] Add task for opening and closing the molecular navigator dialog
-// TODO: [3.1] Improve non-gui mode
-// TODO: [!] Use logger to log messages
+// TODO: [Optional] Improve non-gui mode
+// TODO: [Release] Use logger to log messages
 
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory

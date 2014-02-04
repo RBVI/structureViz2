@@ -50,7 +50,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask implements Observ
 		}
 	}
 
-	// TODO: return annotations?
+	// TODO: [Optional] How could we return annotations?
 	public Object getResults(Class expectedClass) {
 		if (expectedClass.equals(String.class)) {
 			return "Finished";

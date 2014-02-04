@@ -929,6 +929,7 @@ public class RINManager {
 		}
 	}
 
+	// TODO: [Release] Save colors in the visual style?
 	public void syncChimToCyColors(CyNetworkView networkView) {
 		// get models
 		CyNetwork network = networkView.getModel();

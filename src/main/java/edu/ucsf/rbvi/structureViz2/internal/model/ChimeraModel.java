@@ -456,7 +456,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 */
 	public String toString() {
 		String modelName = "";
-		// TODO: [Optional] Change cutoff for shortening model names in the MND
+		// TODO: [Optional] Change cutoff for shortening model names in the structure naviagator dialog
 		if (getChainCount() > 0) {
 			modelName = "Model " + toSpec() + " " + name + " (" + getChainCount() + " chains, "
 					+ getResidueCount() + " residues)";

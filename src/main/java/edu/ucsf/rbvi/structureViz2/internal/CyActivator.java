@@ -11,6 +11,7 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.util.Properties;
 
+import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.events.AboutToRemoveEdgesListener;
 import org.cytoscape.model.events.AboutToRemoveNodesListener;
@@ -71,11 +72,11 @@ public class CyActivator extends AbstractCyActivator {
 			// Issue error and return
 		}
 
-		// Create the context object
-		StructureManager structureManager = new StructureManager(bc, haveGUI);
-
 		// Get a handle on the CyServiceRegistrar
 		CyServiceRegistrar registrar = getService(bc, CyServiceRegistrar.class);
+
+		// Create the context object
+		StructureManager structureManager = new StructureManager(bc, haveGUI);
 
 		// Create and register our listeners
 		// Listens for changes in selection and attributes we are interested in

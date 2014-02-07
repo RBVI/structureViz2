@@ -47,9 +47,9 @@ public class PaintStructureTask extends AbstractTask {
 		}
 		
 		// Convert the file to a URL
-		URL imageURL;
+		String imageString;
 		try {
-			imageURL = imageFile.toURI().toURL();
+			imageString = "file://"+imageFile.toURI().getPath();
 		} catch (Exception e) {
 			// Inform user and bail
 			return;
@@ -60,7 +60,7 @@ public class PaintStructureTask extends AbstractTask {
 		if (nodeTable.getColumn(IMAGE_COLUMN) == null) {
 			nodeTable.createColumn(IMAGE_COLUMN, String.class, false);
 		}
-		nodeTable.getRow(nodeView.getModel().getSUID()).set(IMAGE_COLUMN, imageURL.toString());
+		nodeTable.getRow(nodeView.getModel().getSUID()).set(IMAGE_COLUMN, imageString);
 
 		// Get the visual property 
 		VisualMappingManager vmm = registrar.getService(VisualMappingManager.class);

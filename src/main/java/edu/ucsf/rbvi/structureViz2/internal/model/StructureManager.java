@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
@@ -76,6 +77,7 @@ public class StructureManager {
 
 	static private List<ChimeraStructuralObject> chimSelectionList;
 	private boolean ignoreCySelection = false;
+	private File configurationDirectory = null;
 
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.class);
@@ -94,6 +96,10 @@ public class StructureManager {
 		rinManager = new RINManager(this);
 		chimSelectionList = new ArrayList<ChimeraStructuralObject>();
 		pathProps = new Properties();
+
+		// Get the configuration directory
+		CyApplicationConfiguration appConfiguration = (CyApplicationConfiguration)getService(CyApplicationConfiguration.class);
+		configurationDirectory = appConfiguration.getConfigurationDirectoryLocation();
 	}
 
 	public ChimeraManager getChimeraManager() {
@@ -252,15 +258,21 @@ public class StructureManager {
 
 	// TODO: [Optional] Can we make a screenshot of a single molecule?
 	public File saveChimeraImage() {
-		File tmpFile = null;
+		String separator = System.getProperty("file.separator");
+		File imageFile = null;
 		try {
-			tmpFile = File.createTempFile("structureViz", ".png");
-			String path = tmpFile.getAbsolutePath();
-			chimeraManager.sendChimeraCommand("copy file " + path + " png", false);
+			// Create the temp file name
+			File tmpFile = File.createTempFile("structureViz", ".png");
+			String fileName = configurationDirectory+separator+"images3"+separator+tmpFile.getName();
+			imageFile = new File(fileName);
+
+			// Now create the filename (we want to write it into the images3 directory)
+			chimeraManager.sendChimeraCommand("copy file " + imageFile.getAbsolutePath() + " png", false);
 		} catch (IOException ioe) {
 			// Log error
+			System.err.println("Error writing image: "+ioe.getMessage());
 		}
-		return tmpFile;
+		return imageFile;
 	}
 
 	public void closeModel(ChimeraModel model) {

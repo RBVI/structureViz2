@@ -146,7 +146,7 @@ public class ChimeraManager {
 							continue;
 						}
 						String modelName = modelPath;
-						// TODO: [Release] Convert path to name in a better way!
+						// TODO: [Optional] Convert path to name in a better way
 						if (modelPath.lastIndexOf(File.separator) > 0) {
 							modelName = modelPath
 									.substring(modelPath.lastIndexOf(File.separator) + 1);

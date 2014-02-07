@@ -20,6 +20,10 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
+import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
+import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.view.vizmap.VisualStyle;
+import org.cytoscape.view.vizmap.mappings.DiscreteMapping;
 
 // TODO: [Optional] No dist edges between ligands and others since we only consider distance between C_alphas
 public class RINManager {
@@ -761,7 +765,8 @@ public class RINManager {
 			return;
 		}
 		// System.out.println("Annotate from " + chimObjs.size() + " chimera objects.");
-		// TODO: [Optional] What to do if there are two open models associated with the same network?
+		// TODO: [Optional] What to do if there are two open models associated with the same
+		// network?
 		// Now, attributes are just overwritten
 		for (ChimeraStructuralObject chimObj : chimObjs) {
 			if (chimObj instanceof ChimeraModel) {
@@ -929,14 +934,17 @@ public class RINManager {
 		}
 	}
 
-	// TODO: [Release] Save colors in the visual style?
 	public void syncChimToCyColors(CyNetworkView networkView) {
 		// get models
 		CyNetwork network = networkView.getModel();
+		// if (network.getDefaultNodeTable().getColumn("chimeraColor") == null) {
+		// network.getDefaultNodeTable().createColumn("chimeraColor", String.class, false);
+		// }
 		Set<ChimeraStructuralObject> chimObjs = structureManager.getAssociatedChimObjs(network);
 		if (chimObjs == null) {
 			return;
 		}
+		Map<Long, Paint> nodeToColorMapping = new HashMap<Long, Paint>();
 		for (ChimeraStructuralObject chimObj : chimObjs) {
 			if (chimObj instanceof ChimeraModel) {
 				// get attribute values
@@ -956,12 +964,15 @@ public class RINManager {
 							String[] rgb = ((String) resValues.get(res)).split(",");
 							if (rgb.length == 3) {
 								try {
-									Paint resColor = new Color(Float.valueOf(rgb[0]),
+									Color resColor = new Color(Float.valueOf(rgb[0]),
 											Float.valueOf(rgb[1]), Float.valueOf(rgb[2]));
-									networkView.getNodeView((CyNode) cyId).clearValueLock(
-											BasicVisualLexicon.NODE_FILL_COLOR);
-									networkView.getNodeView((CyNode) cyId).setVisualProperty(
-											BasicVisualLexicon.NODE_FILL_COLOR, resColor);
+									nodeToColorMapping.put(cyId.getSUID(), resColor);
+									// network.getRow(cyId).set("chimeraColor",
+									// resColor.toString());
+									// networkView.getNodeView((CyNode) cyId).clearValueLock(
+									// BasicVisualLexicon.NODE_FILL_COLOR);
+									// networkView.getNodeView((CyNode) cyId).setVisualProperty(
+									// BasicVisualLexicon.NODE_FILL_COLOR, resColor);
 								} catch (NumberFormatException ex) {
 									// ignore
 								}
@@ -969,9 +980,26 @@ public class RINManager {
 						}
 					}
 				}
-				networkView.updateView();
 			}
 		}
+		// TODO: [Optional] Use passthrough mapping if working
+		// VisualMappingFunctionFactory vmfFactoryP = (VisualMappingFunctionFactory)
+		// structureManager
+		// .getService(VisualMappingFunctionFactory.class, "(mapping.type=passthrough)");
+		// PassthroughMapping colorMapping = (PassthroughMapping) vmfFactoryP
+		// .createVisualMappingFunction("chimeraColor", String.class,
+		// BasicVisualLexicon.NODE_FILL_COLOR);
+		VisualMappingFunctionFactory vmfFactoryD = (VisualMappingFunctionFactory) structureManager
+				.getService(VisualMappingFunctionFactory.class, "(mapping.type=discrete)");
+		DiscreteMapping<Long, Paint> nodeColorMapping = (DiscreteMapping<Long, Paint>) vmfFactoryD
+				.createVisualMappingFunction(CyIdentifiable.SUID, Long.class, BasicVisualLexicon.NODE_FILL_COLOR);
+		nodeColorMapping.putAll(nodeToColorMapping);
+		VisualMappingManager manager = (VisualMappingManager) structureManager
+				.getService(VisualMappingManager.class);
+		VisualStyle vs = manager.getCurrentVisualStyle();
+		vs.addVisualMappingFunction(nodeColorMapping);
+		vs.apply(networkView);
+		networkView.updateView();
 	}
 
 	public void syncCyToChimColors(CyNetworkView networkView) {

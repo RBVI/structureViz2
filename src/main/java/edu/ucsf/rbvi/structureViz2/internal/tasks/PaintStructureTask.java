@@ -49,7 +49,8 @@ public class PaintStructureTask extends AbstractTask {
 		// Convert the file to a URL
 		String imageString;
 		try {
-			imageString = "file://"+imageFile.toURI().getPath();
+			//imageString = "file://"+imageFile.toURI().getPath();
+			imageString = imageFile.toURI().toURL().toString();
 		} catch (Exception e) {
 			// Inform user and bail
 			return;

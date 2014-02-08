@@ -258,21 +258,18 @@ public class StructureManager {
 
 	// TODO: [Optional] Can we make a screenshot of a single molecule?
 	public File saveChimeraImage() {
-		String separator = System.getProperty("file.separator");
-		File imageFile = null;
+		File tmpFile = null;
 		try {
 			// Create the temp file name
-			File tmpFile = File.createTempFile("structureViz", ".png");
-			String fileName = configurationDirectory+separator+"images3"+separator+tmpFile.getName();
-			imageFile = new File(fileName);
-
-			// Now create the filename (we want to write it into the images3 directory)
-			chimeraManager.sendChimeraCommand("copy file " + imageFile.getAbsolutePath() + " png", false);
+			tmpFile = File.createTempFile("structureViz", ".png");
+			chimeraManager.sendChimeraCommand("set bgTransparency", false);
+			chimeraManager.sendChimeraCommand("copy file " + tmpFile.getAbsolutePath() + " png", true);
+			chimeraManager.sendChimeraCommand("unset bgTransparency", false);
 		} catch (IOException ioe) {
 			// Log error
 			System.err.println("Error writing image: "+ioe.getMessage());
 		}
-		return imageFile;
+		return tmpFile;
 	}
 
 	public void closeModel(ChimeraModel model) {

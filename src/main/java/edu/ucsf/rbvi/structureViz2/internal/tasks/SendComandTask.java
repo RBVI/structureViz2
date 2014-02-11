@@ -27,6 +27,7 @@ public class SendComandTask extends AbstractTask implements ObservableTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("Sending Command to Chimera");
 		result = structureManager.getChimeraManager().sendChimeraCommand(command, true);
 		if (result != null) {
 			structureManager.addChimReply(command, result);

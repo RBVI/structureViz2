@@ -39,12 +39,12 @@ public class CloseStructuresTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Close structures");
+		taskMonitor.setTitle("Closing Structures");
 		taskMonitor.setStatusMessage("Closing structures ...");
 		// get open models
 		Map<CyIdentifiable, List<String>> selectedChimeraObjs = CytoUtils.getCyChimPairsToMap(
 				openChimObjTunable.getSelectedValues(), openChimObjMap);
-		System.out.println("selectedChimObjMap: " + selectedChimeraObjs.size());
+		// System.out.println("selectedChimObjMap: " + selectedChimeraObjs.size());
 		// automatically launch a dialog with list of models to close
 		// close selected models
 		Set<String> models = new HashSet<String>();

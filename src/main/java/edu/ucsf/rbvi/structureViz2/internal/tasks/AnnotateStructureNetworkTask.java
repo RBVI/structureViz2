@@ -35,10 +35,11 @@ public class AnnotateStructureNetworkTask extends AbstractTask implements Observ
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Annotate residue interaction network");
+		taskMonitor.setTitle("Annotating Residue Interaction Network");
 		if (residueAttributes.getSelectedValues().size() > 0) {
+			taskMonitor.setStatusMessage("Getting attribute data from Chimera ...");
 			for (String resAttr : residueAttributes.getSelectedValues()) {
-				taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
+				// taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
 				if (resAttr.equals("SecondaryStructure")) {
 					rinManager.annotateSS(network);
 				} else if (resAttr.equals("Coordinates")) {

@@ -45,14 +45,18 @@ public class AlignStructuresTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Align structures");
+		taskMonitor.setTitle("Aligning Structures");
 		// get selected structures from tunable parameter
 		Map<CyIdentifiable, List<String>> selectedChimeraObjNames = CytoUtils.getCyChimPairsToMap(
 				availableChimObjTunable.getSelectedValues(), availableChimObjMap);
 		// open structures
 		taskMonitor.setStatusMessage("Opening structures ...");
-		if (structureManager.openStructures(netView.getModel(), selectedChimeraObjNames,
+		if (!structureManager.openStructures(netView.getModel(), selectedChimeraObjNames,
 				ModelType.PDB_MODEL)) {
+			taskMonitor.setStatusMessage("Structures could not be opened. Task aborted.");
+		} else if (!structureManager.getChimeraManager().isChimeraLaunched()) {
+			taskMonitor.setStatusMessage("Chimera could not be launched.");
+		} else {
 			structureManager.launchModelNavigatorDialog();
 			taskMonitor.setStatusMessage("Aligning structures ...");
 			structureManager.launchAlignDialog(false);

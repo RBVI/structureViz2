@@ -16,6 +16,7 @@ public class OpenStructureNavigatorTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		// open dialog
+		taskMonitor.setTitle("Opening Cytoscape Molecular Structure Navigator");
 		structureManager.launchModelNavigatorDialog();
 	}
 

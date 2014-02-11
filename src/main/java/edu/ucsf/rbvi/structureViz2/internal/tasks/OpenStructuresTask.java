@@ -52,27 +52,36 @@ public class OpenStructuresTask extends AbstractTask {
 	}
 
 	public void run(TaskMonitor taskMonitor) {
-		taskMonitor.setTitle("Open Structures");
-		taskMonitor.setStatusMessage("Opening structures ...");
+		taskMonitor.setTitle("Opening Structures");
 		// get selected structures from tunable parameter
 		Map<CyIdentifiable, List<String>> selectedStructureNames = CytoUtils.getCyChimPairsToMap(
 				structureTunable.getSelectedValues(), structruesMap);
-		// System.out.println("selectedStructuresMap: " + selectedStructureNames.size());
-		// open structures
-		structureManager.openStructures(netView.getModel(), selectedStructureNames,
-				ModelType.PDB_MODEL);
+		if (selectedStructureNames.size() > 0) {
+			taskMonitor.setStatusMessage("Opening structures ...");
+			// open structures
+			if (!structureManager.openStructures(netView.getModel(), selectedStructureNames,
+					ModelType.PDB_MODEL)) {
+				taskMonitor.setStatusMessage("Structures could not be opened.");
+			}
+		}
 
 		// get selected chem structures from tunable parameter
-		taskMonitor.setStatusMessage("Opening chemical structures ...");
 		Map<CyIdentifiable, List<String>> selectedChemNames = CytoUtils.getCyChimPairsToMap(
 				chemTunable.getSelectedValues(), chemStructruesMap);
-		// System.out.println("selectedChemMap: " + selectedChemNames.size());
-		// open structures
-		structureManager.openStructures(netView.getModel(), selectedChemNames, ModelType.SMILES);
+		if (selectedChemNames.size() > 0) {
+			taskMonitor.setStatusMessage("Opening chemical structures ...");
+			// open structures
+			if (!structureManager.openStructures(netView.getModel(), selectedChemNames,
+					ModelType.SMILES)) {
+				taskMonitor.setStatusMessage("Chemical structures could not be opened.");
+			}
+		}
 
 		// open dialog
 		if (structureManager.getChimeraManager().isChimeraLaunched()) {
 			structureManager.launchModelNavigatorDialog();
+		} else {
+			taskMonitor.setStatusMessage("Chimera could not be launched.");
 		}
 	}
 

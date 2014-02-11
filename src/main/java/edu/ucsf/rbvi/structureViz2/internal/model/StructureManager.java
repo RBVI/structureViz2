@@ -24,12 +24,11 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableFactory;
 import org.cytoscape.model.CyTableManager;
+import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.swing.DialogTaskManager;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +59,7 @@ public class StructureManager {
 	private String chimeraOutputTable = "ChimeraTable";
 	private String chimeraOutputAttr = "ChimeraOutput";
 	private CyTable chimTable = null;
-	private BundleContext bundleContext = null;
+	private CyServiceRegistrar registrar = null;
 	private boolean haveGUI = true;
 	private ChimeraManager chimeraManager = null;
 	private RINManager rinManager = null;
@@ -82,8 +81,8 @@ public class StructureManager {
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.class);
 
-	public StructureManager(BundleContext bc, boolean haveGUI) {
-		this.bundleContext = bc;
+	public StructureManager(CyServiceRegistrar registrar, boolean haveGUI) {
+		this.registrar = registrar;
 		this.haveGUI = haveGUI;
 		settings = new HashMap<CyNetwork, StructureSettings>();
 		currentCyMap = new HashMap<CyIdentifiable, Set<ChimeraStructuralObject>>();
@@ -98,7 +97,7 @@ public class StructureManager {
 		pathProps = new Properties();
 
 		// Get the configuration directory
-		CyApplicationConfiguration appConfiguration = (CyApplicationConfiguration)getService(CyApplicationConfiguration.class);
+		CyApplicationConfiguration appConfiguration = (CyApplicationConfiguration) getService(CyApplicationConfiguration.class);
 		configurationDirectory = appConfiguration.getConfigurationDirectoryLocation();
 	}
 
@@ -111,29 +110,31 @@ public class StructureManager {
 	}
 
 	public Object getService(Class<?> serviceClass) {
-		return bundleContext.getService(bundleContext.getServiceReference(serviceClass.getName()));
+		return registrar.getService(serviceClass);
 	}
 
 	public Object getService(Class<?> serviceClass, String filter) {
-		// TODO: [Optional] Revise getService based on filters
-		try {
-			ServiceReference[] services = bundleContext.getServiceReferences(
-					serviceClass.getName(), filter);
-			if (services != null && services.length > 0) {
-				return bundleContext.getService(services[0]);
-			}
-		} catch (Exception ex) {
-			// ignore
-			// ex.printStackTrace();
-		}
-		return null;
+		return registrar.getService(serviceClass, filter);
+		// Alternative getService based on filters
+		// try {
+		// ServiceReference[] services = registrar.getServiceReferences(serviceClass.getName(),
+		// filter);
+		// if (services != null && services.length > 0) {
+		// return registrar.getService(services[0]);
+		// }
+		// } catch (Exception ex) {
+		// // ignore
+		// // ex.printStackTrace();
+		// }
+		// return null;
 	}
 
 	public void setCreateStructureNetFactory(TaskFactory factory) {
 		this.structureNetFactory = (CreateStructureNetworkTaskFactory) factory;
 	}
 
-	// TODO: [Release] Handle case where one network is associated with two models that are opened at the
+	// TODO: [Release] Handle case where one network is associated with two models that are opened
+	// at the
 	// same time
 	public boolean openStructures(CyNetwork network,
 			Map<CyIdentifiable, List<String>> chimObjNames, ModelType type) {
@@ -141,7 +142,7 @@ public class StructureManager {
 			return false;
 		} else if (!chimeraManager.isChimeraLaunched()
 				&& !chimeraManager.launchChimera(getChimeraPaths(network))) {
-			logger.error("Chimera cannot be started.");
+			logger.error("Chimera cannot be launched.");
 			return false;
 		}
 
@@ -263,11 +264,12 @@ public class StructureManager {
 			// Create the temp file name
 			tmpFile = File.createTempFile("structureViz", ".png");
 			chimeraManager.sendChimeraCommand("set bgTransparency", false);
-			chimeraManager.sendChimeraCommand("copy file " + tmpFile.getAbsolutePath() + " png", true);
+			chimeraManager.sendChimeraCommand("copy file " + tmpFile.getAbsolutePath() + " png",
+					true);
 			chimeraManager.sendChimeraCommand("unset bgTransparency", false);
 		} catch (IOException ioe) {
 			// Log error
-			System.err.println("Error writing image: "+ioe.getMessage());
+			logger.error("Error writing image: " + ioe.getMessage());
 		}
 		return tmpFile;
 	}
@@ -1046,7 +1048,7 @@ public class StructureManager {
 		}
 
 		// if no network settings, check if the last chimera path is saved in the session
-		String lastPath = CytoUtils.getDefaultChimeraPath(bundleContext, chimeraPropertyName,
+		String lastPath = CytoUtils.getDefaultChimeraPath(registrar, chimeraPropertyName,
 				chimeraPathPropertyKey);
 		if (!lastPath.equals("")) {
 			pathList.add(lastPath);
@@ -1068,8 +1070,8 @@ public class StructureManager {
 		return pathList;
 	}
 
-	public void setChimeraPathProeprty(String path) {
-		CytoUtils.setDefaultChimeraPath(bundleContext, chimeraPropertyName, chimeraPathPropertyKey,
+	public void setChimeraPathProperty(String path) {
+		CytoUtils.setDefaultChimeraPath(registrar, chimeraPropertyName, chimeraPathPropertyKey,
 				path);
 	}
 

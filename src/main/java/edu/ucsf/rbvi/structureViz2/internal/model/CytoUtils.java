@@ -14,9 +14,9 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.property.SimpleCyProperty;
+import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CySession;
 import org.cytoscape.session.CySessionManager;
-import org.osgi.framework.BundleContext;
 
 public abstract class CytoUtils {
 
@@ -50,11 +50,11 @@ public abstract class CytoUtils {
 		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();
 		for (String selectedPair : selectedPairs) {
 			String[] names = selectedPair.split("\\|");
-			System.out.println("Input: " + selectedPair);
+			// System.out.println("Input: " + selectedPair);
 			if (names.length != 2) {
 				continue;
 			}
-			System.out.println("Names: " + names[0] + ", " + names[1]);
+			// System.out.println("Names: " + names[0] + ", " + names[1]);
 			CyIdentifiable cyObj = allPairs.get(selectedPair);
 			if (!selectedPairsMap.containsKey(cyObj)) {
 				selectedPairsMap.put(cyObj, new ArrayList<String>());
@@ -75,13 +75,14 @@ public abstract class CytoUtils {
 		return "";
 	}
 
-	public static void setDefaultChimeraPath(BundleContext bc, String chimeraPathPropertyName,
-			String chimeraPathPropertyKey, String chimeraPathPropertyValue) {
+	public static void setDefaultChimeraPath(CyServiceRegistrar registrar,
+			String chimeraPathPropertyName, String chimeraPathPropertyKey,
+			String chimeraPathPropertyValue) {
 
 		// Find if the CyProperty already exists, if not create one with default value.
 		boolean flag = false;
-		CySessionManager mySessionManager = (CySessionManager) bc.getService(bc
-				.getServiceReference(CySessionManager.class.getName()));
+		CySessionManager mySessionManager = (CySessionManager) registrar
+				.getService(CySessionManager.class);
 		CySession session = mySessionManager.getCurrentSession();
 		if (session == null) {
 			return;
@@ -107,16 +108,16 @@ public abstract class CytoUtils {
 			CyProperty<?> chimeraPathProperty = new SimpleCyProperty(chimeraPathPropertyName,
 					chimeraPathProps, Properties.class,
 					CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
-			bc.registerService(CyProperty.class.getName(), chimeraPathProperty, new Properties());
+			registrar.registerService(chimeraPathProperty, CyProperty.class, new Properties());
 		}
 
 	}
 
-	public static String getDefaultChimeraPath(BundleContext bc, String chimeraPathPropertyName,
-			String chimeraPathPropertyKey) {
+	public static String getDefaultChimeraPath(CyServiceRegistrar registrar,
+			String chimeraPathPropertyName, String chimeraPathPropertyKey) {
 		// Find if the CyProperty already exists, if not create one with default value.
-		CySessionManager mySessionManager = (CySessionManager) bc.getService(bc
-				.getServiceReference(CySessionManager.class.getName()));
+		CySessionManager mySessionManager = (CySessionManager) registrar
+				.getService(CySessionManager.class);
 		CySession session = mySessionManager.getCurrentSession();
 		if (session == null) {
 			return "";

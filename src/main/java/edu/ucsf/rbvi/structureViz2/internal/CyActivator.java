@@ -76,7 +76,7 @@ public class CyActivator extends AbstractCyActivator {
 		CyServiceRegistrar registrar = getService(bc, CyServiceRegistrar.class);
 
 		// Create the context object
-		StructureManager structureManager = new StructureManager(bc, haveGUI);
+		StructureManager structureManager = new StructureManager(registrar, haveGUI);
 
 		// Create and register our listeners
 		// Listens for changes in selection and attributes we are interested in

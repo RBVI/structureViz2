@@ -151,8 +151,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Create residue interaction network");
-		taskMonitor.setStatusMessage("Adding nodes ...");
+		taskMonitor.setTitle("Creating Residue Interaction Network");
+		taskMonitor.setStatusMessage("Creating network ...");
 		// Save selected nodes indexed by their name
 		Map<String, CyNode> nodeMap = new HashMap<String, CyNode>();
 		chimeraManager.stopListening();
@@ -198,8 +198,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			taskMonitor.setStatusMessage("Adding combined edges ...");
 			rinManager.addCombinedEdges(rin);
 		}
-
-		taskMonitor.setStatusMessage("Finalizing ...");
 
 		// register network
 		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureManager

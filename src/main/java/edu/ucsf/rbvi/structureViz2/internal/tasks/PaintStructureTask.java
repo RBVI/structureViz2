@@ -43,6 +43,7 @@ public class PaintStructureTask extends AbstractTask {
 		File imageFile = structureManager.saveChimeraImage();
 		if (imageFile == null) {
 			// Inform the user somehow
+			taskMonitor.setStatusMessage("Image file could not be created.");
 			return;
 		}
 		

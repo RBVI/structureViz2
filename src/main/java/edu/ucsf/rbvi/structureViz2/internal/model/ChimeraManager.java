@@ -118,7 +118,7 @@ public class ChimeraManager {
 	}
 
 	public List<ChimeraModel> openModel(String modelPath, ModelType type) {
-		System.out.println("open " + modelPath);
+		logger.info("chimera open " + modelPath);
 		stopListening();
 		List<String> response = null;
 		// TODO: [Optional] Handle modbase models
@@ -210,7 +210,7 @@ public class ChimeraManager {
 		// int subModel = structure.subModelNumber();
 		// Integer modelKey = makeModelKey(model, subModel);
 		stopListening();
-		System.out.println("chimera close model " + model.getModelName());
+		logger.info("chimera close model " + model.getModelName());
 		if (currentModelsMap.containsKey(ChimUtils.makeModelKey(model.getModelNumber(),
 				model.getSubModelNumber()))) {
 			sendChimeraCommand("close " + model.toSpec(), false);
@@ -219,7 +219,7 @@ public class ChimeraManager {
 					model.getSubModelNumber()));
 			// selectionList.remove(chimeraModel);
 		} else {
-			System.out.println("chimera cannot find model");
+			logger.warn("chimera cannot find model " + model.getModelName());
 		}
 		startListening();
 	}
@@ -378,17 +378,16 @@ public class ChimeraManager {
 			try {
 				List<String> args = new ArrayList<String>();
 				args.add(chimeraPath);
-				System.out.println(chimeraPath);
 				args.add("--start");
 				args.add("ReadStdin");
 				ProcessBuilder pb = new ProcessBuilder(args);
 				chimera = pb.start();
 				error = "";
 				workingPath = chimeraPath;
+				logger.info("Strarting " + chimeraPath);
 				break;
 			} catch (Exception e) {
 				// Chimera could not be started
-				// e.printStackTrace();
 				error += e.getMessage();
 			}
 		}
@@ -398,7 +397,7 @@ public class ChimeraManager {
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
 			structureManager.initChimTable();
-			structureManager.setChimeraPathProeprty(workingPath);
+			structureManager.setChimeraPathProperty(workingPath);
 			// TODO: [Optional] Check Chimera version and show a warning if below 1.8
 			// Ask Chimera to give us updates
 			startListening();
@@ -520,7 +519,8 @@ public class ChimeraManager {
 		} catch (IOException e) {
 			// logger.info("Unable to execute command: " + text);
 			// logger.info("Exiting...");
-			System.out.println("Unable to execute command: " + text);
+			logger.warn("Unable to execute command: " + text);
+			logger.warn("Exiting...");
 			clearOnChimeraExit();
 			return null;
 		}

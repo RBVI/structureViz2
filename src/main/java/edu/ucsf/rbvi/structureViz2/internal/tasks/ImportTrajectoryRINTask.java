@@ -54,6 +54,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("Importing Residue Network from Chimera");
 		if (trajInfo == null) {
 			return;
 		}

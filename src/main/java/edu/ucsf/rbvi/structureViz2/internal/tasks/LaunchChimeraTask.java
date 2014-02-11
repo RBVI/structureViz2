@@ -18,7 +18,7 @@ public class LaunchChimeraTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Launch Chimera");
+		taskMonitor.setTitle("Launching Chimera");
 		taskMonitor.setStatusMessage("Launching Chimera ...");
 		CyApplicationManager cyAppManager = (CyApplicationManager) structureManager
 				.getService(CyApplicationManager.class);
@@ -27,6 +27,8 @@ public class LaunchChimeraTask extends AbstractTask {
 		structureManager.getChimeraManager().launchChimera(pathList);
 		if (structureManager.getChimeraManager().isChimeraLaunched()) {
 			structureManager.launchModelNavigatorDialog();
+		} else {
+			taskMonitor.setStatusMessage("Chimera could not be launched. ");
 		}
 	}
 

@@ -32,21 +32,27 @@ public class OpenStructureFileTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("Opening Structure from File");
 		if (structureFile == null || !structureFile.isFile()) {
+			taskMonitor.setStatusMessage("Structure file could not be read.");
 			return;
 		}
-		taskMonitor.setTitle("Open Structure from File");
-		taskMonitor.setStatusMessage("Opening structures ...");
+		taskMonitor.setStatusMessage("Opening structure ...");
 		Map<CyIdentifiable, List<String>> structuresToOpen = new HashMap<CyIdentifiable, List<String>>();
 		List<String> structures = new ArrayList<String>();
 		// structureFile.getAbsolutePath()
 		structures.add(structureFile.getAbsolutePath());
 		structuresToOpen.put(netView.getModel(), structures);
-		structureManager.openStructures(netView.getModel(), structuresToOpen, ModelType.PDB_MODEL);
+		if (!structureManager.openStructures(netView.getModel(), structuresToOpen,
+				ModelType.PDB_MODEL)) {
+			taskMonitor.setStatusMessage("Structure could not be opened.");
+		}
 
 		// open dialog
 		if (structureManager.getChimeraManager().isChimeraLaunched()) {
 			structureManager.launchModelNavigatorDialog();
+		} else {
+			taskMonitor.setStatusMessage("Chimera could not be launched.");
 		}
 
 	}

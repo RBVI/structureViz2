@@ -30,9 +30,14 @@ public class SyncColorsTask extends AbstractTask {
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("Synchronizing Colors with Chimera");
 		if (chimeraToCytoscape) {
+			taskMonitor
+					.setStatusMessage("Applying colors from current network view to associated Chimera models ...");
 			rinManager.syncChimToCyColors(networkView);
 		} else {
+			taskMonitor
+					.setStatusMessage("Applying colors from associated Chimera models to current network view ...");
 			rinManager.syncCyToChimColors(networkView);
 		}
 	}

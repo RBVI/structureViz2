@@ -14,8 +14,7 @@ public class ExitChimeraTask extends AbstractTask {
 	}
 
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Ecit Chimera");
-		taskMonitor.setStatusMessage("Exiting Chimera ...");
+		taskMonitor.setTitle("Exiting Chimera");
 		structureManager.exitChimera();
 	}
 

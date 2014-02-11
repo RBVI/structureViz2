@@ -83,7 +83,13 @@ public abstract class CytoUtils {
 		boolean flag = false;
 		CySessionManager mySessionManager = (CySessionManager) registrar
 				.getService(CySessionManager.class);
-		CySession session = mySessionManager.getCurrentSession();
+		// TODO: [Cy bug] Should not through a NullPointerException
+		CySession session = null;
+		try {
+			session = mySessionManager.getCurrentSession();
+		} catch (Exception ex) {
+			return;
+		}
 		if (session == null) {
 			return;
 		}
@@ -118,7 +124,13 @@ public abstract class CytoUtils {
 		// Find if the CyProperty already exists, if not create one with default value.
 		CySessionManager mySessionManager = (CySessionManager) registrar
 				.getService(CySessionManager.class);
-		CySession session = mySessionManager.getCurrentSession();
+		// TODO: [Cy bug] Should not through a NullPointerException
+		CySession session = null;
+		try {
+			session = mySessionManager.getCurrentSession();
+		} catch (Exception ex) {
+			return "";
+		}
 		if (session == null) {
 			return "";
 		}

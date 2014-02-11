@@ -581,7 +581,7 @@ public class RINManager {
 			rin.getRow(node).set(SEED_ATTR, Boolean.valueOf(residue.isSelected()));
 			rin.getRow(node).set(CHAIN_ATTR, residue.getChainId());
 			rin.getRow(node).set(TYPE_ATTR, residue.getType());
-			rin.getRow(node).set(RESINDEX_ATTR, residue.getIndex());
+			rin.getRow(node).set(RESINDEX_ATTR, Integer.valueOf(residue.getIndex()));
 
 			// Add structureViz attributes
 			String smiles = ChimUtils.toSMILES(residue.getType());

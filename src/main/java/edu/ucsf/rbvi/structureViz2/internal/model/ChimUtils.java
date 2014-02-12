@@ -382,7 +382,6 @@ public abstract class ChimUtils {
 		return resKeyParts;
 	}
 
-	// TODO: [Release] Test new specs for submodels!
 	public static void parseModelID(String modelID, String[] resKeyParts) {
 		if (modelID.startsWith("\"")) {
 			if (modelID.endsWith("\"")) {
@@ -556,14 +555,28 @@ public abstract class ChimUtils {
 		// System.out.println("Getting object from attribute: "+attrSpec);
 		try {
 			if (modelIDNoResChain[0] != null) {
-				String model = modelIDNoResChain[0];
-				List<ChimeraModel> models = chimeraManager.getChimeraModels(model,
+				String modelID = modelIDNoResChain[0];
+				List<ChimeraModel> models = chimeraManager.getChimeraModels(modelID,
 						ModelType.PDB_MODEL);
-				if (models.size() == 1) {
+				if (models.size() == 1) { // usual case with only one model
 					chimeraModel = models.get(0);
-				} else {
+				} else if (models.size() > 1 && modelIDNoResChain[1] != null) {
+					// there are several submodels
 					try {
-						chimeraModel = chimeraManager.getChimeraModel(Integer.valueOf(model), 0);
+						int modelNo = Integer.valueOf(modelIDNoResChain[1]);
+						for (ChimeraModel model : models) {
+							if (model.getSubModelNumber() == modelNo) {
+								chimeraModel = model;
+								break;
+							}
+						}
+					} catch (NumberFormatException ex) {
+						// ignore
+					}
+				} else {
+					// TODO: [Optional] What is this doing?
+					try {
+						chimeraModel = chimeraManager.getChimeraModel(Integer.valueOf(modelID), 0);
 					} catch (NumberFormatException ex) {
 						// ignore
 					}
@@ -573,8 +586,9 @@ public abstract class ChimUtils {
 				// TODO: [Optional] Find a better way to handle this case
 				// If no model can be matched, continue
 				return null;
-				//chimeraModel = chimeraManager.getChimeraModel();
-				//logger.warn("No matching model could be find for " + attrSpec + ". Trying with " + chimeraModel.toSpec());
+				// chimeraModel = chimeraManager.getChimeraModel();
+				// logger.warn("No matching model could be find for " + attrSpec + ". Trying with "
+				// + chimeraModel.toSpec());
 			}
 			// System.out.println("ChimeraModel = " + chimeraModel);
 

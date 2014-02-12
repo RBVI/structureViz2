@@ -180,7 +180,8 @@ public class StructureManager {
 								for (String resSpec : specsFound) {
 									ChimeraStructuralObject res = ChimUtils.fromAttribute(resSpec,
 											chimeraManager);
-									if (res != null) {
+									if (res != null
+											&& (res instanceof ChimeraResidue || res instanceof ChimeraChain)) {
 										potentialRINs.add(network);
 										found = true;
 										break;
@@ -193,7 +194,8 @@ public class StructureManager {
 								for (String resSpec : specsFound) {
 									ChimeraStructuralObject res = ChimUtils.fromAttribute(resSpec,
 											chimeraManager);
-									if (res != null) {
+									if (res != null
+											&& (res instanceof ChimeraResidue || res instanceof ChimeraChain)) {
 										potentialRINs.add(network);
 										found = true;
 										break;
@@ -206,14 +208,22 @@ public class StructureManager {
 						}
 						// if not RIN then associate new model with the cytoscape
 						// node
-						currentCyMap.get(cyObj).add(currentModel);
 						if (!currentChimMap.containsKey(currentModel)) {
 							currentChimMap.put(currentModel, new HashSet<CyIdentifiable>());
 						}
-						currentChimMap.get(currentModel).add(cyObj);
-						currentModel.addCyObject(cyObj, network);
-						currentModel.setFuncResidues(ChimUtils.parseFuncRes(
-								getResidueList(network, cyObj), chimObjName));
+						if (specsFound != null && specsFound.size() > 0) {
+							for (String resSpec : specsFound) {
+								ChimeraStructuralObject specModel = ChimUtils.fromAttribute(
+										resSpec, chimeraManager);
+								if (currentModel.toSpec().equals(specModel.toSpec())) {
+									currentCyMap.get(cyObj).add(currentModel);
+									currentChimMap.get(currentModel).add(cyObj);
+									currentModel.addCyObject(cyObj, network);
+									currentModel.setFuncResidues(ChimUtils.parseFuncRes(
+											getResidueList(network, cyObj), chimObjName));
+								}
+							}
+						}
 					}
 				}
 			}
@@ -1210,13 +1220,22 @@ public class StructureManager {
 						}
 						if (!foundRIN) {
 							// save node <-> model association
-							currentCyMap.get(cyObj).addAll(newModels.get(modelName));
-							for (ChimeraModel model : newModels.get(modelName)) {
-								if (!currentChimMap.containsKey(model)) {
-									currentChimMap.put(model, new HashSet<CyIdentifiable>());
+							if (specsFound != null && specsFound.size() > 0) {
+								for (String resSpec : specsFound) {
+									ChimeraStructuralObject specModel = ChimUtils.fromAttribute(
+											resSpec, chimeraManager);
+									for (ChimeraModel model : newModels.get(modelName)) {
+										if (!currentChimMap.containsKey(model)) {
+											currentChimMap
+													.put(model, new HashSet<CyIdentifiable>());
+										}
+										if (model.toSpec().equals(specModel.toSpec())) {
+											currentCyMap.get(cyObj).add(model);
+											currentChimMap.get(model).add(cyObj);
+											model.addCyObject(cyObj, network);
+										}
+									}
 								}
-								currentChimMap.get(model).add(cyObj);
-								model.addCyObject(cyObj, network);
 							}
 						}
 					}

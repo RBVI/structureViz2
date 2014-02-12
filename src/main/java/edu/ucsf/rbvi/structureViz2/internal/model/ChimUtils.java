@@ -139,7 +139,7 @@ public abstract class ChimUtils {
 		String[] split = atomSpec.split(":");
 		// No model specified....
 		if (split[0].length() == 0) {
-			logger.warn("Unexpected return from Chimera: " + atomSpec);
+			logger.info("Unexpected return from Chimera: " + atomSpec);
 			return null;
 		}
 		// System.out.println("model = "+split[0].substring(1));
@@ -182,7 +182,7 @@ public abstract class ChimUtils {
 		String[] residueChain = split[1].split("\\.");
 
 		if (residueChain[0].length() == 0) {
-			logger.warn("Unexpected return from Chimera: " + atomSpec);
+			logger.info("Unexpected return from Chimera: " + atomSpec);
 			return null;
 		}
 
@@ -199,7 +199,7 @@ public abstract class ChimUtils {
 		// Split into residue and chain
 		String[] residueChain = split[1].split("\\.");
 		if (residueChain.length == 1) {
-			logger.warn("Unexpected return from Chimera: " + atomSpec);
+			logger.info("Unexpected return from Chimera: " + atomSpec);
 			return null;
 		}
 		return model.getChain(residueChain[1]);
@@ -367,7 +367,7 @@ public abstract class ChimUtils {
 				resKeyParts[3] = resChainSplit[1];
 			} else {
 				// too many dots?
-				logger.warn("Could not parse residue identifier: " + resKey);
+				logger.info("Could not parse residue identifier: " + resKey);
 			}
 		}
 		// String print = "";
@@ -412,7 +412,7 @@ public abstract class ChimUtils {
 					resKeyParts[0] = modelID;
 				}
 			} else {
-				logger.warn("Could not parse model identifier: " + modelID);
+				logger.info("Could not parse model identifier: " + modelID);
 			}
 		}
 	}
@@ -571,9 +571,10 @@ public abstract class ChimUtils {
 			}
 			if (chimeraModel == null) {
 				// TODO: [Optional] Find a better way to handle this case
-				// If no model can be matched, try with the first one
-				chimeraModel = chimeraManager.getChimeraModel();
-				logger.warn("No matching model could be find. Trying with " + chimeraModel.toSpec());
+				// If no model can be matched, continue
+				return null;
+				//chimeraModel = chimeraManager.getChimeraModel();
+				//logger.warn("No matching model could be find for " + attrSpec + ". Trying with " + chimeraModel.toSpec());
 			}
 			// System.out.println("ChimeraModel = " + chimeraModel);
 

@@ -19,6 +19,8 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.read.LoadVizmapFileTaskFactory;
 import org.cytoscape.task.visualize.ApplyPreferredLayoutTaskFactory;
+import org.cytoscape.view.layout.CyLayoutAlgorithm;
+import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
@@ -235,8 +237,6 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 				.getService(CyNetworkViewFactory.class);
 		CyNetworkViewManager cyNetworkViewManager = (CyNetworkViewManager) structureManager
 				.getService(CyNetworkViewManager.class);
-		ApplyPreferredLayoutTaskFactory layoutTaskFactory = (ApplyPreferredLayoutTaskFactory) structureManager
-				.getService(ApplyPreferredLayoutTaskFactory.class);
 		TaskManager<?, ?> taskManager = (TaskManager<?, ?>) structureManager
 				.getService(TaskManager.class);
 
@@ -246,8 +246,6 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		// Create network view
 		CyNetworkView view = cyNetworkViewFactory.createNetworkView(newNetwork);
 		cyNetworkViewManager.addNetworkView(view);
-		Set<CyNetworkView> views = new HashSet<CyNetworkView>();
-		views.add(view);
 
 		// annotate
 		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
@@ -265,8 +263,19 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		}
 
 		// Do a layout
-		// TODO: [Release] Do a RIN Layout?
-		taskManager.execute(layoutTaskFactory.createTaskIterator(views));
+		CyLayoutAlgorithmManager manager = (CyLayoutAlgorithmManager) structureManager
+				.getService(CyLayoutAlgorithmManager.class);
+		CyLayoutAlgorithm rinlayout = manager.getLayout("rin-layout");
+		if (rinlayout != null) {
+			taskManager.execute(rinlayout.createTaskIterator(view,
+					rinlayout.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null));
+		} else {
+			ApplyPreferredLayoutTaskFactory layoutTaskFactory = (ApplyPreferredLayoutTaskFactory) structureManager
+					.getService(ApplyPreferredLayoutTaskFactory.class);
+			Set<CyNetworkView> views = new HashSet<CyNetworkView>();
+			views.add(view);
+			insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
+		}
 
 		// Set vizmap
 		VisualMappingManager cyVmManager = (VisualMappingManager) structureManager

@@ -250,7 +250,7 @@ public class AlignManager {
 		ChimeraModel sourceModel = source.getChimeraModel();
 		for (ChimeraStructuralObject target : targetList) {
 			ChimeraModel targetModel = target.getChimeraModel();
-			float[] results = getResults(ChimUtils.getAlignName(source));
+			float[] results = getResults(ChimUtils.getAlignName(target));
 			setEdgeAttributes(results, sourceModel, targetModel);
 		}
 	}
@@ -264,7 +264,6 @@ public class AlignManager {
 	 * @param to
 	 *            the ChimeraModel that represents the CyNode to use as the destination of the edge
 	 */
-	// TODO: [Release] Fix bug
 	private void setEdgeAttributes(float[] results, ChimeraModel reference, ChimeraModel match) {
 		// System.out.println("From: "+from+" To: "+to+" results: "+results);
 		Map<CyIdentifiable, CyNetwork> refNodes = reference.getCyObjects();

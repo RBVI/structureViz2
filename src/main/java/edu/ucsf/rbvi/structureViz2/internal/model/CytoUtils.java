@@ -57,7 +57,7 @@ public abstract class CytoUtils {
 			String[] names = selectedPair.split("\\|");
 			// System.out.println("Input: " + selectedPair);
 			if (names.length != 2) {
-				logger.warn("Could not parse node pdb pair: " + selectedPair);
+				logger.info("Could not parse node pdb pair: " + selectedPair);
 				continue;
 			}
 			// System.out.println("Names: " + names[0] + ", " + names[1]);

@@ -246,22 +246,21 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		}
 
 		// Apply RIN Layout and if not found, do a preferred
-		// TODO: [Release] Enable once the layout is centered
-		// CyLayoutAlgorithmManager manager = (CyLayoutAlgorithmManager) structureManager
-		// .getService(CyLayoutAlgorithmManager.class);
-		// CyLayoutAlgorithm rinlayout = manager.getLayout("rin-layout");
-		// if (rinlayout != null) {
-		// TaskManager<?, ?> taskManager = (TaskManager<?, ?>) structureManager
-		// .getService(TaskManager.class);
-		// taskManager.execute(rinlayout.createTaskIterator(rinView,
-		// rinlayout.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null));
-		// } else {
-		ApplyPreferredLayoutTaskFactory layoutTaskFactory = (ApplyPreferredLayoutTaskFactory) structureManager
-				.getService(ApplyPreferredLayoutTaskFactory.class);
-		Set<CyNetworkView> views = new HashSet<CyNetworkView>();
-		views.add(rinView);
-		insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
-		// }
+		CyLayoutAlgorithmManager manager = (CyLayoutAlgorithmManager) structureManager
+				.getService(CyLayoutAlgorithmManager.class);
+		CyLayoutAlgorithm rinlayout = manager.getLayout("rin-layout");
+		if (rinlayout != null) {
+			TaskManager<?, ?> taskManager = (TaskManager<?, ?>) structureManager
+					.getService(TaskManager.class);
+			taskManager.execute(rinlayout.createTaskIterator(rinView,
+					rinlayout.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null));
+		} else {
+			ApplyPreferredLayoutTaskFactory layoutTaskFactory = (ApplyPreferredLayoutTaskFactory) structureManager
+					.getService(ApplyPreferredLayoutTaskFactory.class);
+			Set<CyNetworkView> views = new HashSet<CyNetworkView>();
+			views.add(rinView);
+			insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
+		}
 
 		// Set vizmap
 		NetworkTaskFactory rinalyzerVisProps = (NetworkTaskFactory) structureManager.getService(

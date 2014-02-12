@@ -51,8 +51,6 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactor
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
 // TODO: [Optional] Improve non-gui mode
-// TODO: [Release] Use logger to log messages
-
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);

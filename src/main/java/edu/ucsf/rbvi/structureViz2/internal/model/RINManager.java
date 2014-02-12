@@ -24,9 +24,14 @@ import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.view.vizmap.mappings.DiscreteMapping;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: [Optional] No dist edges between ligands and others since we only consider distance between C_alphas
 public class RINManager {
+
+	private static Logger logger = LoggerFactory
+			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.RINManager.class);
 
 	private StructureManager structureManager;
 	private ChimeraManager chimeraManager;
@@ -992,7 +997,8 @@ public class RINManager {
 		VisualMappingFunctionFactory vmfFactoryD = (VisualMappingFunctionFactory) structureManager
 				.getService(VisualMappingFunctionFactory.class, "(mapping.type=discrete)");
 		DiscreteMapping<Long, Paint> nodeColorMapping = (DiscreteMapping<Long, Paint>) vmfFactoryD
-				.createVisualMappingFunction(CyIdentifiable.SUID, Long.class, BasicVisualLexicon.NODE_FILL_COLOR);
+				.createVisualMappingFunction(CyIdentifiable.SUID, Long.class,
+						BasicVisualLexicon.NODE_FILL_COLOR);
 		nodeColorMapping.putAll(nodeToColorMapping);
 		VisualMappingManager manager = (VisualMappingManager) structureManager
 				.getService(VisualMappingManager.class);

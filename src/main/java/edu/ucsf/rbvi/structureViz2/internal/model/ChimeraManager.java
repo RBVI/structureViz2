@@ -132,6 +132,7 @@ public class ChimeraManager {
 		}
 		if (response == null) {
 			// something went wrong
+			logger.warn("Could not open " + modelPath);
 			return null;
 		}
 		List<ChimeraModel> models = new ArrayList<ChimeraModel>();
@@ -219,7 +220,7 @@ public class ChimeraManager {
 					model.getSubModelNumber()));
 			// selectionList.remove(chimeraModel);
 		} else {
-			logger.warn("chimera cannot find model " + model.getModelName());
+			logger.warn("Could not find model " + model.getModelName() + " to close.");
 		}
 		startListening();
 	}

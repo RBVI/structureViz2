@@ -46,11 +46,17 @@ import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Align class provides the interface to Chimera for processing requests to align structures.
  */
 public class AlignManager {
+
+	private static Logger logger = LoggerFactory
+			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.AlignManager.class);
+
 	public static final String[] attributeKeys = { "RMSD", "AlignmentScore", "AlignedResidues" };
 
 	/**
@@ -171,6 +177,9 @@ public class AlignManager {
 			List<String> matchResult = singleAlign(reference, match);
 			if (matchResult != null) {
 				results.put(ChimUtils.getAlignName(match), parseResults(matchResult));
+			} else {
+				logger.warn("Chimera could not align pair: " + reference.toSpec() + " and "
+						+ match.toSpec());
 			}
 		}
 		chimeraManager.focus();
@@ -255,6 +264,7 @@ public class AlignManager {
 	 * @param to
 	 *            the ChimeraModel that represents the CyNode to use as the destination of the edge
 	 */
+	// TODO: [Release] Fix bug
 	private void setEdgeAttributes(float[] results, ChimeraModel reference, ChimeraModel match) {
 		// System.out.println("From: "+from+" To: "+to+" results: "+results);
 		Map<CyIdentifiable, CyNetwork> refNodes = reference.getCyObjects();

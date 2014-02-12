@@ -35,11 +35,11 @@ public class ListenerThreads extends Thread {
 	 * Create a new listener thread to read the responses from Chimera
 	 * 
 	 * @param chimera
-	 *          a handle to the Chimera Process
+	 *            a handle to the Chimera Process
 	 * @param log
-	 *          a handle to a List to post the responses to
+	 *            a handle to a List to post the responses to
 	 * @param chimeraObject
-	 *          a handle to the Chimera Object
+	 *            a handle to the Chimera Object
 	 */
 	public ListenerThreads(Process chimera, StructureManager structureManager) {
 		this.chimera = chimera;
@@ -60,7 +60,7 @@ public class ListenerThreads extends Thread {
 			try {
 				chimeraRead();
 			} catch (IOException e) {
-				logger.info("UCSF Chimera has exited: " + e.getMessage());
+				logger.warn("UCSF Chimera has exited: " + e.getMessage());
 				return;
 			}
 		}
@@ -135,7 +135,7 @@ public class ListenerThreads extends Thread {
 			while ((line = lineReader.readLine()) != null) {
 				// System.out.println("From Chimera (" + command + ") -->" + line);
 				if (line.startsWith("CMD")) {
-					logger.error("Got unexpected command from Chimera: " + line);
+					logger.warn("Got unexpected command from Chimera: " + line);
 
 				} else if (line.startsWith("END")) {
 					break;
@@ -190,6 +190,7 @@ public class ListenerThreads extends Thread {
 			try {
 				structureManager.chimeraSelectionChanged();
 			} catch (Exception e) {
+				logger.warn("Could not update selection", e);
 			}
 		}
 	}
@@ -211,6 +212,7 @@ public class ListenerThreads extends Thread {
 						.execute(new ImportTrajectoryRINTaskFactory(structureManager, line)
 								.createTaskIterator());
 			} catch (Exception e) {
+				logger.warn("Could not import trajectory network", e);
 			}
 		}
 	}

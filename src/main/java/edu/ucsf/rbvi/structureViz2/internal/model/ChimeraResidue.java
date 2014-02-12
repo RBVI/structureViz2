@@ -126,7 +126,7 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 			}
 		} catch (Exception e) {
 			LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimeraResidue.class)
-					.error("Unexpected return from Chimera in ChimeraResidue: " + model);
+					.error("Unexpected return from Chimera: " + model);
 			this.modelNumber = -1;
 		}
 

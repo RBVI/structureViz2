@@ -10,11 +10,15 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
 public abstract class ChimUtils {
+
+	private static Logger logger = LoggerFactory
+			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils.class);
 
 	static int MAX_SUB_MODELS = 1000;
 
@@ -43,8 +47,7 @@ public abstract class ChimUtils {
 			}
 			modelNumber = Integer.parseInt(inputLine.substring(hash + 1, space));
 		} catch (Exception e) {
-			LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils.class)
-					.error("Unexpected return from Chimera: " + inputLine);
+			logger.warn("Unexpected return from Chimera: " + inputLine, e);
 		}
 		return new int[] { modelNumber, subModelNumber };
 	}
@@ -68,8 +71,7 @@ public abstract class ChimUtils {
 			}
 			modelNumber = Integer.parseInt(inputLine.substring(hash + 1, space));
 		} catch (Exception e) {
-			LoggerFactory.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.ChimUtils.class)
-					.error("Unexpected return from Chimera: " + inputLine);
+			logger.warn("Unexpected return from Chimera: " + inputLine, e);
 		}
 		return new int[] { modelNumber, subModelNumber };
 	}
@@ -97,19 +99,24 @@ public abstract class ChimUtils {
 	}
 
 	public static Color parseModelColor(String inputLine) {
-		int colorStart = inputLine.indexOf("color ");
-		String colorString = inputLine.substring(colorStart + 6);
-		String[] rgbStrings = colorString.split(",");
-		float[] rgbValues = new float[4];
-		for (int i = 0; i < rgbStrings.length; i++) {
-			Float f = new Float(rgbStrings[i]);
-			rgbValues[i] = f.floatValue();
+		try {
+			int colorStart = inputLine.indexOf("color ");
+			String colorString = inputLine.substring(colorStart + 6);
+			String[] rgbStrings = colorString.split(",");
+			float[] rgbValues = new float[4];
+			for (int i = 0; i < rgbStrings.length; i++) {
+				Float f = new Float(rgbStrings[i]);
+				rgbValues[i] = f.floatValue();
+			}
+			if (rgbStrings.length == 4) {
+				return new Color(rgbValues[0], rgbValues[1], rgbValues[2], rgbValues[3]);
+			} else {
+				return new Color(rgbValues[0], rgbValues[1], rgbValues[2]);
+			}
+		} catch (Exception ex) {
+			logger.warn("Unexpected return from Chimera: " + inputLine, ex);
 		}
-		if (rgbStrings.length == 4) {
-			return new Color(rgbValues[0], rgbValues[1], rgbValues[2], rgbValues[3]);
-		} else {
-			return new Color(rgbValues[0], rgbValues[1], rgbValues[2]);
-		}
+		return Color.white;
 	}
 
 	/**
@@ -131,9 +138,10 @@ public abstract class ChimUtils {
 		// System.out.println("getting model for "+atomSpec);
 		String[] split = atomSpec.split(":");
 		// No model specified....
-		if (split[0].length() == 0)
+		if (split[0].length() == 0) {
+			logger.warn("Unexpected return from Chimera: " + atomSpec);
 			return null;
-
+		}
 		// System.out.println("model = "+split[0].substring(1));
 		int model = 0;
 		int submodel = 0;
@@ -148,6 +156,7 @@ public abstract class ChimUtils {
 				submodel = Integer.parseInt(subSplit[1]);
 		} catch (Exception e) {
 			// ignore
+			logger.warn("Unexpected return from Chimera: " + atomSpec, e);
 		}
 		return chimeraManager.getChimeraModel(model, submodel);
 	}
@@ -172,8 +181,10 @@ public abstract class ChimUtils {
 		// Split into residue and chain
 		String[] residueChain = split[1].split("\\.");
 
-		if (residueChain[0].length() == 0)
+		if (residueChain[0].length() == 0) {
+			logger.warn("Unexpected return from Chimera: " + atomSpec);
 			return null;
+		}
 
 		if (residueChain.length == 2 && residueChain[1].length() > 0) {
 			ChimeraChain chain = model.getChain(residueChain[1]);
@@ -187,9 +198,10 @@ public abstract class ChimUtils {
 
 		// Split into residue and chain
 		String[] residueChain = split[1].split("\\.");
-		if (residueChain.length == 1)
+		if (residueChain.length == 1) {
+			logger.warn("Unexpected return from Chimera: " + atomSpec);
 			return null;
-
+		}
 		return model.getChain(residueChain[1]);
 	}
 
@@ -355,7 +367,7 @@ public abstract class ChimUtils {
 				resKeyParts[3] = resChainSplit[1];
 			} else {
 				// too many dots?
-				System.err.println("Cannot parse residue identifier");
+				logger.warn("Could not parse residue identifier: " + resKey);
 			}
 		}
 		// String print = "";
@@ -400,13 +412,9 @@ public abstract class ChimUtils {
 					resKeyParts[0] = modelID;
 				}
 			} else {
-				System.out.println("Cannot parse residue identifier.");
+				logger.warn("Could not parse model identifier: " + modelID);
 			}
 		}
-	}
-
-	public static String toModelName(String structureKey) {
-		return "";
 	}
 
 	/**
@@ -425,6 +433,7 @@ public abstract class ChimUtils {
 			ChimeraManager chimeraManager) {
 		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
+			logger.warn("No support for identifier: " + attrSpec);
 			return null;
 		}
 
@@ -461,7 +470,7 @@ public abstract class ChimUtils {
 					chain = resChainSplit[1];
 				} else {
 					// too many dots?
-					System.err.println("Cannot parse residue identifier");
+					logger.warn("No support for identifier: " + attrSpec);
 				}
 			}
 
@@ -526,8 +535,7 @@ public abstract class ChimUtils {
 				return chimeraModel;
 
 		} catch (Exception ex) {
-			// ex.printStackTrace();
-			// ignore
+			logger.warn("Could not parse residue identifier: " + attrSpec, ex);
 		}
 		return null;
 	}
@@ -536,6 +544,7 @@ public abstract class ChimUtils {
 			ChimeraManager chimeraManager) {
 		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
+			logger.warn("No support for identifier: " + attrSpec);
 			return null;
 		}
 		String[] modelIDNoResChain = getResKeyParts(attrSpec);
@@ -561,8 +570,10 @@ public abstract class ChimUtils {
 				}
 			}
 			if (chimeraModel == null) {
-				// TODO: [Release] Figure out what to do if no model can be matched!
+				// TODO: [Optional] Find a better way to handle this case
+				// If no model can be matched, try with the first one
 				chimeraModel = chimeraManager.getChimeraModel();
+				logger.warn("No matching model could be find. Trying with " + chimeraModel.toSpec());
 			}
 			// System.out.println("ChimeraModel = " + chimeraModel);
 
@@ -590,8 +601,7 @@ public abstract class ChimUtils {
 				return chimeraModel;
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
-			// ignore
+			logger.warn("Could not parse chimera identifier: " + attrSpec, ex);
 		}
 		return null;
 	}

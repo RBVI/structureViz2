@@ -115,18 +115,6 @@ public class StructureManager {
 
 	public Object getService(Class<?> serviceClass, String filter) {
 		return registrar.getService(serviceClass, filter);
-		// Alternative getService based on filters
-		// try {
-		// ServiceReference[] services = registrar.getServiceReferences(serviceClass.getName(),
-		// filter);
-		// if (services != null && services.length > 0) {
-		// return registrar.getService(services[0]);
-		// }
-		// } catch (Exception ex) {
-		// // ignore
-		// // ex.printStackTrace();
-		// }
-		// return null;
 	}
 
 	public void setCreateStructureNetFactory(TaskFactory factory) {
@@ -134,15 +122,14 @@ public class StructureManager {
 	}
 
 	// TODO: [Release] Handle case where one network is associated with two models that are opened
-	// at the
-	// same time
+	// at the same time
 	public boolean openStructures(CyNetwork network,
 			Map<CyIdentifiable, List<String>> chimObjNames, ModelType type) {
 		if (network == null || chimObjNames.size() == 0) {
 			return false;
 		} else if (!chimeraManager.isChimeraLaunched()
 				&& !chimeraManager.launchChimera(getChimeraPaths(network))) {
-			logger.error("Chimera cannot be launched.");
+			logger.error("Chimera could not be launched.");
 			return false;
 		}
 
@@ -269,7 +256,7 @@ public class StructureManager {
 			chimeraManager.sendChimeraCommand("unset bgTransparency", false);
 		} catch (IOException ioe) {
 			// Log error
-			logger.error("Error writing image: " + ioe.getMessage());
+			logger.error("Error writing image", ioe);
 		}
 		return tmpFile;
 	}
@@ -430,7 +417,6 @@ public class StructureManager {
 			}
 			Set<CyNetwork> currentCyNetworks = networkMap.get(cyObj);
 			if (currentCyNetworks == null || currentCyNetworks.size() == 0) {
-
 				continue;
 			}
 			for (CyNetwork network : currentCyNetworks) {
@@ -560,7 +546,7 @@ public class StructureManager {
 				}
 			} // modelIter.hasNext()
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.warn("Could not update selection", ex);
 		}
 		// System.out.println("selection list: " + getChimSelectionCount());
 		// Finally, update the navigator panel
@@ -797,7 +783,7 @@ public class StructureManager {
 	}
 
 	public void launchModelNavigatorDialog() {
-		// System.out.println("launch dialog");
+		// TODO: [Optional] Use haveGUI flag
 		// if (!haveGUI) {
 		// return;
 		// }
@@ -836,8 +822,9 @@ public class StructureManager {
 	}
 
 	public void launchAlignDialog(boolean useChains) {
+		// TODO: [Optional] Use haveGUI flag
+		// Sometimes it does not appear in Windows
 		// if (!haveGUI) {
-		// System.out.println("dialog not started because there is no gui.");
 		// return;
 		// }
 		if (alDialog != null) {

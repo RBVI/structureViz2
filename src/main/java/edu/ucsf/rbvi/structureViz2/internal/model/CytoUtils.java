@@ -17,8 +17,13 @@ import org.cytoscape.property.SimpleCyProperty;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CySession;
 import org.cytoscape.session.CySessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class CytoUtils {
+
+	private static Logger logger = LoggerFactory
+			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils.class);
 
 	public static List<String> getMatchingAttributes(CyTable table, List<String> columns) {
 		Set<String> columnNames = CyTableUtil.getColumnNames(table);
@@ -52,6 +57,7 @@ public abstract class CytoUtils {
 			String[] names = selectedPair.split("\\|");
 			// System.out.println("Input: " + selectedPair);
 			if (names.length != 2) {
+				logger.warn("Could not parse node pdb pair: " + selectedPair);
 				continue;
 			}
 			// System.out.println("Names: " + names[0] + ", " + names[1]);

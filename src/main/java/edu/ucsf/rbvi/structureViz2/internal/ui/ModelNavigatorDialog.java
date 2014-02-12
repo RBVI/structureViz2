@@ -72,8 +72,9 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 /**
  * The ModelNavigatorDialog class is the class that implements the main interface for structureViz.
  */
-// TODO: [Bug] Selection in tree
-// Something goes wrong when the tree has been collapsed with selected residues and is expanded again
+// TODO: [Bug] Selection in tree: FIXED?
+// Something goes wrong when the tree has been collapsed with selected residues and is expanded
+// again
 public class ModelNavigatorDialog extends JDialog implements TreeSelectionListener,
 		TreeExpansionListener, TreeWillExpandListener {
 
@@ -337,8 +338,9 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		if (setPaths != null && setPaths.size() > 0) {
 			navigationTree.addSelectionPaths(setPaths.toArray(new TreePath[1]));
 		} else {
-			// TODO: [Optional] Collapse tree when no selection
-			// collapseAll();
+			// TODO: [Release] Check if collapsing always works
+			// Collapse tree when no selection
+			collapseAll();
 		}
 	}
 
@@ -460,7 +462,7 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 		selectMenu.add(secondaryMenu);
 		addMenuItem(selectMenu, "Functional residues", FUNCTIONALRESIDUES, null);
 		addMenuItem(selectMenu, "Invert selection", COMMAND, "select invert");
-		addMenuItem(selectMenu, "Clear selection", CLEAR, null);
+		addMenuItem(selectMenu, "Clear selection", COMMAND, "~select");
 		menuBar.add(selectMenu);
 
 		setJMenuBar(menuBar);
@@ -619,10 +621,11 @@ public class ModelNavigatorDialog extends JDialog implements TreeSelectionListen
 				chimeraManager.sendChimeraCommand(command, false);
 			} else if (type == SELECT) {
 				chimeraManager.select(command);
-			} else if (type == CLEAR) {
-				chimeraManager.select("~select");
-				collapseAll();
-				navigationTree.removeSelectionPaths(navigationTree.getSelectionPaths());
+				// } else if (type == CLEAR) {
+				// System.out.println("clear selection");
+				// chimeraManager.select("~select");
+				// navigationTree.removeSelectionPaths(navigationTree.getSelectionPaths());
+				// collapseAll();
 			} else if (type == EXIT) {
 				structureManager.exitChimera();
 			} else if (type == FUNCTIONALRESIDUES) {

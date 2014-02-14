@@ -36,7 +36,6 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 // TODO: [Old bug] Different number of nodes and edges in consecutive runs (only when adding hydrogens?)
 // TODO: [Old bug] Selection disappears sometimes upon RIN creation
 // TODO: [Optional] Add menus for adding each type of edges to an already existing network?
-// TODO: [Release] Decide what to do with edges of the same type?
 public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Tunable(description = "Name of new network", groups = "General", gravity = 1.1)

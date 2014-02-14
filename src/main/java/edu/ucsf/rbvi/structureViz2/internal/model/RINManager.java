@@ -44,8 +44,8 @@ public class RINManager {
 	private static final String COMBIEDGE = "combi";
 	private static final String DISTEDGE = "distance";
 	private static final String BBEDGE = "backbone";
-	// private static final String SUBTYPEDELIM1 = "_";
-	private static final String SUBTYPEDELIM = "_";
+	private static final String SUBTYPEDELIM1 = " ";
+	private static final String SUBTYPEDELIM2 = "_";
 
 	// Edge attributes
 	private static final String DISTANCE_ATTR = "Distance";
@@ -146,8 +146,8 @@ public class RINManager {
 							rin.getRow(source).get(CyNetwork.NAME, String.class) + " (" + COMBIEDGE
 									+ ") " + rin.getRow(target).get(CyNetwork.NAME, String.class));
 					rin.getRow(edge).set(CyEdge.INTERACTION, COMBIEDGE);
-					rin.getRow(edge)
-							.set(INTSUBTYPE_ATTR, COMBIEDGE + " all" + SUBTYPEDELIM + "all");
+					rin.getRow(edge).set(INTSUBTYPE_ATTR,
+							COMBIEDGE + SUBTYPEDELIM1 + "all" + SUBTYPEDELIM2 + "all");
 					rin.getRow(edge).set(NUMINT_ATTR, edges.size());
 					// rin.getRow(edge).set(INTATOMS_ATTR, "");
 
@@ -292,7 +292,6 @@ public class RINManager {
 			String[] line = replyLog.get(index).trim().split("\\s+");
 			if (line.length != 4)
 				continue;
-
 			CyEdge edge = createEdge(rin, nodeMap, ignoreWater, removeRedContacts, line[0],
 					line[1], edgeType);
 			if (edge == null) {
@@ -304,7 +303,6 @@ public class RINManager {
 			// We want the largest overlap
 			updateMap(overlapMap, edge, line[2], 1);
 		}
-
 		// OK, now update the edge attributes we want
 		for (CyEdge edge : distanceMap.keySet()) {
 			rin.getRow(edge).set(DISTANCE_ATTR, distanceMap.get(edge));
@@ -482,48 +480,81 @@ public class RINManager {
 		// Create our two nodes. Note that makeResidueNode also adds three
 		// attributes:
 		// 1) FunctionalResidues; 2) Seed; 3) SideChainOnly
-		CyNode source = createResidueNode(rin, nodeMap, ignoreWater, sourceAlias);
-		CyNode target = createResidueNode(rin, nodeMap, ignoreWater, targetAlias);
+		// sort source and target to avoid duplicated edges with different directions
+		List<String> residues = new ArrayList<String>();
+		residues.add(sourceAlias);
+		residues.add(targetAlias);
+		Collections.sort(residues);
+		CyNode source = createResidueNode(rin, nodeMap, ignoreWater, residues.get(0));
+		CyNode target = createResidueNode(rin, nodeMap, ignoreWater, residues.get(1));
 		if (source == null || target == null) {
 			return null;
 		}
-		String interactingAtoms = sourceAlias + "," + targetAlias;
-		String sourceAtom = ChimUtils.getAtomName(sourceAlias);
-		String targetAtom = ChimUtils.getAtomName(targetAlias);
+		String interactingAtoms = residues.get(0) + "," + residues.get(1);
+		String sourceAtom = ChimUtils.getAtomName(residues.get(0));
+		String targetAtom = ChimUtils.getAtomName(residues.get(1));
 		List<String> subtype = new ArrayList<String>();
 		subtype.add(ChimUtils.getIntSubtype(rin.getRow(source).get(CyNetwork.NAME, String.class),
 				sourceAtom));
 		subtype.add(ChimUtils.getIntSubtype(rin.getRow(target).get(CyNetwork.NAME, String.class),
 				targetAtom));
 		Collections.sort(subtype);
-		String interactionSubtype = type + " " + subtype.get(0) + SUBTYPEDELIM + subtype.get(1);
+		String interactionSubtype = type + SUBTYPEDELIM1 + subtype.get(0) + SUBTYPEDELIM2
+				+ subtype.get(1);
 
-		// Create our edge
+		// Check if our edge already exists
 		CyEdge edge = null;
-		if (removeRedContacts && type.equals(HBONDEDGE)) {
-			List<CyEdge> existingEdges = rin.getConnectingEdgeList(source, target, Type.ANY);
-			if (existingEdges.size() > 0) {
-				for (CyEdge exEdge : existingEdges) {
-					if (rin.getRow(exEdge).get(CyEdge.INTERACTION, String.class)
-							.equals(CONTACTEDGE)
-							&& rin.getRow(exEdge).get(INTATOMS_ATTR, String.class)
-									.equals(interactingAtoms)) {
-						edge = exEdge;
-						rin.getRow(edge).set(OVERLAP_ATTR, null);
-						break;
+		List<CyEdge> existingEdges = rin.getConnectingEdgeList(source, target, Type.ANY);
+		if (existingEdges.size() > 0) {
+			for (CyEdge exEdge : existingEdges) {
+				// if it already exists, add new pair of interacting atoms
+				List<String> exEdgeAtoms = rin.getRow(exEdge).getList(INTATOMS_ATTR, String.class);
+				if (rin.getRow(exEdge).get(INTSUBTYPE_ATTR, String.class)
+						.equals(interactionSubtype)) {
+					exEdgeAtoms.add(interactingAtoms);
+					rin.getRow(exEdge).set(INTATOMS_ATTR, exEdgeAtoms);
+					rin.getRow(exEdge).set(NUMINT_ATTR,
+							rin.getRow(exEdge).get(NUMINT_ATTR, Integer.class) + 1);
+					return exEdge;
+				}
+				// if a contact should be replaced by a hydrogen bond since they are redundant
+				if (removeRedContacts
+						&& type.equals(HBONDEDGE)
+						&& rin.getRow(exEdge)
+								.get(INTSUBTYPE_ATTR, String.class)
+								.equals(CONTACTEDGE + SUBTYPEDELIM1 + subtype.get(0)
+										+ SUBTYPEDELIM2 + subtype.get(1))) {
+					if (exEdgeAtoms.contains(interactingAtoms)) {
+						if (exEdgeAtoms.size() == 1) {
+							edge = exEdge;
+							rin.getRow(edge).set(OVERLAP_ATTR, null);
+							break;
+						} else {
+							// if the hudrogen bond is redundant with only one of the contacts,
+							// don't replace it, but decrease the number of contacts
+							exEdgeAtoms.remove(interactingAtoms);
+							rin.getRow(exEdge).set(INTATOMS_ATTR, exEdgeAtoms);
+							rin.getRow(exEdge).set(NUMINT_ATTR,
+									rin.getRow(exEdge).get(NUMINT_ATTR, Integer.class) - 1);
+						}
 					}
 				}
 			}
 		}
+		// if not, create our edge
 		if (edge == null) {
 			edge = rin.addEdge(source, target, true);
 		}
+		// and set its attributes
 		String edgeName = rin.getRow(source).get(CyNetwork.NAME, String.class) + " (" + type + ") "
 				+ rin.getRow(target).get(CyNetwork.NAME, String.class);
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
 		rin.getRow(edge).set(CyEdge.INTERACTION, type);
-		rin.getRow(edge).set(INTATOMS_ATTR, interactingAtoms);
 		rin.getRow(edge).set(INTSUBTYPE_ATTR, interactionSubtype);
+		rin.getRow(edge).set(NUMINT_ATTR, 1);
+		List<String> intAtomsAttr = new ArrayList<String>();
+		intAtomsAttr.add(interactingAtoms);
+		rin.getRow(edge).set(INTATOMS_ATTR, intAtomsAttr);
 		return edge;
 	}
 
@@ -533,7 +564,7 @@ public class RINManager {
 				+ ") " + rin.getRow(node2).get(CyNetwork.NAME, String.class);
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
 		rin.getRow(edge).set(CyEdge.INTERACTION, BBEDGE);
-		rin.getRow(edge).set(INTSUBTYPE_ATTR, BBEDGE + " mc" + SUBTYPEDELIM + "mc");
+		rin.getRow(edge).set(INTSUBTYPE_ATTR, BBEDGE + SUBTYPEDELIM1 + "mc" + SUBTYPEDELIM2 + "mc");
 		return edge;
 	}
 
@@ -740,10 +771,8 @@ public class RINManager {
 		rin.getDefaultEdgeTable().createColumn(DISTANCE_ATTR, Double.class, false);
 		rin.getDefaultEdgeTable().createColumn(OVERLAP_ATTR, Double.class, false);
 		rin.getDefaultEdgeTable().createColumn(INTSUBTYPE_ATTR, String.class, false);
-		rin.getDefaultEdgeTable().createColumn(INTATOMS_ATTR, String.class, false);
-		if (includeCombiEdges) {
-			rin.getDefaultEdgeTable().createColumn(NUMINT_ATTR, Integer.class, false);
-		}
+		rin.getDefaultEdgeTable().createColumn(NUMINT_ATTR, Integer.class, false);
+		rin.getDefaultEdgeTable().createListColumn(INTATOMS_ATTR, String.class, false);
 
 		// add all selected nodes
 		List<String> residues = chimeraManager.getSelectedResidueSpecs();

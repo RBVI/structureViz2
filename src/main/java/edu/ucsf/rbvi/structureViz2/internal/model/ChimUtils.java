@@ -543,6 +543,7 @@ public abstract class ChimUtils {
 			ChimeraManager chimeraManager) {
 		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
 			// No support for either lists or ranges
+			// System.out.println("No support for identifier: " + attrSpec);
 			logger.warn("No support for identifier: " + attrSpec);
 			return null;
 		}
@@ -585,6 +586,7 @@ public abstract class ChimUtils {
 			if (chimeraModel == null) {
 				// TODO: [Optional] Find a better way to handle this case
 				// If no model can be matched, continue
+				// System.out.println("No matching model could be find for " + attrSpec);
 				return null;
 				// chimeraModel = chimeraManager.getChimeraModel();
 				// logger.warn("No matching model could be find for " + attrSpec + ". Trying with "
@@ -616,6 +618,7 @@ public abstract class ChimUtils {
 				return chimeraModel;
 
 		} catch (Exception ex) {
+			// System.out.println("Could not parse chimera identifier: " + attrSpec+"("+ex.getMessage()+")");
 			logger.warn("Could not parse chimera identifier: " + attrSpec, ex);
 		}
 		return null;

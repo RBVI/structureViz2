@@ -215,7 +215,7 @@ public class StructureManager {
 							for (String resSpec : specsFound) {
 								ChimeraStructuralObject specModel = ChimUtils.fromAttribute(
 										resSpec, chimeraManager);
-								if (currentModel.toSpec().equals(specModel.toSpec())) {
+								if (specModel != null && currentModel.toSpec().equals(specModel.toSpec())) {
 									currentCyMap.get(cyObj).add(currentModel);
 									currentChimMap.get(currentModel).add(cyObj);
 									currentModel.addCyObject(cyObj, network);
@@ -1229,7 +1229,7 @@ public class StructureManager {
 											currentChimMap
 													.put(model, new HashSet<CyIdentifiable>());
 										}
-										if (model.toSpec().equals(specModel.toSpec())) {
+										if (specModel != null && model.toSpec().equals(specModel.toSpec())) {
 											currentCyMap.get(cyObj).add(model);
 											currentChimMap.get(model).add(cyObj);
 											model.addCyObject(cyObj, network);

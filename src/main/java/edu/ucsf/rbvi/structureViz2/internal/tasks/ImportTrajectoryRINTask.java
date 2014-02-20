@@ -45,6 +45,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 	private CyNetwork newNetwork;
 	private Map<String, CyNode> nodesMap;
 	private VisualStyle visualStyle;
+	private static final String weightAttr = "Weight";
 
 	public ImportTrajectoryRINTask(StructureManager structureManager, String trajInfo) {
 		this.structureManager = structureManager;
@@ -135,7 +136,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 		CyNetworkFactory netFactory = (CyNetworkFactory) structureManager
 				.getService(CyNetworkFactory.class);
 		newNetwork = netFactory.createNetwork();
-		newNetwork.getDefaultEdgeTable().createColumn("Weight", Double.class, false);
+		newNetwork.getDefaultEdgeTable().createColumn(weightAttr, Double.class, false);
 		newNetwork.getDefaultNodeTable()
 				.createColumn(ChimUtils.RINALYZER_ATTR, String.class, false);
 		newNetwork.getRow(newNetwork).set(CyNetwork.NAME, name);
@@ -176,7 +177,7 @@ public class ImportTrajectoryRINTask extends AbstractTask {
 							CytoUtils.getNodeName(newNetwork, source) + " (" + words[1] + ") "
 									+ CytoUtils.getNodeName(newNetwork, target));
 					newNetwork.getRow(edge).set(CyEdge.INTERACTION, words[1]);
-					newNetwork.getRow(edge).set("Weight", new Double(words[3]));
+					newNetwork.getRow(edge).set(weightAttr, new Double(words[3]));
 				}
 			}
 			br.close();

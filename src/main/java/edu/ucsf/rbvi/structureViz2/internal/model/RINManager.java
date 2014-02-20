@@ -595,7 +595,14 @@ public class RINManager {
 		ChimeraResidue.setDisplayType(displayType);
 
 		// if (!singleModel)
-		nodeName = model.getModelName() + "#" + nodeName;
+		// if there are submodels save the submodel number in the identifier
+		// if (chimeraManager.getChimeraModels(model.getModelName(), ModelType.PDB_MODEL).size() >
+		// 1) {
+		if (model.getSubModelNumber() > 0) {
+			nodeName = model.getModelName() + "." + model.getSubModelNumber() + "#" + nodeName;
+		} else {
+			nodeName = model.getModelName() + "#" + nodeName;
+		}
 
 		// Create the node if it does not already exist in the network
 		CyNode node = null;
@@ -606,7 +613,11 @@ public class RINManager {
 
 			// Add simple attributes such as name, type, index and association with the chimera
 			// model it was created from
-			String chimRes = model.getModelName() + "#" + residue.getIndex();
+			String chimRes = model.getModelName();
+			if (model.getSubModelNumber() > 0) {
+				chimRes += "." + model.getSubModelNumber();
+			}
+			chimRes += "#" + residue.getIndex();
 			if (residue.getChainId() != "_") {
 				chimRes += "." + residue.getChainId();
 			}

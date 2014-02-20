@@ -148,7 +148,14 @@ public class RINManager {
 					rin.getRow(edge).set(CyEdge.INTERACTION, COMBIEDGE);
 					rin.getRow(edge).set(INTSUBTYPE_ATTR,
 							COMBIEDGE + SUBTYPEDELIM1 + "all" + SUBTYPEDELIM2 + "all");
-					rin.getRow(edge).set(NUMINT_ATTR, edges.size());
+					// Sum over number of other edges
+					int nrInt = 0;
+					for (CyEdge exEdge : edges) {
+						if (rin.getRow(exEdge).isSet(NUMINT_ATTR)) {
+							nrInt += rin.getRow(exEdge).get(NUMINT_ATTR, Integer.class);
+						}
+					}
+					rin.getRow(edge).set(NUMINT_ATTR, nrInt);
 					// rin.getRow(edge).set(INTATOMS_ATTR, "");
 
 				}
@@ -565,6 +572,7 @@ public class RINManager {
 		rin.getRow(edge).set(CyNetwork.NAME, edgeName);
 		rin.getRow(edge).set(CyEdge.INTERACTION, BBEDGE);
 		rin.getRow(edge).set(INTSUBTYPE_ATTR, BBEDGE + SUBTYPEDELIM1 + "mc" + SUBTYPEDELIM2 + "mc");
+		rin.getRow(edge).set(NUMINT_ATTR, 1);
 		return edge;
 	}
 
@@ -580,7 +588,7 @@ public class RINManager {
 			// singleModel = true;
 		}
 		ChimeraResidue residue = ChimUtils.getResidue(alias, model);
-		if (ignoreWater && residue.getType().equals("HOH")) {
+		if (residue == null || (ignoreWater && residue.getType().equals("HOH"))) {
 			return null;
 		}
 		// boolean backbone = ChimUtils.isBackbone(alias);

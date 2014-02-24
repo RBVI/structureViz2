@@ -165,6 +165,10 @@ public class StructureManager {
 				if (currentModels.size() == 0) {
 					// open and return models
 					currentModels = chimeraManager.openModel(chimObjName, type);
+					if (currentModels == null) {
+						// failed to open model, continue with next
+						continue;
+					}
 					// if (type == ModelType.SMILES) {
 					// newModels.put("smiles:" + chimObjName, currentModels);
 					// } else {

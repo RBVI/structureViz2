@@ -219,7 +219,8 @@ public class StructureManager {
 							for (String resSpec : specsFound) {
 								ChimeraStructuralObject specModel = ChimUtils.fromAttribute(
 										resSpec, chimeraManager);
-								if (specModel != null && currentModel.toSpec().equals(specModel.toSpec())) {
+								if (specModel != null
+										&& currentModel.toSpec().equals(specModel.toSpec())) {
 									currentCyMap.get(cyObj).add(currentModel);
 									currentChimMap.get(currentModel).add(cyObj);
 									currentModel.addCyObject(cyObj, network);
@@ -1033,10 +1034,12 @@ public class StructureManager {
 
 		// if no network is available and the settings have been modified by the user, check for a
 		// path to chimera
-		if (network == null && defaultSettings != null
-				&& !defaultSettings.getChimeraPath().equals("")) {
-			pathList.add(defaultSettings.getChimeraPath());
-			return pathList;
+		if (network == null && defaultSettings != null) {
+			String defaultPath = defaultSettings.getChimeraPath();
+			if (defaultPath != null && !defaultPath.equals("")) {
+				pathList.add(defaultPath);
+				return pathList;
+			}
 		}
 
 		// if a network is available, check if a path to chimera is specified
@@ -1051,7 +1054,7 @@ public class StructureManager {
 		// if no network settings, check if the last chimera path is saved in the session
 		String lastPath = CytoUtils.getDefaultChimeraPath(registrar, chimeraPropertyName,
 				chimeraPathPropertyKey);
-		if (!lastPath.equals("")) {
+		if (lastPath != null && !lastPath.equals("")) {
 			pathList.add(lastPath);
 			return pathList;
 		}
@@ -1233,7 +1236,8 @@ public class StructureManager {
 											currentChimMap
 													.put(model, new HashSet<CyIdentifiable>());
 										}
-										if (specModel != null && model.toSpec().equals(specModel.toSpec())) {
+										if (specModel != null
+												&& model.toSpec().equals(specModel.toSpec())) {
 											currentCyMap.get(cyObj).add(model);
 											currentChimMap.get(model).add(cyObj);
 											model.addCyObject(cyObj, network);

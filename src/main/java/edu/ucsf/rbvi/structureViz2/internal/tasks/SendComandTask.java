@@ -35,7 +35,7 @@ public class SendComandTask extends AbstractTask implements ObservableTask {
 	}
 
 	public Object getResults(Class expectedClass) {
-		if (expectedClass.equals(String.class)) {
+		if (expectedClass.equals(String.class) && result != null) {
 			return CytoUtils.join(result, "\n");
 		}
 		return result;

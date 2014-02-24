@@ -120,7 +120,12 @@ public abstract class CytoUtils {
 			CyProperty<?> chimeraPathProperty = new SimpleCyProperty(chimeraPathPropertyName,
 					chimeraPathProps, Properties.class,
 					CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
-			registrar.registerService(chimeraPathProperty, CyProperty.class, new Properties());
+			try {
+				registrar.registerService(chimeraPathProperty, CyProperty.class, new Properties());
+			} catch (Exception ex) {
+				// ignore
+				// TODO: [Bug] Why is registering not possible sometimes?
+			}
 		}
 
 	}

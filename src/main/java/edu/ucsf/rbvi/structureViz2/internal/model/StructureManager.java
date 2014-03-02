@@ -242,7 +242,7 @@ public class StructureManager {
 		if (mnDialog != null) {
 			mnDialog.modelChanged();
 		}
-		aTask.associate(newModels);
+		aTask.associate();
 		return true;
 	}
 
@@ -790,7 +790,7 @@ public class StructureManager {
 		}
 
 		// associate all models with any node or network
-		aTask.associate(chimeraManager.getChimeraModelsMap());
+		aTask.associate();
 
 		// Restart all of our listeners
 		chimeraManager.startListening();
@@ -1149,14 +1149,7 @@ public class StructureManager {
 
 		public void associate(CyNetwork network) {
 			associateNetwork(network, chimeraManager.getChimeraModelsMap());
-		}
-
-		public void associate(Map<String, List<ChimeraModel>> newModels) {
-			CyNetworkManager netManager = (CyNetworkManager) getService(CyNetworkManager.class);
-			// iterate over all networks
-			for (CyNetwork network : netManager.getNetworkSet()) {
-				associateNetwork(network, newModels);
-			}
+			modelChanged();
 		}
 
 		public void associate() {
@@ -1166,6 +1159,7 @@ public class StructureManager {
 			for (CyNetwork network : netManager.getNetworkSet()) {
 				associateNetwork(network, newModels);
 			}
+			modelChanged();
 		}
 
 		public synchronized void associateNetwork(CyNetwork network,

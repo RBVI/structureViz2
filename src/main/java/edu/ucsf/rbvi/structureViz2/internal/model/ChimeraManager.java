@@ -397,7 +397,7 @@ public class ChimeraManager {
 			// Initialize the listener threads
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
-			structureManager.initChimTable();
+			//structureManager.initChimTable();
 			structureManager.setChimeraPathProperty(workingPath);
 			// TODO: [Optional] Check Chimera version and show a warning if below 1.8
 			// Ask Chimera to give us updates

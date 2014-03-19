@@ -1119,25 +1119,25 @@ public class StructureManager {
 		return residueList;
 	}
 
-	public void initChimTable() {
-		CyTableManager manager = (CyTableManager) getService(CyTableManager.class);
-		CyTableFactory factory = (CyTableFactory) getService(CyTableFactory.class);
-		for (CyTable table : manager.getGlobalTables()) {
-			if (table.getTitle().equals(chimeraOutputTable)) {
-				manager.deleteTable(table.getSUID());
-			}
-		}
-		chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class,
-				false, true);
-		manager.addTable(chimTable);
-		if (chimTable.getColumn(chimeraOutputAttr) == null) {
-			chimTable.createListColumn(chimeraOutputAttr, String.class, false);
-		}
-	}
+	// public void initChimTable() {
+	// CyTableManager manager = (CyTableManager) getService(CyTableManager.class);
+	// CyTableFactory factory = (CyTableFactory) getService(CyTableFactory.class);
+	// for (CyTable table : manager.getGlobalTables()) {
+	// if (table.getTitle().equals(chimeraOutputTable)) {
+	// manager.deleteTable(table.getSUID());
+	// }
+	// }
+	// chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class,
+	// false, true);
+	// manager.addTable(chimTable);
+	// if (chimTable.getColumn(chimeraOutputAttr) == null) {
+	// chimTable.createListColumn(chimeraOutputAttr, String.class, false);
+	// }
+	// }
 
-	public void addChimReply(String command, List<String> reply) {
-		chimTable.getRow(command).set(chimeraOutputAttr, reply);
-	}
+	// public void addChimReply(String command, List<String> reply) {
+	// chimTable.getRow(command).set(chimeraOutputAttr, reply);
+	// }
 
 	class AssociationTask extends Thread {
 

@@ -630,10 +630,8 @@ public class RINManager {
 				chimRes += "." + residue.getChainId();
 			}
 			rin.getRow(node).set(ChimUtils.DEFAULT_STRUCTURE_KEY, chimRes);
-			rin.getRow(node).set(
-					ChimUtils.RINALYZER_ATTR,
-					model.getModelName() + ":" + residue.getChainId() + ":" + residue.getIndex()
-							+ ":_:" + residue.getType());
+			rin.getRow(node).set(ChimUtils.RINALYZER_ATTR,
+					residue.getChainId() + ":" + residue.getIndex() + ":_:" + residue.getType());
 			rin.getRow(node).set(SEED_ATTR, Boolean.valueOf(residue.isSelected()));
 			rin.getRow(node).set(CHAIN_ATTR, residue.getChainId());
 			rin.getRow(node).set(TYPE_ATTR, residue.getType());

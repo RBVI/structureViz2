@@ -18,7 +18,7 @@ public class StructureSettings {
 	@Tunable(description = "Columns to search for key or functional residue identifiers", groups = "Functional residues", gravity = 3.0)
 	public ListMultipleSelection<String> residueColumns = null;
 
-	@Tunable(description = "Path to chimera executible", gravity = 4.0)
+	@Tunable(description = "Path to UCSF Chimera application", gravity = 4.0)
 	public String chimeraPath = null;
 
 	public StructureSettings(CyNetwork network, StructureManager manager) {

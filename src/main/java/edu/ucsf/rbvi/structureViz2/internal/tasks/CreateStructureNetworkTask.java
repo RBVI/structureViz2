@@ -145,7 +145,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 
 	@ProvidesTitle
 	public String getTitle() {
-		return "Residue Interaction Network Options";
+		return "Residue Interaction Network Generation Dialog";
 	}
 
 	@Override

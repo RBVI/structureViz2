@@ -69,6 +69,7 @@ public class ChimeraModel implements ChimeraStructuralObject {
 	 * @param inputLine
 	 *            Chimera input line from which to construct this model
 	 */
+	// TODO: How to distinguish between PDB and MODBASE?
 	// invoked when listing models: listm type molecule; lists level molecule
 	// line = model id #0 type Molecule name 1ert
 	public ChimeraModel(String inputLine) {

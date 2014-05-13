@@ -176,8 +176,10 @@ public class StructureManager {
 					// for each model
 					for (ChimeraModel currentModel : currentModels) {
 						// check if it is a RIN
-						boolean found = false;
+						boolean foundRIN = false;
 						if (currentModel.getModelType().equals(ModelType.PDB_MODEL)) {
+							// go through all node annotations and check if any of them is a residue
+							// or a chain
 							if (cyObj instanceof CyNode && network.containsNode((CyNode) cyObj)
 									&& specsFound != null && specsFound.size() > 0) {
 								for (String resSpec : specsFound) {
@@ -185,12 +187,15 @@ public class StructureManager {
 											chimeraManager);
 									if (res != null
 											&& (res instanceof ChimeraResidue || res instanceof ChimeraChain)) {
+										// if so, assume it might be a RIN
 										potentialRINs.add(network);
-										found = true;
+										foundRIN = true;
 										break;
 									}
 								}
 							} else if (cyObj instanceof CyNetwork) {
+								// if cyObj is a network, check for residue/chain annotations in an
+								// arbitrary node
 								CyNetwork rinNet = (CyNetwork) cyObj;
 								specsFound = ChimUtils.getResidueKeys(rinNet.getDefaultNodeTable(),
 										rinNet.getNodeList().get(0), attrsFound);
@@ -200,21 +205,27 @@ public class StructureManager {
 									if (res != null
 											&& (res instanceof ChimeraResidue || res instanceof ChimeraChain)) {
 										potentialRINs.add(network);
-										found = true;
+										foundRIN = true;
 										break;
 									}
 								}
 							}
 						}
-						if (found) {
+						if (foundRIN) {
 							continue;
 						}
-						// if not RIN then associate new model with the cytoscape
+						// if not RIN then associate new model with the Cytoscape
 						// node
 						if (!currentChimMap.containsKey(currentModel)) {
 							currentChimMap.put(currentModel, new HashSet<CyIdentifiable>());
 						}
-						if (specsFound != null && specsFound.size() > 0) {
+						String cyObjName = network.getRow(cyObj).get(CyNetwork.NAME, String.class);
+						if (cyObjName != null && cyObjName.endsWith(currentModel.getModelName())) {
+							// it is a modbase model, associate directly
+							currentCyMap.get(cyObj).add(currentModel);
+							currentChimMap.get(currentModel).add(cyObj);
+							currentModel.addCyObject(cyObj, network);
+						} else if (specsFound != null && specsFound.size() > 0) {
 							for (String resSpec : specsFound) {
 								ChimeraStructuralObject specModel = ChimUtils.fromAttribute(
 										resSpec, chimeraManager);

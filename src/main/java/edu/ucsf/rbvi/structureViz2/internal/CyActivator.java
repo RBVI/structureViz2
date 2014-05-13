@@ -39,6 +39,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresEdgeTaskFactory
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.FindModeledStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureFileTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureNavigatorTaskFactory;
@@ -166,6 +167,20 @@ public class CyActivator extends AbstractCyActivator {
 		selectResiduesProps.setProperty(IN_MENU_BAR, "false");
 		selectResiduesProps.setProperty(MENU_GRAVITY, "3.5");
 		registerService(bc, selectResidues, NodeViewTaskFactory.class, selectResiduesProps);
+
+		// Note that this isn't in the main menu since it only applies to a particular
+		// node.
+		TaskFactory findModeledStructures = new FindModeledStructuresTaskFactory(structureManager);
+		Properties findModeledStructuresProps = new Properties();
+		findModeledStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		findModeledStructuresProps.setProperty(TITLE, "Find Modeled Structures");
+		findModeledStructuresProps.setProperty(COMMAND, "findModeledStructures");
+		findModeledStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		findModeledStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
+		findModeledStructuresProps.setProperty(IN_MENU_BAR, "false");
+		findModeledStructuresProps.setProperty(MENU_GRAVITY, "3.8");
+		registerService(bc, findModeledStructures, NodeViewTaskFactory.class,
+				findModeledStructuresProps);
 
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();

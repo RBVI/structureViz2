@@ -11,7 +11,6 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.util.Properties;
 
-import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.events.AboutToRemoveEdgesListener;
 import org.cytoscape.model.events.AboutToRemoveNodesListener;
@@ -46,6 +45,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureNavigatorTaskFact
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.PaintStructureTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.SelectResiduesTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
@@ -153,6 +153,19 @@ public class CyActivator extends AbstractCyActivator {
 		paintStructureProps.setProperty(IN_MENU_BAR, "false");
 		paintStructureProps.setProperty(MENU_GRAVITY, "3.0");
 		registerService(bc, paintStructure, NodeViewTaskFactory.class, paintStructureProps);
+
+		// Note that this isn't in the main menu since it only applies to a particular
+		// node.
+		TaskFactory selectResidues = new SelectResiduesTaskFactory(structureManager);
+		Properties selectResiduesProps = new Properties();
+		selectResiduesProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		selectResiduesProps.setProperty(TITLE, "Select Residues");
+		selectResiduesProps.setProperty(COMMAND, "selectResidues");
+		selectResiduesProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		selectResiduesProps.setProperty(ENABLE_FOR, "networkAndView");
+		selectResiduesProps.setProperty(IN_MENU_BAR, "false");
+		selectResiduesProps.setProperty(MENU_GRAVITY, "3.5");
+		registerService(bc, selectResidues, NodeViewTaskFactory.class, selectResiduesProps);
 
 		TaskFactory closeStructures = new CloseStructuresTaskFactory(structureManager);
 		Properties closeStructuresProps = new Properties();

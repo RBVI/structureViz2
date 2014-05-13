@@ -22,7 +22,6 @@ import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
-import org.cytoscape.model.CyTableFactory;
 import org.cytoscape.model.CyTableManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.view.model.CyNetworkView;
@@ -581,6 +580,24 @@ public class StructureManager {
 		selectionChanged();
 	}
 
+	public void selectFunctResidues(CyNode node, CyNetwork network) {
+		clearSelectionList();
+		if (currentCyMap.containsKey(node)) {
+			Set<ChimeraStructuralObject> chimObjects = currentCyMap.get(node);
+			for (ChimeraStructuralObject obj : chimObjects) {
+				if (obj instanceof ChimeraModel) {
+					ChimeraModel model = (ChimeraModel) obj;
+					for (ChimeraResidue residue : model.getFuncResidues()) {
+						addChimSelection(residue);
+					}
+				}
+			}
+		}
+		updateChimeraSelection();
+		updateCytoscapeSelection();
+		selectionChanged();
+	}
+
 	public List<ChimeraStructuralObject> getChimSelectionList() {
 		return chimSelectionList;
 	}
@@ -1085,7 +1102,7 @@ public class StructureManager {
 	 * @param residues
 	 *            String representation of the residues (comma separated)
 	 */
-	private List<String> getResidueList(CyNetwork network, CyIdentifiable cyObj) {
+	public List<String> getResidueList(CyNetwork network, CyIdentifiable cyObj) {
 		List<String> residueList = new ArrayList<String>();
 		// Get from attribute
 		CyTable nodeTable = network.getDefaultNodeTable();

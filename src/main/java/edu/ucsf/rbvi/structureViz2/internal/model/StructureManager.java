@@ -1129,7 +1129,7 @@ public class StructureManager {
 			Class<?> colType = col.getType();
 			if (colType == String.class) {
 				String cell = row.get(column, String.class, "").trim();
-				if (cell.equals("")) {
+				if (cell == null || cell.equals("")) {
 					continue;
 				}
 				String[] cellArray = cell.split(",");
@@ -1137,8 +1137,13 @@ public class StructureManager {
 					residueList.add(str.trim());
 				}
 			} else if (colType == List.class && col.getListElementType() == String.class) {
-				for (String str : row.getList(column, String.class)) {
-					residueList.add(str.trim());
+				List<String> values = row.getList(column, String.class);
+				if (values == null) {
+					continue;
+				} else {
+					for (String str : row.getList(column, String.class)) {
+						residueList.add(str.trim());
+					}
 				}
 			} else {
 				continue;

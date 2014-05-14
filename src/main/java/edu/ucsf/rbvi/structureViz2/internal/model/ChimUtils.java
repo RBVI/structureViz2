@@ -256,7 +256,7 @@ public abstract class ChimUtils {
 			Class<?> colType = col.getType();
 			if (colType == String.class) {
 				String cell = row.get(column, String.class, "").trim();
-				if (cell.equals("")) {
+				if (cell == null || cell.equals("")) {
 					continue;
 				}
 				// TODO: [Bug] Will break parsing if residueID contains commas
@@ -268,10 +268,15 @@ public abstract class ChimUtils {
 					}
 				}
 			} else if (colType == List.class && col.getListElementType() == String.class) {
-				for (String str : row.getList(column, String.class)) {
-					String[] keyParts = ChimUtils.getResKeyParts(str.trim());
-					if (keyParts[0] != null) {
-						cellList.add(keyParts[0]);
+				List<String> values = row.getList(column, String.class);
+				if (values == null) {
+					continue;
+				} else {
+					for (String str : values) {
+						String[] keyParts = ChimUtils.getResKeyParts(str.trim());
+						if (keyParts[0] != null) {
+							cellList.add(keyParts[0]);
+						}
 					}
 				}
 			} else {
@@ -294,7 +299,7 @@ public abstract class ChimUtils {
 			Class<?> colType = col.getType();
 			if (colType == String.class) {
 				String cell = row.get(column, String.class, "").trim();
-				if (cell.equals("")) {
+				if (cell == null || cell.equals("")) {
 					continue;
 				}
 				// TODO: [Bug] Will break parsing if residueID contains commas
@@ -305,9 +310,14 @@ public abstract class ChimUtils {
 					}
 				}
 			} else if (colType == List.class && col.getListElementType() == String.class) {
-				for (String str : row.getList(column, String.class)) {
-					if (!str.trim().equals("")) {
-						cellList.add(str.trim());
+				List<String> values = row.getList(column, String.class);
+				if (values == null) {
+					continue;
+				} else {
+					for (String str : row.getList(column, String.class)) {
+						if (!str.trim().equals("")) {
+							cellList.add(str.trim());
+						}
 					}
 				}
 			} else {
@@ -541,7 +551,8 @@ public abstract class ChimUtils {
 
 	public static ChimeraStructuralObject fromAttribute(String attrSpec,
 			ChimeraManager chimeraManager) {
-		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
+		// TODO: Make sure it is OK to remove this: || attrSpec.indexOf('-') > 0
+		if (attrSpec == null || attrSpec.indexOf(',') > 0 ) {
 			// No support for either lists or ranges
 			// System.out.println("No support for identifier: " + attrSpec);
 			logger.warn("No support for identifier: " + attrSpec);
@@ -618,7 +629,8 @@ public abstract class ChimUtils {
 				return chimeraModel;
 
 		} catch (Exception ex) {
-			// System.out.println("Could not parse chimera identifier: " + attrSpec+"("+ex.getMessage()+")");
+			// System.out.println("Could not parse chimera identifier: " +
+			// attrSpec+"("+ex.getMessage()+")");
 			logger.warn("Could not parse chimera identifier: " + attrSpec, ex);
 		}
 		return null;

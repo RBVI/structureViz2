@@ -229,6 +229,12 @@ public class StructureManager {
 							for (String resSpec : specsFound) {
 								ChimeraStructuralObject specModel = ChimUtils.fromAttribute(
 										resSpec, chimeraManager);
+								if (specModel == null
+										&& resSpec.equals(currentModel.getModelName())) {
+									specModel = chimeraManager.getChimeraModel(
+											currentModel.getModelNumber(),
+											currentModel.getSubModelNumber());
+								}
 								if (specModel != null
 										&& currentModel.toSpec().equals(specModel.toSpec())) {
 									currentCyMap.get(cyObj).add(currentModel);
@@ -813,6 +819,10 @@ public class StructureManager {
 			for (CyIdentifiable cyObj : newModel.getCyObjects().keySet()) {
 				if (cyObj != null && cyObj instanceof CyNetwork) {
 					addStructureNetwork((CyNetwork) cyObj);
+				} else if (cyObj != null && cyObj instanceof CyNode) {
+					newModel.setFuncResidues(ChimUtils.parseFuncRes(
+							getResidueList(newModel.getCyObjects().get(cyObj), cyObj),
+							newModel.getModelName()));
 				}
 			}
 		}
@@ -1263,8 +1273,9 @@ public class StructureManager {
 											currentChimMap
 													.put(model, new HashSet<CyIdentifiable>());
 										}
-										if (specModel != null
-												&& model.toSpec().equals(specModel.toSpec())) {
+										if ((specModel == null && resSpec.equals(modelName))
+												|| (specModel != null && model.toSpec().equals(
+														specModel.toSpec()))) {
 											currentCyMap.get(cyObj).add(model);
 											currentChimMap.get(model).add(cyObj);
 											model.addCyObject(cyObj, network);

@@ -342,19 +342,21 @@ public abstract class ChimUtils {
 			// pdb link or file
 			else if (resKey.startsWith("\"")) {
 				parseModelID(resKey, resKeyParts);
-			} else {
+			}
+			// chain and residue or model and number
+			else {
 				String[] splitSplit = resKey.split("\\.");
-				if (splitSplit.length == 1 || splitSplit[0].length() == 0) {
+				if (splitSplit.length == 1) {
 					// only a chain or a residue
 					resChain = resKey;
 				} else {
 					try {
-						// residue and chain
-						Integer.parseInt(splitSplit[0]);
-						resChain = resKey;
-					} catch (NumberFormatException ex) {
 						// pdb with a model
+						Integer.parseInt(splitSplit[1]);
 						parseModelID(resKey, resKeyParts);
+					} catch (NumberFormatException ex) {
+						// residue and chain
+						resChain = resKey;
 					}
 				}
 			}
@@ -369,9 +371,21 @@ public abstract class ChimUtils {
 			resChain = resKey.substring(resKey.lastIndexOf("#") + 1, resKey.length());
 		}
 		if (resChain != null) {
+			System.out.println(resChain);
 			String[] resChainSplit = resChain.split("\\.");
 			if (resChainSplit.length == 1) {
-				resKeyParts[2] = resChainSplit[0];
+				// TODO: Find a better way to distinguish between chain and residue
+				// if only one character and not an int, probably a chain
+				if (resChainSplit[0].length() == 1) {
+					try {
+						Integer.parseInt(resChainSplit[0]);
+						resKeyParts[3] = resChainSplit[0];
+					} catch (NumberFormatException ex) {
+						resKeyParts[2] = resChainSplit[0];
+					}
+				} else {
+					resKeyParts[3] = resChainSplit[0];
+				}
 			} else if (resChainSplit.length == 2) {
 				resKeyParts[2] = resChainSplit[0];
 				resKeyParts[3] = resChainSplit[1];
@@ -552,7 +566,7 @@ public abstract class ChimUtils {
 	public static ChimeraStructuralObject fromAttribute(String attrSpec,
 			ChimeraManager chimeraManager) {
 		// TODO: Make sure it is OK to remove this: || attrSpec.indexOf('-') > 0
-		if (attrSpec == null || attrSpec.indexOf(',') > 0 ) {
+		if (attrSpec == null || attrSpec.indexOf(',') > 0) {
 			// No support for either lists or ranges
 			// System.out.println("No support for identifier: " + attrSpec);
 			logger.warn("No support for identifier: " + attrSpec);
@@ -613,8 +627,11 @@ public abstract class ChimUtils {
 				String residue = modelIDNoResChain[2];
 				if (chimeraChain != null) {
 					chimeraResidue = chimeraChain.getResidue(residue);
-				} else {
+				} else if (chimeraModel.getChain("_") != null) {
 					chimeraResidue = chimeraModel.getResidue("_", residue);
+				} else if (chimeraModel.getChainCount() == 1) {
+					chimeraResidue = chimeraModel.getResidue(chimeraModel.getChainNames()
+							.iterator().next(), residue);
 				}
 				// System.out.println("ChimeraResidue = " + chimeraResidue);
 			}

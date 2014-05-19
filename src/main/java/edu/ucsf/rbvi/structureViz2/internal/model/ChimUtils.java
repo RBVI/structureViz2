@@ -371,7 +371,7 @@ public abstract class ChimUtils {
 			resChain = resKey.substring(resKey.lastIndexOf("#") + 1, resKey.length());
 		}
 		if (resChain != null) {
-			System.out.println(resChain);
+			//System.out.println(resChain);
 			String[] resChainSplit = resChain.split("\\.");
 			if (resChainSplit.length == 1) {
 				// TODO: Find a better way to distinguish between chain and residue

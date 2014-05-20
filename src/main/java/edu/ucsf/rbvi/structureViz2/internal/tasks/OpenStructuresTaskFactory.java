@@ -74,6 +74,9 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
 		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
 				true));
+		// If nothing is selected, add everything to the list
+		if (selectedList.size() == 0)
+			selectedList.addAll(netView.getModel().getNodeList());
 		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
 	}
 

@@ -98,24 +98,39 @@ public class CyActivator extends AbstractCyActivator {
 		Properties openStructuresProps = new Properties();
 		openStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		openStructuresProps.setProperty(TITLE, "Open Structures For Node(s)");
-		openStructuresProps.setProperty(COMMAND, "openStructuresNodes");
-		openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		openStructuresProps.setProperty(IN_MENU_BAR, "true");
 		openStructuresProps.setProperty(MENU_GRAVITY, "1.1");
 		registerService(bc, openStructures, NodeViewTaskFactory.class, openStructuresProps);
+
+		// Don't want node view as a command
+		openStructuresProps = new Properties();
+		openStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		openStructuresProps.setProperty(TITLE, "Open Structures For Node(s)");
+		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
+		openStructuresProps.setProperty(IN_MENU_BAR, "true");
+		openStructuresProps.setProperty(MENU_GRAVITY, "1.1");
+		openStructuresProps.setProperty(COMMAND, "openStructuresNodes");
+		openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, openStructures, NetworkViewTaskFactory.class, openStructuresProps);
 
 		TaskFactory openStructuresEdge = new OpenStructuresEdgeTaskFactory(structureManager);
 		Properties openStructuresEdgeProps = new Properties();
 		openStructuresEdgeProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		openStructuresEdgeProps.setProperty(TITLE, "Open Structures For Edge(s)");
-		openStructuresEdgeProps.setProperty(COMMAND, "openStructuresEdges");
-		openStructuresEdgeProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
 		openStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
 		openStructuresEdgeProps.setProperty(MENU_GRAVITY, "1.2");
 		registerService(bc, openStructuresEdge, EdgeViewTaskFactory.class, openStructuresEdgeProps);
+
+		openStructuresEdgeProps = new Properties();
+		openStructuresEdgeProps.setProperty(COMMAND, "openStructuresEdges");
+		openStructuresEdgeProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		openStructuresEdgeProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		openStructuresEdgeProps.setProperty(TITLE, "Open Structures For Edge(s)");
+		openStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
+		openStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
+		openStructuresEdgeProps.setProperty(MENU_GRAVITY, "1.2");
 		registerService(bc, openStructuresEdge, NetworkViewTaskFactory.class,
 				openStructuresEdgeProps);
 
@@ -134,12 +149,19 @@ public class CyActivator extends AbstractCyActivator {
 		Properties alignStructuresProps = new Properties();
 		alignStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		alignStructuresProps.setProperty(TITLE, "Align Structures");
+		alignStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
+		alignStructuresProps.setProperty(IN_MENU_BAR, "true");
+		alignStructuresProps.setProperty(MENU_GRAVITY, "2.0");
+		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
+
+		alignStructuresProps = new Properties();
+		alignStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		alignStructuresProps.setProperty(TITLE, "Align Structures");
 		alignStructuresProps.setProperty(COMMAND, "alignStructures");
 		alignStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		alignStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		alignStructuresProps.setProperty(IN_MENU_BAR, "true");
 		alignStructuresProps.setProperty(MENU_GRAVITY, "2.0");
-		registerService(bc, alignStructures, NodeViewTaskFactory.class, alignStructuresProps);
 		registerService(bc, alignStructures, NetworkViewTaskFactory.class, alignStructuresProps);
 
 		// Note that this isn't in the main menu since it only applies to a particular
@@ -186,16 +208,32 @@ public class CyActivator extends AbstractCyActivator {
 		Properties closeStructuresProps = new Properties();
 		closeStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		closeStructuresProps.setProperty(TITLE, "Close Structures For Node(s)");
+		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
+		closeStructuresProps.setProperty(IN_MENU_BAR, "true");
+		closeStructuresProps.setProperty(MENU_GRAVITY, "4.1");
+		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
+
+		closeStructuresProps = new Properties();
+		closeStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		closeStructuresProps.setProperty(TITLE, "Close Structures For Node(s)");
 		closeStructuresProps.setProperty(COMMAND, "closeStructuresNodes");
 		closeStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresProps.setProperty(IN_MENU_BAR, "true");
 		closeStructuresProps.setProperty(MENU_GRAVITY, "4.1");
-		registerService(bc, closeStructures, NodeViewTaskFactory.class, closeStructuresProps);
 		registerService(bc, closeStructures, NetworkViewTaskFactory.class, closeStructuresProps);
 
 		TaskFactory closeStructuresEdge = new CloseStructuresEdgeTaskFactory(structureManager);
 		Properties closeStructuresEdgeProps = new Properties();
+		closeStructuresEdgeProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		closeStructuresEdgeProps.setProperty(TITLE, "Close Structures For Edge(s)");
+		closeStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
+		closeStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
+		closeStructuresEdgeProps.setProperty(MENU_GRAVITY, "4.2");
+		registerService(bc, closeStructuresEdge, EdgeViewTaskFactory.class,
+				closeStructuresEdgeProps);
+
+		closeStructuresEdgeProps = new Properties();
 		closeStructuresEdgeProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		closeStructuresEdgeProps.setProperty(TITLE, "Close Structures For Edge(s)");
 		closeStructuresEdgeProps.setProperty(COMMAND, "closeStructuresEdges");
@@ -203,8 +241,6 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
 		closeStructuresEdgeProps.setProperty(MENU_GRAVITY, "4.2");
-		registerService(bc, closeStructuresEdge, EdgeViewTaskFactory.class,
-				closeStructuresEdgeProps);
 		registerService(bc, closeStructuresEdge, NetworkViewTaskFactory.class,
 				closeStructuresEdgeProps);
 

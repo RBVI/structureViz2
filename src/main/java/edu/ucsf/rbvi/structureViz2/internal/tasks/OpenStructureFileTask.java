@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cytoscape.model.CyIdentifiable;
-import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
@@ -20,14 +20,14 @@ public class OpenStructureFileTask extends AbstractTask {
 
 	private StructureManager structureManager;
 
-	private CyNetworkView netView;
+	private CyNetwork net;
 
 	@Tunable(description = "Structure file", params = "fileCategory=unspecified;input=true")
 	public File structureFile = null;
 
-	public OpenStructureFileTask(StructureManager structureManager, CyNetworkView netView) {
+	public OpenStructureFileTask(StructureManager structureManager, CyNetwork net) {
 		this.structureManager = structureManager;
-		this.netView = netView;
+		this.net = net;
 	}
 
 	@Override
@@ -42,9 +42,8 @@ public class OpenStructureFileTask extends AbstractTask {
 		List<String> structures = new ArrayList<String>();
 		// structureFile.getAbsolutePath()
 		structures.add(structureFile.getAbsolutePath());
-		structuresToOpen.put(netView.getModel(), structures);
-		if (!structureManager.openStructures(netView.getModel(), structuresToOpen,
-				ModelType.PDB_MODEL)) {
+		structuresToOpen.put(net, structures);
+		if (!structureManager.openStructures(net, structuresToOpen, ModelType.PDB_MODEL)) {
 			taskMonitor.setStatusMessage("Structure could not be opened.");
 		}
 

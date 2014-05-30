@@ -17,15 +17,25 @@ public class AnnotateStructureNetworkTask extends AbstractTask implements Observ
 	private RINManager rinManager;
 	private CyNetwork network;
 
-	@Tunable(description = "Available residue attributes")
-	public ListMultipleSelection<String> residueAttributes;
+	public ListMultipleSelection<String> residueAttributes = null;
 
+	@Tunable(description = "Available residue attributes")
+	public ListMultipleSelection<String> getresidueAttributes() {
+		residueAttributes = new ListMultipleSelection<String>(
+				structureManager.getAllChimeraResidueAttributes());
+		return residueAttributes;
+	}
+
+	public void setresidueAttributes(ListMultipleSelection<String> setValue) {
+		
+	}
+	
 	public AnnotateStructureNetworkTask(StructureManager structureManager, CyNetwork aNetwork) {
 		this.structureManager = structureManager;
 		this.rinManager = structureManager.getRINManager();
 		network = aNetwork;
-		residueAttributes = new ListMultipleSelection<String>(
-				structureManager.getAllChimeraResidueAttributes());
+		// residueAttributes = new ListMultipleSelection<String>(
+		// structureManager.getAllChimeraResidueAttributes());
 	}
 
 	@ProvidesTitle

@@ -70,7 +70,8 @@ public class OpenStructuresEdgeTaskFactory extends AbstractTaskFactory implement
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
 		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED,
 				true));
-		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
+		return new TaskIterator(new OpenStructuresTask(selectedList, netView.getModel(),
+				structureManager));
 	}
 
 	public TaskIterator createTaskIterator(View<CyEdge> edgeView, CyNetworkView netView) {
@@ -79,6 +80,7 @@ public class OpenStructuresEdgeTaskFactory extends AbstractTaskFactory implement
 		selectedList.add(edgeView.getModel());
 		selectedList.addAll(CyTableUtil.getEdgesInState(netView.getModel(), CyNetwork.SELECTED,
 				true));
-		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
+		return new TaskIterator(new OpenStructuresTask(selectedList, netView.getModel(),
+				structureManager));
 	}
 }

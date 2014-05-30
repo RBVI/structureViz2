@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cytoscape.model.CyIdentifiable;
-import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
@@ -19,30 +19,29 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
 public class OpenStructuresTask extends AbstractTask {
 	// private List<CyNode> nodeList;
-	private CyNetworkView netView;
+	private CyNetwork network;
 	private StructureManager structureManager;
 	private Map<String, CyIdentifiable> structruesMap;
 	private Map<String, CyIdentifiable> chemStructruesMap;
 
 	@Tunable(description = "Open structures", gravity = 1.0)
-	public ListMultipleSelection<String> structureTunable;
+	public ListMultipleSelection<String> structurePairs = new ListMultipleSelection<String>("");
 
 	@Tunable(description = "Open chemical structures", gravity = 2.0)
-	public ListMultipleSelection<String> chemTunable;
+	public ListMultipleSelection<String> chemStructurePairs = new ListMultipleSelection<String>("");
 
-	public OpenStructuresTask(List<CyIdentifiable> nodeList, CyNetworkView netView,
+	public OpenStructuresTask(List<CyIdentifiable> nodeList, CyNetwork net,
 			StructureManager structureManager) {
 		// this.nodeList = nodeList;
-		this.netView = netView;
+		this.network = net;
 		this.structureManager = structureManager;
 		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
-		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), nodeList,
-				ModelType.PDB_MODEL, false);
-		structruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), mapChimObjNames);
+		structureManager
+				.getChimObjNames(mapChimObjNames, net, nodeList, ModelType.PDB_MODEL, false);
+		structruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
 		mapChimObjNames.clear();
-		structureManager.getChimObjNames(mapChimObjNames, netView.getModel(), nodeList,
-				ModelType.SMILES, false);
-		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(netView.getModel(), mapChimObjNames);
+		structureManager.getChimObjNames(mapChimObjNames, net, nodeList, ModelType.SMILES, false);
+		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
 		initTunables();
 	}
 
@@ -55,11 +54,11 @@ public class OpenStructuresTask extends AbstractTask {
 		taskMonitor.setTitle("Opening Structures");
 		// get selected structures from tunable parameter
 		Map<CyIdentifiable, List<String>> selectedStructureNames = CytoUtils.getCyChimPairsToMap(
-				structureTunable.getSelectedValues(), structruesMap);
+				structurePairs.getSelectedValues(), structruesMap);
 		if (selectedStructureNames.size() > 0) {
 			taskMonitor.setStatusMessage("Opening structures ...");
 			// open structures
-			if (!structureManager.openStructures(netView.getModel(), selectedStructureNames,
+			if (!structureManager.openStructures(network, selectedStructureNames,
 					ModelType.PDB_MODEL)) {
 				taskMonitor.setStatusMessage("Structures could not be opened.");
 			}
@@ -67,12 +66,11 @@ public class OpenStructuresTask extends AbstractTask {
 
 		// get selected chem structures from tunable parameter
 		Map<CyIdentifiable, List<String>> selectedChemNames = CytoUtils.getCyChimPairsToMap(
-				chemTunable.getSelectedValues(), chemStructruesMap);
+				chemStructurePairs.getSelectedValues(), chemStructruesMap);
 		if (selectedChemNames.size() > 0) {
 			taskMonitor.setStatusMessage("Opening chemical structures ...");
 			// open structures
-			if (!structureManager.openStructures(netView.getModel(), selectedChemNames,
-					ModelType.SMILES)) {
+			if (!structureManager.openStructures(network, selectedChemNames, ModelType.SMILES)) {
 				taskMonitor.setStatusMessage("Chemical structures could not be opened.");
 			}
 		}
@@ -88,17 +86,18 @@ public class OpenStructuresTask extends AbstractTask {
 	private void initTunables() {
 		List<String> availableStructures = new ArrayList<String>(structruesMap.keySet());
 		if (availableStructures.size() > 0) {
-			structureTunable = new ListMultipleSelection<String>(availableStructures);
-			structureTunable.setSelectedValues(availableStructures);
+			structurePairs = new ListMultipleSelection<String>(availableStructures);
+			structurePairs.setSelectedValues(availableStructures);
 		} else {
-			structureTunable = new ListMultipleSelection<String>("None");
+			structurePairs = new ListMultipleSelection<String>("None");
 		}
 
 		List<String> availableChem = new ArrayList<String>(chemStructruesMap.keySet());
 		if (availableChem.size() > 0) {
-			chemTunable = new ListMultipleSelection<String>(availableChem);
+			chemStructurePairs = new ListMultipleSelection<String>(availableChem);
+			chemStructurePairs.setSelectedValues(availableChem);
 		} else {
-			chemTunable = new ListMultipleSelection<String>("None");
+			chemStructurePairs = new ListMultipleSelection<String>("None");
 		}
 	}
 

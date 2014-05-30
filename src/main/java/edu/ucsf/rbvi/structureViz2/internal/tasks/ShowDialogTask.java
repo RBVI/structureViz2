@@ -5,11 +5,11 @@ import org.cytoscape.work.TaskMonitor;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-public class OpenStructureNavigatorTask extends AbstractTask {
+public class ShowDialogTask extends AbstractTask {
 
 	private StructureManager structureManager;
 	
-	public OpenStructureNavigatorTask(StructureManager structureManager) {
+	public ShowDialogTask(StructureManager structureManager) {
 		this.structureManager = structureManager; 
 	}
 	

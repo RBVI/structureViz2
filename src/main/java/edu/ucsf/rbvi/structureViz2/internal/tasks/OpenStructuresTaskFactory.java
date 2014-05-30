@@ -77,7 +77,8 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		// If nothing is selected, add everything to the list
 		if (selectedList.size() == 0)
 			selectedList.addAll(netView.getModel().getNodeList());
-		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
+		return new TaskIterator(new OpenStructuresTask(selectedList, netView.getModel(),
+				structureManager));
 	}
 
 	public TaskIterator createTaskIterator(View<CyNode> nodeView, CyNetworkView netView) {
@@ -86,6 +87,7 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		selectedList.add(nodeView.getModel());
 		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
 				true));
-		return new TaskIterator(new OpenStructuresTask(selectedList, netView, structureManager));
+		return new TaskIterator(new OpenStructuresTask(selectedList, netView.getModel(),
+				structureManager));
 	}
 }

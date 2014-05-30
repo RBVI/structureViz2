@@ -42,7 +42,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.FindModeledStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureFileTaskFactory;
-import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureNavigatorTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.ShowDialogTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.PaintStructureTaskFactory;
@@ -110,7 +110,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		openStructuresProps.setProperty(IN_MENU_BAR, "true");
 		openStructuresProps.setProperty(MENU_GRAVITY, "1.1");
-		openStructuresProps.setProperty(COMMAND, "openStructuresNodes");
+		openStructuresProps.setProperty(COMMAND, "openNodes");
 		openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, openStructures, NetworkViewTaskFactory.class, openStructuresProps);
 
@@ -124,7 +124,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, openStructuresEdge, EdgeViewTaskFactory.class, openStructuresEdgeProps);
 
 		openStructuresEdgeProps = new Properties();
-		openStructuresEdgeProps.setProperty(COMMAND, "openStructuresEdges");
+		openStructuresEdgeProps.setProperty(COMMAND, "openEdges");
 		openStructuresEdgeProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		openStructuresEdgeProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		openStructuresEdgeProps.setProperty(TITLE, "Open Structures For Edge(s)");
@@ -138,12 +138,12 @@ public class CyActivator extends AbstractCyActivator {
 		Properties openStructureFileProps = new Properties();
 		// openStructureFileProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		openStructureFileProps.setProperty(TITLE, "Open Structure From File");
-		openStructureFileProps.setProperty(COMMAND, "openStructureFile");
+		openStructureFileProps.setProperty(COMMAND, "openFile");
 		openStructureFileProps.setProperty(COMMAND_NAMESPACE, "structureViz");
-		openStructureFileProps.setProperty(ENABLE_FOR, "networkAndView");
+		openStructureFileProps.setProperty(ENABLE_FOR, "network");
 		// openStructureFileProps.setProperty(IN_MENU_BAR, "true");
 		// openStructureFileProps.setProperty(MENU_GRAVITY, "1.3");
-		registerService(bc, openStructureFile, NetworkViewTaskFactory.class, openStructureFileProps);
+		registerService(bc, openStructureFile, NetworkTaskFactory.class, openStructureFileProps);
 
 		TaskFactory alignStructures = new AlignStructuresTaskFactory(structureManager);
 		Properties alignStructuresProps = new Properties();
@@ -216,7 +216,7 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresProps = new Properties();
 		closeStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		closeStructuresProps.setProperty(TITLE, "Close Structures For Node(s)");
-		closeStructuresProps.setProperty(COMMAND, "closeStructuresNodes");
+		closeStructuresProps.setProperty(COMMAND, "closeNodes");
 		closeStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresProps.setProperty(IN_MENU_BAR, "true");
@@ -236,7 +236,7 @@ public class CyActivator extends AbstractCyActivator {
 		closeStructuresEdgeProps = new Properties();
 		closeStructuresEdgeProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		closeStructuresEdgeProps.setProperty(TITLE, "Close Structures For Edge(s)");
-		closeStructuresEdgeProps.setProperty(COMMAND, "closeStructuresEdges");
+		closeStructuresEdgeProps.setProperty(COMMAND, "closeEdges");
 		closeStructuresEdgeProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		closeStructuresEdgeProps.setProperty(ENABLE_FOR, "networkAndView");
 		closeStructuresEdgeProps.setProperty(IN_MENU_BAR, "true");
@@ -283,28 +283,28 @@ public class CyActivator extends AbstractCyActivator {
 		Properties launchChimeraProps = new Properties();
 		launchChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		launchChimeraProps.setProperty(TITLE, "Launch Chimera");
-		launchChimeraProps.setProperty(COMMAND, "launchChimera");
+		launchChimeraProps.setProperty(COMMAND, "launch");
 		launchChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		launchChimeraProps.setProperty(IN_MENU_BAR, "true");
 		launchChimeraProps.setProperty(MENU_GRAVITY, "8.0");
 		launchChimeraProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		registerService(bc, launchChimera, TaskFactory.class, launchChimeraProps);
 
-		TaskFactory openDialog = new OpenStructureNavigatorTaskFactory(structureManager);
-		Properties openDialogProps = new Properties();
-		openDialogProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
-		openDialogProps.setProperty(TITLE, "Open Structure Navigator");
-		openDialogProps.setProperty(COMMAND, "openStructureNavigator");
-		openDialogProps.setProperty(COMMAND_NAMESPACE, "structureViz");
-		openDialogProps.setProperty(IN_MENU_BAR, "true");
-		openDialogProps.setProperty(MENU_GRAVITY, "9.0");
-		registerService(bc, openDialog, TaskFactory.class, openDialogProps);
+		TaskFactory showDialog = new ShowDialogTaskFactory(structureManager);
+		Properties showDialogProps = new Properties();
+		showDialogProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		showDialogProps.setProperty(TITLE, "Open Structure Navigator");
+		showDialogProps.setProperty(COMMAND, "showDialog");
+		showDialogProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		showDialogProps.setProperty(IN_MENU_BAR, "true");
+		showDialogProps.setProperty(MENU_GRAVITY, "9.0");
+		registerService(bc, showDialog, TaskFactory.class, showDialogProps);
 
 		TaskFactory exitChimera = new ExitChimeraTaskFactory(structureManager);
 		Properties exitChimeraProps = new Properties();
 		exitChimeraProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		exitChimeraProps.setProperty(TITLE, "Exit Chimera");
-		exitChimeraProps.setProperty(COMMAND, "exitChimera");
+		exitChimeraProps.setProperty(COMMAND, "exit");
 		exitChimeraProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		exitChimeraProps.setProperty(IN_MENU_BAR, "true");
 		exitChimeraProps.setProperty(MENU_GRAVITY, "10.0");
@@ -325,7 +325,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Command task factories
 		TaskFactory sendCommandTaskFactory = new SendCommandTaskFactory(structureManager);
 		Properties commandProps = new Properties();
-		commandProps.setProperty(COMMAND, "sendCommand");
+		commandProps.setProperty(COMMAND, "send");
 		commandProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, sendCommandTaskFactory, TaskFactory.class, commandProps);
 

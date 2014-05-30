@@ -6,11 +6,11 @@ import org.cytoscape.work.TaskIterator;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-public class OpenStructureNavigatorTaskFactory extends AbstractTaskFactory implements TaskFactory {
+public class ShowDialogTaskFactory extends AbstractTaskFactory implements TaskFactory {
 
 	private StructureManager structureManager;
 
-	public OpenStructureNavigatorTaskFactory(StructureManager structureManager) {
+	public ShowDialogTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
 	}
 
@@ -23,7 +23,7 @@ public class OpenStructureNavigatorTaskFactory extends AbstractTaskFactory imple
 	}
 
 	public TaskIterator createTaskIterator() {
-		return new TaskIterator(new OpenStructureNavigatorTask(structureManager));
+		return new TaskIterator(new ShowDialogTask(structureManager));
 	}
 
 }

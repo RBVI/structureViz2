@@ -63,6 +63,10 @@ public class AlignStructuresTaskFactory extends AbstractTaskFactory implements
 		// Get all of the selected nodes
 		List<CyIdentifiable> nodeList = new ArrayList<CyIdentifiable>();
 		nodeList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true));
+		// If nothing is selected, add everything to the list
+		if (nodeList.size() == 0) {
+			nodeList.addAll(netView.getModel().getNodeList());
+		}
 		return new TaskIterator(new AlignStructuresTask(nodeList, netView, structureManager));
 	}
 

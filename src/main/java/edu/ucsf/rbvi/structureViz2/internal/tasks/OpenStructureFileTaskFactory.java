@@ -1,14 +1,13 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
-import org.cytoscape.task.NetworkViewTaskFactory;
-import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.model.CyNetwork;
+import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-public class OpenStructureFileTaskFactory extends AbstractTaskFactory implements
-		NetworkViewTaskFactory {
+public class OpenStructureFileTaskFactory extends AbstractTaskFactory implements NetworkTaskFactory {
 
 	private StructureManager structureManager;
 
@@ -16,7 +15,7 @@ public class OpenStructureFileTaskFactory extends AbstractTaskFactory implements
 		this.structureManager = structureManager;
 	}
 
-	public boolean isReady(CyNetworkView networkView) {
+	public boolean isReady(CyNetwork networkView) {
 		return true;
 	}
 
@@ -24,8 +23,8 @@ public class OpenStructureFileTaskFactory extends AbstractTaskFactory implements
 		return null;
 	}
 
-	public TaskIterator createTaskIterator(CyNetworkView networkView) {
-		return new TaskIterator(new OpenStructureFileTask(structureManager, networkView));
+	public TaskIterator createTaskIterator(CyNetwork network) {
+		return new TaskIterator(new OpenStructureFileTask(structureManager, network));
 	}
 
 }

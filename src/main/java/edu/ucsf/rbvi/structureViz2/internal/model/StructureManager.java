@@ -137,6 +137,8 @@ public class StructureManager {
 		// attributes
 		List<String> attrsFound = CytoUtils.getMatchingAttributes(network.getDefaultNodeTable(),
 				getCurrentStructureKeys(network));
+		attrsFound.addAll(CytoUtils.getMatchingAttributes(network.getDefaultNodeTable(),
+				getCurrentChemStructKeys(network)));
 		// new models
 		Map<String, List<ChimeraModel>> newModels = new HashMap<String, List<ChimeraModel>>();
 		// for each node that has an associated structure
@@ -236,7 +238,8 @@ public class StructureManager {
 											currentModel.getSubModelNumber());
 								}
 								if (specModel != null
-										&& currentModel.toSpec().equals(specModel.toSpec())) {
+										&& currentModel.toSpec().equals(specModel.toSpec())
+										|| currentModel.getModelName().equals("smiles:" + resSpec)) {
 									currentCyMap.get(cyObj).add(currentModel);
 									currentChimMap.get(currentModel).add(cyObj);
 									currentModel.addCyObject(cyObj, network);
@@ -1216,6 +1219,8 @@ public class StructureManager {
 			getChimObjNames(mapChimObjNames, network, nodes, ModelType.SMILES, true);
 			List<String> attrsFound = CytoUtils.getMatchingAttributes(
 					network.getDefaultNodeTable(), getCurrentStructureKeys(network));
+			attrsFound.addAll(CytoUtils.getMatchingAttributes(network.getDefaultNodeTable(),
+					getCurrentChemStructKeys(network)));
 			// System.out.println("nodes with pdb found: " + mapChimObjNames.size());
 			// iterate over all nodes with associated structures
 			for (CyIdentifiable cyObj : mapChimObjNames.keySet()) {
@@ -1273,7 +1278,8 @@ public class StructureManager {
 											currentChimMap
 													.put(model, new HashSet<CyIdentifiable>());
 										}
-										if ((specModel == null && resSpec.equals(modelName))
+										if ((specModel == null && (resSpec.equals(modelName) || model
+												.getModelName().equals("smiles:" + resSpec)))
 												|| (specModel != null && model.toSpec().equals(
 														specModel.toSpec()))) {
 											currentCyMap.get(cyObj).add(model);

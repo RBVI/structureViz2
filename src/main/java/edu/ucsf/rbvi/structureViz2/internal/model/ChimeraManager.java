@@ -397,7 +397,7 @@ public class ChimeraManager {
 			// Initialize the listener threads
 			chimeraListenerThreads = new ListenerThreads(chimera, structureManager);
 			chimeraListenerThreads.start();
-			//structureManager.initChimTable();
+			// structureManager.initChimTable();
 			structureManager.setChimeraPathProperty(workingPath);
 			// TODO: [Optional] Check Chimera version and show a warning if below 1.8
 			// Ask Chimera to give us updates
@@ -506,9 +506,9 @@ public class ChimeraManager {
 	 * @return List of Strings corresponding to the lines in the Chimera reply or <code>null</code>.
 	 */
 	public List<String> sendChimeraCommand(String command, boolean reply) {
-		// if (!isChimeraLaunched()) {
-		// return null;
-		// }
+		if (!isChimeraLaunched()) {
+			return null;
+		}
 
 		chimeraListenerThreads.clearResponse(command);
 		String text = command.concat("\n");

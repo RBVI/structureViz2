@@ -22,7 +22,7 @@ public class CloseStructuresTask extends AbstractTask {
 	private Map<String, CyIdentifiable> openChimObjMap;
 
 	@Tunable(description = "Structures to be closed")
-	public ListMultipleSelection<String> openChimObjTunable;
+	public ListMultipleSelection<String> openStructures = new ListMultipleSelection<String>("");
 
 	public CloseStructuresTask(List<CyIdentifiable> nodeList, CyNetworkView netView,
 			StructureManager structureManager) {
@@ -43,7 +43,7 @@ public class CloseStructuresTask extends AbstractTask {
 		taskMonitor.setStatusMessage("Closing structures ...");
 		// get open models
 		Map<CyIdentifiable, List<String>> selectedChimeraObjs = CytoUtils.getCyChimPairsToMap(
-				openChimObjTunable.getSelectedValues(), openChimObjMap);
+				openStructures.getSelectedValues(), openChimObjMap);
 		// System.out.println("selectedChimObjMap: " + selectedChimeraObjs.size());
 		// automatically launch a dialog with list of models to close
 		// close selected models
@@ -57,10 +57,10 @@ public class CloseStructuresTask extends AbstractTask {
 	private void initTunables() {
 		List<String> availableObjs = new ArrayList<String>(openChimObjMap.keySet());
 		if (availableObjs.size() > 0) {
-			openChimObjTunable = new ListMultipleSelection<String>(availableObjs);
-			openChimObjTunable.setSelectedValues(availableObjs);
+			openStructures = new ListMultipleSelection<String>(availableObjs);
+			openStructures.setSelectedValues(availableObjs);
 		} else {
-			openChimObjTunable = new ListMultipleSelection<String>("None");
+			openStructures = new ListMultipleSelection<String>("None");
 		}
 	}
 

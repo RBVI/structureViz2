@@ -1,5 +1,7 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
+import java.util.List;
+
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
@@ -17,25 +19,16 @@ public class AnnotateStructureNetworkTask extends AbstractTask implements Observ
 	private RINManager rinManager;
 	private CyNetwork network;
 
-	public ListMultipleSelection<String> residueAttributes = null;
-
 	@Tunable(description = "Available residue attributes")
-	public ListMultipleSelection<String> getresidueAttributes() {
-		residueAttributes = new ListMultipleSelection<String>(
-				structureManager.getAllChimeraResidueAttributes());
-		return residueAttributes;
-	}
+	public ListMultipleSelection<String> residueAttributes = new ListMultipleSelection<String>("");
 
-	public void setresidueAttributes(ListMultipleSelection<String> setValue) {
-		
-	}
-	
 	public AnnotateStructureNetworkTask(StructureManager structureManager, CyNetwork aNetwork) {
 		this.structureManager = structureManager;
 		this.rinManager = structureManager.getRINManager();
 		network = aNetwork;
-		// residueAttributes = new ListMultipleSelection<String>(
-		// structureManager.getAllChimeraResidueAttributes());
+		List<String> attrs = structureManager.getAllChimeraResidueAttributes();
+		residueAttributes = new ListMultipleSelection<String>(attrs);
+		residueAttributes.setSelectedValues(attrs);
 	}
 
 	@ProvidesTitle
@@ -46,7 +39,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask implements Observ
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Annotating Residue Interaction Network");
-		if (residueAttributes.getSelectedValues().size() > 0) {
+		if (residueAttributes != null && residueAttributes.getSelectedValues().size() > 0) {
 			taskMonitor.setStatusMessage("Getting attribute data from Chimera ...");
 			for (String resAttr : residueAttributes.getSelectedValues()) {
 				// taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");

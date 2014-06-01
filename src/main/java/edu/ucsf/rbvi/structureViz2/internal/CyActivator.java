@@ -42,12 +42,12 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.FindModeledStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureFileTaskFactory;
-import edu.ucsf.rbvi.structureViz2.internal.tasks.ShowDialogTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.PaintStructureTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SelectResiduesTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.ShowDialogTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.StructureVizSettingsTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
@@ -170,8 +170,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties paintStructureProps = new Properties();
 		paintStructureProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		paintStructureProps.setProperty(TITLE, "Paint Structure onto Node");
-		paintStructureProps.setProperty(COMMAND, "paintStructure");
-		paintStructureProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		// paintStructureProps.setProperty(COMMAND, "paintStructure");
+		// paintStructureProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		paintStructureProps.setProperty(ENABLE_FOR, "networkAndView");
 		paintStructureProps.setProperty(IN_MENU_BAR, "false");
 		paintStructureProps.setProperty(MENU_GRAVITY, "3.0");
@@ -183,8 +183,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties selectResiduesProps = new Properties();
 		selectResiduesProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		selectResiduesProps.setProperty(TITLE, "Select Residues");
-		selectResiduesProps.setProperty(COMMAND, "selectResidues");
-		selectResiduesProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		// selectResiduesProps.setProperty(COMMAND, "selectResidues");
+		// selectResiduesProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		selectResiduesProps.setProperty(ENABLE_FOR, "networkAndView");
 		selectResiduesProps.setProperty(IN_MENU_BAR, "false");
 		selectResiduesProps.setProperty(MENU_GRAVITY, "3.5");
@@ -196,8 +196,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties findModeledStructuresProps = new Properties();
 		findModeledStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		findModeledStructuresProps.setProperty(TITLE, "Find Modeled Structures");
-		findModeledStructuresProps.setProperty(COMMAND, "findModeledStructures");
-		findModeledStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		// findModeledStructuresProps.setProperty(COMMAND, "findModeledStructures");
+		// findModeledStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		findModeledStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		findModeledStructuresProps.setProperty(IN_MENU_BAR, "false");
 		findModeledStructuresProps.setProperty(MENU_GRAVITY, "3.8");
@@ -328,6 +328,24 @@ public class CyActivator extends AbstractCyActivator {
 		commandProps.setProperty(COMMAND, "send");
 		commandProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, sendCommandTaskFactory, TaskFactory.class, commandProps);
+
+		// TaskFactory openTaskFactory = new OpenTaskFactory(structureManager);
+		// Properties openTaskProperties = new Properties();
+		// openTaskProperties.setProperty(COMMAND, "open");
+		// openTaskProperties.setProperty(COMMAND_NAMESPACE, "structureViz");
+		// registerService(bc, openTaskFactory, TaskFactory.class, openTaskProperties);
+
+		// TaskFactory closeTaskFactory = new CloseTaskFactory(structureManager);
+		// Properties closeTaskProperties = new Properties();
+		// openTaskProperties.setProperty(COMMAND, "close");
+		// openTaskProperties.setProperty(COMMAND_NAMESPACE, "structureViz");
+		// registerService(bc, closeTaskFactory, TaskFactory.class, closeTaskProperties);
+		//
+		// TaskFactory alignTaskFactory = new AlignTaskFactory(structureManager);
+		// Properties alignTaskProperties = new Properties();
+		// openTaskProperties.setProperty(COMMAND, "align");
+		// openTaskProperties.setProperty(COMMAND_NAMESPACE, "structureViz");
+		// registerService(bc, alignTaskFactory, TaskFactory.class, alignTaskProperties);
 
 	}
 

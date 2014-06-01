@@ -15,17 +15,15 @@ public class SyncColorsTask extends AbstractTask {
 	private CyNetworkView networkView;
 
 	@Tunable(description = "Apply colors from current network view to associated Chimera models", gravity = 1.0, dependsOn = "chimeraToCytoscape=false")
-	public boolean cytoscapeToChimera;
+	public boolean cytoscapeToChimera = false;
 
 	@Tunable(description = "Apply colors from associated Chimera models to current network view", gravity = 2.0, dependsOn = "cytoscapeToChimera=false")
-	public boolean chimeraToCytoscape;
+	public boolean chimeraToCytoscape = false;
 
 	public SyncColorsTask(StructureManager structureManager, CyNetworkView networkView) {
 		this.structureManager = structureManager;
 		this.rinManager = structureManager.getRINManager();
 		this.networkView = networkView;
-		chimeraToCytoscape = false;
-		cytoscapeToChimera = false;
 	}
 
 	@Override

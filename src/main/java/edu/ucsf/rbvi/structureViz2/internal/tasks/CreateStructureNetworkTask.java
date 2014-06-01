@@ -21,6 +21,7 @@ import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
+import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
@@ -39,67 +40,67 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 public class CreateStructureNetworkTask extends AbstractTask {
 
 	@Tunable(description = "Name of new network", groups = "General", gravity = 1.1)
-	public String networkName;
+	public String networkName = "";
 
 	@Tunable(description = "Include interactions", groups = "General", gravity = 1.2)
-	public ListSingleSelection<String> includeInteracions;
+	public ListSingleSelection<String> includeInteracions = new ListSingleSelection<String>("");
 
 	@Tunable(description = "Add hydrogens", groups = "General", gravity = 1.3)
-	public boolean addHydrogens;
+	public boolean addHydrogens = false;
 
 	@Tunable(description = "Ignore water", groups = "General", gravity = 1.4)
-	public boolean ignoreWater;
+	public boolean ignoreWater = true;
 
 	@Tunable(description = "Include combined edges", groups = "General", gravity = 1.5)
-	public boolean includeCombiEdges;
+	public boolean includeCombiEdges = false;
 
 	@Tunable(description = "Include contacts", groups = "Contacts", gravity = 2.1)
-	public boolean includeContacts;
+	public boolean includeContacts = true;
 
 	@Tunable(description = "Overlap cutoff", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.2)
-	public double overlapCutoffCont;
+	public double overlapCutoffCont = -0.4;
 
 	@Tunable(description = "HBond allowance", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.3)
-	public double hbondAllowanceCont;
+	public double hbondAllowanceCont = 0.0;
 
 	@Tunable(description = "Bond separation", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.4)
-	public int bondSepCont;
+	public int bondSepCont = 4;
 
 	@Tunable(description = "Include clashes", groups = "Clashes", gravity = 3.1)
-	public boolean includeClashes;
+	public boolean includeClashes = false;
 
 	@Tunable(description = "Overlap cutoff", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.2)
-	public double overlapCutoffClash;
+	public double overlapCutoffClash = 0.6;
 
 	@Tunable(description = "HBond allowance", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.3)
-	public double hbondAllowanceClash;
+	public double hbondAllowanceClash = 0.4;
 
 	@Tunable(description = "Bond separation", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.4)
-	public int bondSepClash;
+	public int bondSepClash = 4;
 
 	@Tunable(description = "Include hydrogen bonds", groups = "Hydrogen bonds", gravity = 4.1)
-	public boolean includeHBonds;
+	public boolean includeHBonds = true;
 
 	@Tunable(description = "Remove redundant contacts", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true", gravity = 4.2)
-	public boolean removeRedContacts;
+	public boolean removeRedContacts = true;
 
 	@Tunable(description = "Add tolerances to strict criteria", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true", gravity = 4.3)
-	public boolean relaxHBonds;
+	public boolean relaxHBonds = false;
 
 	@Tunable(description = "Distance tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.4)
-	public double distSlop;
+	public double distSlop = 0.4;
 
 	@Tunable(description = "Angle tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.5)
-	public double angleSlop;
+	public double angleSlop = 20;
 
 	@Tunable(description = "Include (backbone) connectivity", groups = "Connectivity", gravity = 5.1)
-	public boolean includeConnectivity;
+	public boolean includeConnectivity = false;
 
 	@Tunable(description = "Include distances between CA atoms", groups = "Distance", gravity = 6.1)
-	public boolean includeDistance;
+	public boolean includeDistance = false;
 
 	@Tunable(description = "Distance cutoff (in angstoms)", groups = "Distance", gravity = 6.2)
-	public double distCutoff;
+	public double distCutoff = 5;
 
 	// @Tunable(description =
 	// "Calculate connectivity distances (more time consuming)", groups =
@@ -122,25 +123,25 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		includeInteracions = new ListSingleSelection<String>(withinSelection, betweenSelection,
 				allSelection);
 		includeInteracions.setSelectedValue(withinSelection);
-		addHydrogens = false;
-		ignoreWater = true;
-		includeCombiEdges = false;
-		includeContacts = true;
-		overlapCutoffCont = -0.4;
-		hbondAllowanceCont = 0.0;
-		bondSepCont = 4;
-		includeClashes = false;
-		overlapCutoffClash = 0.6;
-		hbondAllowanceClash = 0.4;
-		bondSepClash = 4;
-		includeHBonds = false;
-		removeRedContacts = true;
-		relaxHBonds = false;
-		distSlop = 0.4;
-		angleSlop = 20;
-		includeConnectivity = false;
-		includeDistance = false;
-		distCutoff = 5.0;
+		// addHydrogens = false;
+		// ignoreWater = true;
+		// includeCombiEdges = false;
+		// includeContacts = true;
+		// overlapCutoffCont = -0.4;
+		// hbondAllowanceCont = 0.0;
+		// bondSepCont = 4;
+		// includeClashes = false;
+		// overlapCutoffClash = 0.6;
+		// hbondAllowanceClash = 0.4;
+		// bondSepClash = 4;
+		// includeHBonds = false;
+		// removeRedContacts = true;
+		// relaxHBonds = false;
+		// distSlop = 0.4;
+		// angleSlop = 20;
+		// includeConnectivity = false;
+		// includeDistance = false;
+		// distCutoff = 5.0;
 	}
 
 	@ProvidesTitle
@@ -232,17 +233,19 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		// annotate
 		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
 				structureManager);
-		if (annotateFactory != null) {
-			TunableSetter tunableSetter = (TunableSetter) structureManager
-					.getService(TunableSetter.class);
-			Map<String, Object> tunables = new HashMap<String, Object>();
-			List<String> resAttr = structureManager.getAllChimeraResidueAttributes();
-			ListMultipleSelection<String> resAttrTun = new ListMultipleSelection<String>(resAttr);
-			resAttrTun.setSelectedValues(resAttr);
-			tunables.put("residueAttributes", resAttrTun);
-			insertTasksAfterCurrentTask(tunableSetter.createTaskIterator(
-					annotateFactory.createTaskIterator(network), tunables));
-		}
+		SynchronousTaskManager tm = (SynchronousTaskManager) structureManager
+				.getService(SynchronousTaskManager.class);
+		TunableSetter tunableSetter = (TunableSetter) structureManager
+				.getService(TunableSetter.class);
+		Map<String, Object> tunables = new HashMap<String, Object>();
+		List<String> resAttr = structureManager.getAllChimeraResidueAttributes();
+		ListMultipleSelection<String> resAttrTun = new ListMultipleSelection<String>(resAttr);
+		resAttrTun.setSelectedValues(resAttr);
+		tunables.put("residueAttributes", resAttrTun);
+		// insertTasksAfterCurrentTask(tunableSetter.createTaskIterator(
+		// annotateFactory.createTaskIterator(network), tunables));
+		tm.execute(tunableSetter.createTaskIterator(annotateFactory.createTaskIterator(network),
+				tunables));
 
 		// Apply RIN Layout and if not found, do a preferred
 		CyLayoutAlgorithmManager manager = (CyLayoutAlgorithmManager) structureManager

@@ -16,13 +16,12 @@ public class SendComandTask extends AbstractTask implements ObservableTask {
 	private StructureManager structureManager;
 
 	@Tunable(description = "Command")
-	public String command;
+	public String command = "";
 
 	public List<String> result;
 
 	public SendComandTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
-		this.command = "";
 		this.result = null;
 	}
 

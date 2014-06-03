@@ -1,10 +1,14 @@
 package edu.ucsf.rbvi.structureViz2.internal.tasks;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.command.util.EdgeList;
+import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.AbstractTask;
@@ -19,29 +23,70 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
 public class OpenStructuresTask extends AbstractTask {
 	// private List<CyNode> nodeList;
-	private CyNetwork network;
+	private CyNetwork net = null;
+	private List<CyIdentifiable> cyList;
 	private StructureManager structureManager;
 	private Map<String, CyIdentifiable> structruesMap;
 	private Map<String, CyIdentifiable> chemStructruesMap;
 
-	@Tunable(description = "Open structures", gravity = 1.0)
+	@Tunable(description = "Network for the selected nodes/edges", context = "nogui")
+	public CyNetwork network = null;
+
+	public NodeList nodeList = new NodeList(null);
+
+	@Tunable(description = "List of nodes to open structures for", context = "nogui")
+	public NodeList getnodeList() {
+		if (network == null) {
+			network = ((CyApplicationManager) structureManager
+					.getService(CyApplicationManager.class)).getCurrentNetwork();
+		}
+		nodeList.setNetwork(network);
+		return nodeList;
+	}
+
+	public void setnodeList(NodeList setValue) {
+	}
+
+	public EdgeList edgeList = new EdgeList(null);
+
+	@Tunable(description = "List of edges to open structures for", context = "nogui")
+	public EdgeList getedgeList() {
+		if (network == null) {
+			network = ((CyApplicationManager) structureManager
+					.getService(CyApplicationManager.class)).getCurrentNetwork();
+		}
+		edgeList.setNetwork(network);
+		return edgeList;
+	}
+
+	public void setedgeList(EdgeList setValue) {
+	}
+
+	@Tunable(description = "Structure file", params = "fileCategory=unspecified;input=true", gravity = 3.0, context = "nogui")
+	public File structureFile = null;
+
+	@Tunable(description = "PDB ID to fetch", context = "nogui")
+	public String pdbID = "";
+
+	@Tunable(description = "Modbase models to fetch", context = "nogui")
+	public String modbaseID = "";
+
+	@Tunable(description = "Open structures", gravity = 1.0, context = "gui")
 	public ListMultipleSelection<String> structurePairs = new ListMultipleSelection<String>("");
 
-	@Tunable(description = "Open chemical structures", gravity = 2.0)
+	@Tunable(description = "Open chemical structures", gravity = 2.0, context = "gui")
 	public ListMultipleSelection<String> chemStructurePairs = new ListMultipleSelection<String>("");
 
-	public OpenStructuresTask(List<CyIdentifiable> nodeList, CyNetwork net,
+	public OpenStructuresTask(StructureManager structureManager) {
+		this.structureManager = structureManager;
+	}
+
+	public OpenStructuresTask(List<CyIdentifiable> cyList, CyNetwork net,
 			StructureManager structureManager) {
 		// this.nodeList = nodeList;
-		this.network = net;
+		this.cyList = cyList;
+		this.net = net;
 		this.structureManager = structureManager;
-		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
-		structureManager
-				.getChimObjNames(mapChimObjNames, net, nodeList, ModelType.PDB_MODEL, false);
-		structruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
-		mapChimObjNames.clear();
-		structureManager.getChimObjNames(mapChimObjNames, net, nodeList, ModelType.SMILES, false);
-		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
 		initTunables();
 	}
 
@@ -52,27 +97,84 @@ public class OpenStructuresTask extends AbstractTask {
 
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle("Opening Structures");
-		// get selected structures from tunable parameter
-		Map<CyIdentifiable, List<String>> selectedStructureNames = CytoUtils.getCyChimPairsToMap(
-				structurePairs.getSelectedValues(), structruesMap);
-		if (selectedStructureNames.size() > 0) {
+		// get user selection from nongui tunables
+		if (net == null) {
+			if (network != null) {
+				net = network;
+				cyList = new ArrayList<CyIdentifiable>();
+				if (nodeList.getValue() != null) {
+					cyList.addAll(nodeList.getValue());
+				} else if (edgeList.getValue() != null) {
+					cyList.addAll(edgeList.getValue());
+				}
+				initTunables();
+			} else {
+				net = ((CyApplicationManager) structureManager
+						.getService(CyApplicationManager.class)).getCurrentNetwork();
+			}
+		}
+		// open PDB models
+		Map<CyIdentifiable, List<String>> structuresToOpen = new HashMap<CyIdentifiable, List<String>>();
+		// add selected structures from gui tunables
+		if (structurePairs.getSelectedValues() != null) {
+			structuresToOpen.putAll(CytoUtils.getCyChimPairsToMap(
+					structurePairs.getSelectedValues(), structruesMap));
+		}
+		// add structure file
+		List<String> structures = new ArrayList<String>();
+		if (structureFile != null && structureFile.isFile()) {
+			// taskMonitor.setStatusMessage("Opening structure from file ...");
+			structures.add(structureFile.getAbsolutePath());
+		}
+		// add pdbIDs from nongui tunable
+		if (pdbID != null && pdbID.length() > 0) {
+			structures.add(pdbID);
+		}
+		// create artificial mapping
+		if (structures.size() > 0) {
+			structuresToOpen.put(net, structures);
+		}
+		// open all PDB models
+		if (structuresToOpen.size() > 0) {
 			taskMonitor.setStatusMessage("Opening structures ...");
-			// open structures
-			if (!structureManager.openStructures(network, selectedStructureNames,
-					ModelType.PDB_MODEL)) {
+			if (!structureManager.openStructures(net, structuresToOpen, ModelType.PDB_MODEL)) {
 				taskMonitor.setStatusMessage("Structures could not be opened.");
 			}
 		}
+		structures.clear();
+		structuresToOpen.clear();
 
-		// get selected chem structures from tunable parameter
-		Map<CyIdentifiable, List<String>> selectedChemNames = CytoUtils.getCyChimPairsToMap(
-				chemStructurePairs.getSelectedValues(), chemStructruesMap);
-		if (selectedChemNames.size() > 0) {
+		// add selected chem structures from gui tunables
+		if (chemStructurePairs.getSelectedValues() != null) {
+			structuresToOpen.putAll(CytoUtils.getCyChimPairsToMap(
+					chemStructurePairs.getSelectedValues(), chemStructruesMap));
+		}
+		// open chemical structure
+		if (structuresToOpen.size() > 0) {
 			taskMonitor.setStatusMessage("Opening chemical structures ...");
 			// open structures
-			if (!structureManager.openStructures(network, selectedChemNames, ModelType.SMILES)) {
+			if (!structureManager.openStructures(net, structuresToOpen, ModelType.SMILES)) {
 				taskMonitor.setStatusMessage("Chemical structures could not be opened.");
 			}
+		}
+		structures.clear();
+		structuresToOpen.clear();
+
+		// add modbase IDs from nongui tunable
+		if (modbaseID != null && modbaseID.length() > 0) {
+			structures.add(modbaseID);
+		}
+		if (structures.size() > 0) {
+			structuresToOpen.put(net, structures);
+		}
+
+		// open modbase models
+		if (structuresToOpen.size() > 0) {
+			taskMonitor.setStatusMessage("Opening modbase models ...");
+			if (!structureManager.openStructures(net, structuresToOpen, ModelType.MODBASE_MODEL)) {
+				taskMonitor.setStatusMessage("ModBase models could not be opened.");
+			}
+
 		}
 
 		// open dialog
@@ -84,6 +186,16 @@ public class OpenStructuresTask extends AbstractTask {
 	}
 
 	private void initTunables() {
+		// get all structure annotations for the nodes/edges in the list
+		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
+		structureManager.getChimObjNames(mapChimObjNames, net, cyList, ModelType.PDB_MODEL, false);
+		structruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
+		mapChimObjNames.clear();
+		// get all smiles annotations for the nodes/edges in the list
+		structureManager.getChimObjNames(mapChimObjNames, net, cyList, ModelType.SMILES, false);
+		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
+
+		// fill in tunables
 		List<String> availableStructures = new ArrayList<String>(structruesMap.keySet());
 		if (availableStructures.size() > 0) {
 			structurePairs = new ListMultipleSelection<String>(availableStructures);
@@ -95,7 +207,7 @@ public class OpenStructuresTask extends AbstractTask {
 		List<String> availableChem = new ArrayList<String>(chemStructruesMap.keySet());
 		if (availableChem.size() > 0) {
 			chemStructurePairs = new ListMultipleSelection<String>(availableChem);
-			chemStructurePairs.setSelectedValues(availableChem);
+			// chemStructurePairs.setSelectedValues(availableChem);
 		} else {
 			chemStructurePairs = new ListMultipleSelection<String>("None");
 		}

@@ -12,21 +12,18 @@ import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTaskFactory;
+import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 
-public class CloseStructuresTaskFactory extends AbstractTaskFactory implements NodeViewTaskFactory,
-		NetworkViewTaskFactory {
+public class CloseStructuresTaskFactory extends AbstractTaskFactory implements TaskFactory,
+		NodeViewTaskFactory, NetworkViewTaskFactory {
 
 	private StructureManager structureManager;
 
 	public CloseStructuresTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
-	}
-
-	public TaskIterator createTaskIterator() {
-		return null;
 	}
 
 	public boolean isReady(CyNetworkView netView) {
@@ -50,6 +47,10 @@ public class CloseStructuresTaskFactory extends AbstractTaskFactory implements N
 			return true;
 		}
 		return false;
+	}
+
+	public TaskIterator createTaskIterator() {
+		return new TaskIterator(new CloseStructuresTask(structureManager));
 	}
 
 	public TaskIterator createTaskIterator(CyNetworkView netView) {

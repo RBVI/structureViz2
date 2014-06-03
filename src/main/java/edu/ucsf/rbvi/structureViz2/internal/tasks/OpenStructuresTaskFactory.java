@@ -14,22 +14,19 @@ import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTaskFactory;
+import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
-public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
+public class OpenStructuresTaskFactory extends AbstractTaskFactory implements TaskFactory,
 		NetworkViewTaskFactory, NodeViewTaskFactory {
 
 	private StructureManager structureManager;
 
 	public OpenStructuresTaskFactory(StructureManager structureManager) {
 		this.structureManager = structureManager;
-	}
-
-	public TaskIterator createTaskIterator() {
-		return null;
 	}
 
 	public boolean isReady(CyNetworkView netView) {
@@ -69,6 +66,10 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		return false;
 	}
 
+	public TaskIterator createTaskIterator() {
+		return new TaskIterator(new OpenStructuresTask(structureManager));
+	}
+
 	public TaskIterator createTaskIterator(CyNetworkView netView) {
 		// Get all of the selected nodes
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
@@ -90,4 +91,5 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements
 		return new TaskIterator(new OpenStructuresTask(selectedList, netView.getModel(),
 				structureManager));
 	}
+
 }

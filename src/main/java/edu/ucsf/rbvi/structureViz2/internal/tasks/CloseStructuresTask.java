@@ -66,6 +66,25 @@ public class CloseStructuresTask extends AbstractTask {
 
 	public CloseStructuresTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
+		cyList = new ArrayList<CyIdentifiable>();
+		if (net == null) {
+			if (network != null) {
+				net = network;
+				if (nodeList.getValue() != null) {
+					cyList.addAll(nodeList.getValue());
+				} else if (edgeList.getValue() != null) {
+					cyList.addAll(edgeList.getValue());
+				}
+				initTunables();
+			} else {
+				net = ((CyApplicationManager) structureManager
+						.getService(CyApplicationManager.class)).getCurrentNetwork();
+				if (net != null) {
+					cyList.addAll(net.getNodeList());
+					initTunables();
+				}
+			}
+		}
 	}
 
 	public CloseStructuresTask(List<CyIdentifiable> cyList, CyNetworkView netView,
@@ -88,21 +107,6 @@ public class CloseStructuresTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Closing Structures");
 		taskMonitor.setStatusMessage("Closing structures ...");
-		if (net == null) {
-			if (network != null) {
-				net = network;
-				cyList = new ArrayList<CyIdentifiable>();
-				if (nodeList.getValue() != null) {
-					cyList.addAll(nodeList.getValue());
-				} else if (edgeList.getValue() != null) {
-					cyList.addAll(edgeList.getValue());
-				}
-				initTunables();
-			} else {
-				net = ((CyApplicationManager) structureManager
-						.getService(CyApplicationManager.class)).getCurrentNetwork();
-			}
-		}
 		// add models selected in gui tunable
 		Map<CyIdentifiable, List<String>> selectedChimeraObjs = new HashMap<CyIdentifiable, List<String>>();
 		if (structurePairs.getSelectedValues() != null) {

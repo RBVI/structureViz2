@@ -26,8 +26,6 @@ import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.CyIdentifiableListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.CyNetworkListener;
@@ -53,8 +51,8 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
 // TODO: [Optional] Improve non-gui mode
 public class CyActivator extends AbstractCyActivator {
-	private static Logger logger = LoggerFactory
-			.getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
+	// private static Logger logger = LoggerFactory
+	// .getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
 
 	public CyActivator() {
 		super();
@@ -110,7 +108,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");
 		openStructuresProps.setProperty(IN_MENU_BAR, "true");
 		openStructuresProps.setProperty(MENU_GRAVITY, "1.1");
-		// openStructuresProps.setProperty(COMMAND, "open");
+		// openStructuresProps.setProperty(COMMAND, "openNodes");
 		// openStructuresProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, openStructures, NetworkViewTaskFactory.class, openStructuresProps);
 

@@ -71,6 +71,13 @@ public class OpenStructuresTaskFactory extends AbstractTaskFactory implements Ta
 	}
 
 	public TaskIterator createTaskIterator(CyNetworkView netView) {
+		// if (netView == null) {
+		// netView = ((CyApplicationManager) structureManager
+		// .getService(CyApplicationManager.class)).getCurrentNetworkView();
+		// if (netView == null) {
+		// throw new RuntimeException("Attempt to call NetworkView TaskFactory with no view");
+		// }
+		// }
 		// Get all of the selected nodes
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
 		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,

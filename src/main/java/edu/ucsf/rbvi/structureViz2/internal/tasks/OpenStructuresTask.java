@@ -79,6 +79,26 @@ public class OpenStructuresTask extends AbstractTask {
 
 	public OpenStructuresTask(StructureManager structureManager) {
 		this.structureManager = structureManager;
+		// get user selection from nongui tunables
+		cyList = new ArrayList<CyIdentifiable>();
+		if (net == null) {
+			if (network != null) {
+				net = network;
+				if (nodeList.getValue() != null) {
+					cyList.addAll(nodeList.getValue());
+				} else if (edgeList.getValue() != null) {
+					cyList.addAll(edgeList.getValue());
+				}
+				initTunables();
+			} else {
+				net = ((CyApplicationManager) structureManager
+						.getService(CyApplicationManager.class)).getCurrentNetwork();
+				if (net != null) {
+					cyList.addAll(net.getNodeList());
+					initTunables();
+				}
+			}
+		}
 	}
 
 	public OpenStructuresTask(List<CyIdentifiable> cyList, CyNetwork net,
@@ -97,22 +117,6 @@ public class OpenStructuresTask extends AbstractTask {
 
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle("Opening Structures");
-		// get user selection from nongui tunables
-		if (net == null) {
-			if (network != null) {
-				net = network;
-				cyList = new ArrayList<CyIdentifiable>();
-				if (nodeList.getValue() != null) {
-					cyList.addAll(nodeList.getValue());
-				} else if (edgeList.getValue() != null) {
-					cyList.addAll(edgeList.getValue());
-				}
-				initTunables();
-			} else {
-				net = ((CyApplicationManager) structureManager
-						.getService(CyApplicationManager.class)).getCurrentNetwork();
-			}
-		}
 		// open PDB models
 		Map<CyIdentifiable, List<String>> structuresToOpen = new HashMap<CyIdentifiable, List<String>>();
 		// add selected structures from gui tunables

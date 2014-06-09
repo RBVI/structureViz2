@@ -32,35 +32,11 @@ public class OpenStructuresTask extends AbstractTask {
 	@Tunable(description = "Network for the selected nodes/edges", context = "nogui")
 	public CyNetwork network = null;
 
+	@Tunable(description = "List of nodes to open structures for", context = "nogui")
 	public NodeList nodeList = new NodeList(null);
 
-	@Tunable(description = "List of nodes to open structures for", context = "nogui")
-	public NodeList getnodeList() {
-		if (network == null) {
-			network = ((CyApplicationManager) structureManager
-					.getService(CyApplicationManager.class)).getCurrentNetwork();
-		}
-		nodeList.setNetwork(network);
-		return nodeList;
-	}
-
-	public void setnodeList(NodeList setValue) {
-	}
-
-	public EdgeList edgeList = new EdgeList(null);
-
 	@Tunable(description = "List of edges to open structures for", context = "nogui")
-	public EdgeList getedgeList() {
-		if (network == null) {
-			network = ((CyApplicationManager) structureManager
-					.getService(CyApplicationManager.class)).getCurrentNetwork();
-		}
-		edgeList.setNetwork(network);
-		return edgeList;
-	}
-
-	public void setedgeList(EdgeList setValue) {
-	}
+	public EdgeList edgeList = new EdgeList(null);
 
 	@Tunable(description = "Structure file", params = "fileCategory=unspecified;input=true", gravity = 3.0, context = "nogui")
 	public File structureFile = null;
@@ -70,6 +46,9 @@ public class OpenStructuresTask extends AbstractTask {
 
 	@Tunable(description = "Modbase models to fetch", context = "nogui")
 	public String modbaseID = "";
+
+	@Tunable(description = "Show the Moleculra Structure Navigator dialog after opening the structure in Chimera", context = "nogui")
+	public boolean showDialog = false;
 
 	@Tunable(description = "Open structures", gravity = 1.0, context = "gui")
 	public ListMultipleSelection<String> structurePairs = new ListMultipleSelection<String>("");
@@ -81,23 +60,20 @@ public class OpenStructuresTask extends AbstractTask {
 		this.structureManager = structureManager;
 		// get user selection from nongui tunables
 		cyList = new ArrayList<CyIdentifiable>();
+		net = network;
 		if (net == null) {
-			if (network != null) {
-				net = network;
-				if (nodeList.getValue() != null) {
-					cyList.addAll(nodeList.getValue());
-				} else if (edgeList.getValue() != null) {
-					cyList.addAll(edgeList.getValue());
-				}
-				initTunables();
-			} else {
-				net = ((CyApplicationManager) structureManager
-						.getService(CyApplicationManager.class)).getCurrentNetwork();
-				if (net != null) {
-					cyList.addAll(net.getNodeList());
-					initTunables();
-				}
+			CyNetwork current = ((CyApplicationManager) structureManager
+					.getService(CyApplicationManager.class)).getCurrentNetwork();
+			if (current != null) {
+				net = current;
 			}
+		}
+		if (net != null) {
+			nodeList.setNetwork(net);
+			edgeList.setNetwork(net);
+			cyList.addAll(net.getNodeList());
+			cyList.addAll(net.getEdgeList());
+			initTunables();
 		}
 	}
 
@@ -117,6 +93,22 @@ public class OpenStructuresTask extends AbstractTask {
 
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle("Opening Structures");
+		cyList.clear();
+		boolean reinitTunables = false;
+		if (nodeList.getValue() != null) {
+			reinitTunables = true;
+			cyList.addAll(nodeList.getValue());
+		} else if (edgeList.getValue() != null) {
+			reinitTunables = true;
+			cyList.addAll(edgeList.getValue());
+		} else if (structureFile != null) {
+			reinitTunables = true;
+		}
+		if (reinitTunables) {
+			initTunables();
+		}
+
+		int openNodes = 0;
 		// open PDB models
 		Map<CyIdentifiable, List<String>> structuresToOpen = new HashMap<CyIdentifiable, List<String>>();
 		// add selected structures from gui tunables
@@ -144,6 +136,7 @@ public class OpenStructuresTask extends AbstractTask {
 			if (!structureManager.openStructures(net, structuresToOpen, ModelType.PDB_MODEL)) {
 				taskMonitor.setStatusMessage("Structures could not be opened.");
 			}
+			openNodes += structuresToOpen.size();
 		}
 		structures.clear();
 		structuresToOpen.clear();
@@ -160,6 +153,7 @@ public class OpenStructuresTask extends AbstractTask {
 			if (!structureManager.openStructures(net, structuresToOpen, ModelType.SMILES)) {
 				taskMonitor.setStatusMessage("Chemical structures could not be opened.");
 			}
+			openNodes += structuresToOpen.size();
 		}
 		structures.clear();
 		structuresToOpen.clear();
@@ -178,14 +172,20 @@ public class OpenStructuresTask extends AbstractTask {
 			if (!structureManager.openStructures(net, structuresToOpen, ModelType.MODBASE_MODEL)) {
 				taskMonitor.setStatusMessage("ModBase models could not be opened.");
 			}
-
+			openNodes += structuresToOpen.size();
 		}
 
-		// open dialog
-		if (structureManager.getChimeraManager().isChimeraLaunched()) {
-			structureManager.launchModelNavigatorDialog();
+		if (openNodes > 0) {
+			// open dialog
+			if (structureManager.getChimeraManager().isChimeraLaunched()) {
+				if (showDialog) {
+					structureManager.launchModelNavigatorDialog();
+				}
+			} else {
+				taskMonitor.setStatusMessage("Chimera has not been launched.");
+			}
 		} else {
-			taskMonitor.setStatusMessage("Chimera could not be launched.");
+			taskMonitor.setStatusMessage("No structures could be matched from input.");
 		}
 	}
 

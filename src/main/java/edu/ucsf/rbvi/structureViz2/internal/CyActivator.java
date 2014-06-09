@@ -31,6 +31,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.CyIdentifiableListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.CyNetworkListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.CySelectionListener;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AnnotateStructureNetworkTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresEdgeTaskFactory;
@@ -337,23 +338,11 @@ public class CyActivator extends AbstractCyActivator {
 		commandProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, sendCommandTaskFactory, TaskFactory.class, commandProps);
 
-		// TaskFactory openTaskFactory = new OpenTaskFactory(structureManager);
-		// Properties openTaskProperties = new Properties();
-		// openTaskProperties.setProperty(COMMAND, "open");
-		// openTaskProperties.setProperty(COMMAND_NAMESPACE, "structureViz");
-		// registerService(bc, openTaskFactory, TaskFactory.class, openTaskProperties);
-
-		// TaskFactory closeTaskFactory = new CloseTaskFactory(structureManager);
-		// Properties closeTaskProperties = new Properties();
-		// openTaskProperties.setProperty(COMMAND, "close");
-		// openTaskProperties.setProperty(COMMAND_NAMESPACE, "structureViz");
-		// registerService(bc, closeTaskFactory, TaskFactory.class, closeTaskProperties);
-		//
-		// TaskFactory alignTaskFactory = new AlignTaskFactory(structureManager);
-		// Properties alignTaskProperties = new Properties();
-		// openTaskProperties.setProperty(COMMAND, "align");
-		// openTaskProperties.setProperty(COMMAND_NAMESPACE, "structureViz");
-		// registerService(bc, alignTaskFactory, TaskFactory.class, alignTaskProperties);
+		TaskFactory alignTaskFactory = new AlignCommandTaskFactory(structureManager);
+		Properties alignTaskProperties = new Properties();
+		alignTaskProperties.setProperty(COMMAND, "align");
+		alignTaskProperties.setProperty(COMMAND_NAMESPACE, "structureViz");
+		registerService(bc, alignTaskFactory, TaskFactory.class, alignTaskProperties);
 
 	}
 

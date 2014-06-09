@@ -57,22 +57,22 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Tunable(description = "Include contacts", groups = "Contacts", gravity = 2.1)
 	public boolean includeContacts = true;
 
-	@Tunable(description = "Overlap cutoff", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.2)
-	public double overlapCutoffCont = -0.4;
+	@Tunable(description = "Overlap cutoff (in angstroms)", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.2)
+	public double overlapCutoffContact = -0.4;
 
-	@Tunable(description = "HBond allowance", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.3)
-	public double hbondAllowanceCont = 0.0;
+	@Tunable(description = "HBond allowance (in angstroms)", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.3)
+	public double hbondAllowanceContact = 0.0;
 
 	@Tunable(description = "Bond separation", groups = "Contacts", dependsOn = "includeContacts=true", gravity = 2.4)
-	public int bondSepCont = 4;
+	public int bondSepContact = 4;
 
 	@Tunable(description = "Include clashes", groups = "Clashes", gravity = 3.1)
 	public boolean includeClashes = false;
 
-	@Tunable(description = "Overlap cutoff", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.2)
+	@Tunable(description = "Overlap cutoff (in angstroms)", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.2)
 	public double overlapCutoffClash = 0.6;
 
-	@Tunable(description = "HBond allowance", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.3)
+	@Tunable(description = "HBond allowance (in angstroms)", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.3)
 	public double hbondAllowanceClash = 0.4;
 
 	@Tunable(description = "Bond separation", groups = "Clashes", dependsOn = "includeClashes=true", gravity = 3.4)
@@ -87,11 +87,11 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	@Tunable(description = "Add tolerances to strict criteria", groups = "Hydrogen bonds", dependsOn = "includeHBonds=true", gravity = 4.3)
 	public boolean relaxHBonds = false;
 
-	@Tunable(description = "Distance tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.4)
-	public double distSlop = 0.4;
+	@Tunable(description = "Distance tolerance (in angstroms)", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.4)
+	public double distTolerance = 0.4;
 
-	@Tunable(description = "Angle tolerance", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.5)
-	public double angleSlop = 20;
+	@Tunable(description = "Angle tolerance (in degrees)", groups = "Hydrogen bonds", dependsOn = "relaxHBonds=true", gravity = 4.5)
+	public double angleTolerance = 20;
 
 	@Tunable(description = "Include (backbone) connectivity", groups = "Connectivity", gravity = 5.1)
 	public boolean includeConnectivity = false;
@@ -170,7 +170,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			taskMonitor.setStatusMessage("Getting contacts ...");
 			chimeraManager.stopListening();
 			rinManager.includeContacts(rin, nodeMap, getIncludeInteractions(), ignoreWater,
-					removeRedContacts, overlapCutoffCont, hbondAllowanceCont, bondSepCont);
+					removeRedContacts, overlapCutoffContact, hbondAllowanceContact, bondSepContact);
 		}
 		if (includeClashes) {
 			taskMonitor.setStatusMessage("Getting clashes ...");
@@ -182,7 +182,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			taskMonitor.setStatusMessage("Getting hydrogen bonds ...");
 			chimeraManager.stopListening();
 			rinManager.includeHBonds(rin, nodeMap, getIncludeInteractions(), ignoreWater,
-					removeRedContacts, addHydrogens, relaxHBonds, angleSlop, distSlop);
+					removeRedContacts, addHydrogens, relaxHBonds, angleTolerance, distTolerance);
 		}
 		if (includeConnectivity) {
 			taskMonitor.setStatusMessage("Getting connectivity ...");

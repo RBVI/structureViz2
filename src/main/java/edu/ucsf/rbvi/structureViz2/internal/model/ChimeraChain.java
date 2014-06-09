@@ -43,7 +43,7 @@ import java.util.TreeMap;
  * @author scooter
  * 
  */
-
+// TODO: implement toAttr()
 public class ChimeraChain implements ChimeraStructuralObject {
 
 	/**

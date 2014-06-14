@@ -11,6 +11,7 @@ import java.util.Set;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
@@ -53,8 +54,12 @@ public class CloseStructuresTask extends AbstractTask {
 					.getCurrentNetwork();
 		}
 		if (net != null) {
-			cyList.addAll(net.getNodeList());
-			cyList.addAll(net.getEdgeList());
+			cyList.addAll(CyTableUtil.getNodesInState(net, CyNetwork.SELECTED, true));
+			cyList.addAll(CyTableUtil.getEdgesInState(net, CyNetwork.SELECTED, true));
+			if (cyList.size() == 0) {
+				cyList.addAll(net.getNodeList());
+				cyList.addAll(net.getEdgeList());
+			}
 			initTunables();
 		}
 		if (structureManager.getChimeraManager().isChimeraLaunched()
@@ -66,7 +71,7 @@ public class CloseStructuresTask extends AbstractTask {
 				models.add(model.getModelName());
 			}
 			modelList = new ListMultipleSelection<String>(models);
-			modelList.setSelectedValues(models);
+			// modelList.setSelectedValues(models);
 		}
 	}
 
@@ -102,7 +107,7 @@ public class CloseStructuresTask extends AbstractTask {
 		taskMonitor.setStatusMessage("Closing structures ...");
 		// add models selected in gui tunable
 		Map<CyIdentifiable, List<String>> selectedChimeraObjs = new HashMap<CyIdentifiable, List<String>>();
-		if (structurePairs.getSelectedValues() != null) {
+		if (structurePairs.getSelectedValues().size() > 0) {
 			selectedChimeraObjs.putAll(CytoUtils.getCyChimPairsToMap(
 					structurePairs.getSelectedValues(), openChimObjMap));
 		}
@@ -112,7 +117,7 @@ public class CloseStructuresTask extends AbstractTask {
 			models.addAll(selectedChimeraObjs.get(cyObj));
 		}
 		// get models selected in nogui tunable
-		if (modelList.getSelectedValues() != null) {
+		if (modelList.getSelectedValues().size() > 0) {
 			models = new HashSet<String>(modelList.getSelectedValues());
 		}
 		if (models.size() > 0) {

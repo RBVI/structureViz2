@@ -32,10 +32,6 @@ public class AlignCommandTask extends AbstractTask implements ObservableTask {
 	@Tunable(description = "Network for the selected nodes/edges", context = "nogui")
 	public CyNetwork network;
 
-	// @Tunable(description = "Type of models to align", context = "nogui")
-	// public ListSingleSelection<String> type = new ListSingleSelection<String>("structure",
-	// "chain");
-
 	@Tunable(description = "Reference model or single chain", context = "nogui")
 	public String reference = "";
 
@@ -94,8 +90,9 @@ public class AlignCommandTask extends AbstractTask implements ObservableTask {
 						"No network found, setting assignAttributes and createEdges to false.");
 			}
 		}
-		if (modelList.getSelectedValues() != null && chainList.getSelectedValues() != null) {
+		if (modelList.getSelectedValues().size() > 0 && chainList.getSelectedValues().size() > 0) {
 			taskMonitor.showMessage(Level.ERROR, "Cannot align both models and chains.");
+			return;
 		}
 		AlignManager alignment = new AlignManager(structureManager);
 		alignment.setShowSequence(showSequences);
@@ -104,7 +101,7 @@ public class AlignCommandTask extends AbstractTask implements ObservableTask {
 		ChimeraStructuralObject ref = null;
 		List<ChimeraStructuralObject> alignModels = new ArrayList<ChimeraStructuralObject>();
 		if (reference != null && reference.length() > 0) {
-			if (modelList.getSelectedValues() != null) {
+			if (modelList.getSelectedValues().size() > 0) {
 				ref = ChimUtils.fromAttribute(reference, chimeraManager);
 				if (ref != null && ref instanceof ChimeraModel) {
 					for (String val : modelList.getSelectedValues()) {
@@ -118,7 +115,7 @@ public class AlignCommandTask extends AbstractTask implements ObservableTask {
 					taskMonitor.showMessage(Level.ERROR, "Reference expected to be a model.");
 				}
 			}
-			if (chainList.getSelectedValues() != null) {
+			if (chainList.getSelectedValues().size() > 0) {
 				ref = ChimUtils.fromAttribute(reference, chimeraManager);
 				if (ref != null && ref instanceof ChimeraChain) {
 					for (String val : chainList.getSelectedValues()) {

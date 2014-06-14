@@ -120,23 +120,72 @@ public class StructureManager {
 		this.structureNetFactory = (CreateStructureNetworkTaskFactory) factory;
 	}
 
+	public boolean openStructures(Collection<List<String>> chimObjNames, ModelType type) {
+		// new models
+		Map<String, List<ChimeraModel>> newModels = new HashMap<String, List<ChimeraModel>>();
+		if (chimObjNames.size() > 0) {
+			List<String> names = chimObjNames.iterator().next();
+			if (names == null) {
+				return false;
+			}
+			for (String chimObjName : names) {
+				// get or open the corresponding models if they already exist
+				List<ChimeraModel> currentModels = chimeraManager.getChimeraModels(chimObjName,
+						type);
+				if (currentModels.size() == 0) {
+					// open and return models
+					currentModels = chimeraManager.openModel(chimObjName, type);
+					if (currentModels == null) {
+						// failed to open model, continue with next
+						continue;
+					}
+					// if (type == ModelType.SMILES) {
+					// newModels.put("smiles:" + chimObjName, currentModels);
+					// } else {
+					newModels.put(chimObjName, currentModels);
+					// }
+					// for each model
+					for (ChimeraModel currentModel : currentModels) {
+						// if not RIN then associate new model with the Cytoscape
+						// node
+						if (!currentChimMap.containsKey(currentModel)) {
+							currentChimMap.put(currentModel, new HashSet<CyIdentifiable>());
+						}
+					}
+				}
+			}
+		} else {
+			return false;
+		}
+		// update dialog
+		if (mnDialog != null) {
+			mnDialog.modelChanged();
+		}
+		// aTask.associate();
+		return true;
+
+	}
+
 	// TODO: [Release] Handle case where one network is associated with two models that are opened
 	// at the same time
 	public boolean openStructures(CyNetwork network,
 			Map<CyIdentifiable, List<String>> chimObjNames, ModelType type) {
-		if (network == null || chimObjNames.size() == 0) {
-			return false;
-		} else if (!chimeraManager.isChimeraLaunched()
+		if (!chimeraManager.isChimeraLaunched()
 				&& !chimeraManager.launchChimera(getChimeraPaths(network))) {
 			logger.error("Chimera could not be launched.");
 			return false;
+		} else if (chimObjNames.size() == 0) {
+			return false;
+		} else if (network == null) {
+			return openStructures(chimObjNames.values(), type);
 		}
 
 		// potential rins
 		Set<CyNetwork> potentialRINs = new HashSet<CyNetwork>();
 		// attributes
-		List<String> attrsFound = CytoUtils.getMatchingAttributes(network.getDefaultNodeTable(),
-				getCurrentStructureKeys(network));
+		List<String> attrsFound = new ArrayList<String>();
+		attrsFound.addAll(CytoUtils.getMatchingAttributes(network.getDefaultNodeTable(),
+				getCurrentStructureKeys(network)));
 		attrsFound.addAll(CytoUtils.getMatchingAttributes(network.getDefaultNodeTable(),
 				getCurrentChemStructKeys(network)));
 		// new models
@@ -199,16 +248,19 @@ public class StructureManager {
 								// if cyObj is a network, check for residue/chain annotations in an
 								// arbitrary node
 								CyNetwork rinNet = (CyNetwork) cyObj;
-								specsFound = ChimUtils.getResidueKeys(rinNet.getDefaultNodeTable(),
-										rinNet.getNodeList().get(0), attrsFound);
-								for (String resSpec : specsFound) {
-									ChimeraStructuralObject res = ChimUtils.fromAttribute(resSpec,
-											chimeraManager);
-									if (res != null
-											&& (res instanceof ChimeraResidue || res instanceof ChimeraChain)) {
-										potentialRINs.add(network);
-										foundRIN = true;
-										break;
+								if (rinNet.getNodeList().size() > 0) {
+									specsFound = ChimUtils.getResidueKeys(
+											rinNet.getDefaultNodeTable(),
+											rinNet.getNodeList().get(0), attrsFound);
+									for (String resSpec : specsFound) {
+										ChimeraStructuralObject res = ChimUtils.fromAttribute(
+												resSpec, chimeraManager);
+										if (res != null
+												&& (res instanceof ChimeraResidue || res instanceof ChimeraChain)) {
+											potentialRINs.add(network);
+											foundRIN = true;
+											break;
+										}
 									}
 								}
 							}
@@ -890,11 +942,12 @@ public class StructureManager {
 		// System.out.println("launch align dialog");
 		List<ChimeraStructuralObject> chimObjectList = new ArrayList<ChimeraStructuralObject>();
 		for (ChimeraModel model : chimeraManager.getChimeraModels()) {
-			chimObjectList.add(model);
 			if (useChains) {
 				for (ChimeraChain chain : model.getChains()) {
 					chimObjectList.add(chain);
 				}
+			} else {
+				chimObjectList.add(model);
 			}
 		}
 		// Bring up the dialog

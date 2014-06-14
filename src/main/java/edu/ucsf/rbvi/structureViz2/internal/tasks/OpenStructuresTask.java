@@ -11,6 +11,7 @@ import org.cytoscape.command.util.EdgeList;
 import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
@@ -71,8 +72,12 @@ public class OpenStructuresTask extends AbstractTask {
 		if (net != null) {
 			nodeList.setNetwork(net);
 			edgeList.setNetwork(net);
-			cyList.addAll(net.getNodeList());
-			cyList.addAll(net.getEdgeList());
+			cyList.addAll(CyTableUtil.getNodesInState(net, CyNetwork.SELECTED, true));
+			cyList.addAll(CyTableUtil.getEdgesInState(net, CyNetwork.SELECTED, true));
+			if (cyList.size() == 0) {
+				cyList.addAll(net.getNodeList());
+				cyList.addAll(net.getEdgeList());
+			}
 			initTunables();
 		}
 	}
@@ -83,6 +88,7 @@ public class OpenStructuresTask extends AbstractTask {
 		this.cyList = cyList;
 		this.net = net;
 		this.structureManager = structureManager;
+		showDialog = true;
 		initTunables();
 	}
 
@@ -93,6 +99,8 @@ public class OpenStructuresTask extends AbstractTask {
 
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle("Opening Structures");
+		// reinitialize tunables for the nogui arguments if any of them is set
+		// otherwise, all selected nodes in structurePairs will be considered
 		cyList.clear();
 		boolean reinitTunables = false;
 		if (nodeList.getValue() != null) {
@@ -101,7 +109,7 @@ public class OpenStructuresTask extends AbstractTask {
 		} else if (edgeList.getValue() != null) {
 			reinitTunables = true;
 			cyList.addAll(edgeList.getValue());
-		} else if (structureFile != null) {
+		} else if (structureFile != null || pdbID != "" || modbaseID != "") {
 			reinitTunables = true;
 		}
 		if (reinitTunables) {
@@ -112,7 +120,7 @@ public class OpenStructuresTask extends AbstractTask {
 		// open PDB models
 		Map<CyIdentifiable, List<String>> structuresToOpen = new HashMap<CyIdentifiable, List<String>>();
 		// add selected structures from gui tunables
-		if (structurePairs.getSelectedValues() != null) {
+		if (structurePairs.getSelectedValues().size() > 0) {
 			structuresToOpen.putAll(CytoUtils.getCyChimPairsToMap(
 					structurePairs.getSelectedValues(), structruesMap));
 		}
@@ -142,7 +150,7 @@ public class OpenStructuresTask extends AbstractTask {
 		structuresToOpen.clear();
 
 		// add selected chem structures from gui tunables
-		if (chemStructurePairs.getSelectedValues() != null) {
+		if (chemStructurePairs.getSelectedValues().size() > 0) {
 			structuresToOpen.putAll(CytoUtils.getCyChimPairsToMap(
 					chemStructurePairs.getSelectedValues(), chemStructruesMap));
 		}

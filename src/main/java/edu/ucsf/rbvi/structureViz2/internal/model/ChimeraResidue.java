@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * 
  */
 
-public class ChimeraResidue implements ChimeraStructuralObject {
+public class ChimeraResidue implements ChimeraStructuralObject, Comparable<ChimeraResidue> {
 
 	/* Constants */
 	public static final int SINGLE_LETTER = 0; // Display residues as a single
@@ -300,6 +300,14 @@ public class ChimeraResidue implements ChimeraStructuralObject {
 	 */
 	public void setUserData(Object data) {
 		this.userData = data;
+	}
+
+	public int compareTo(ChimeraResidue c2) {
+		if (Integer.parseInt(index) < Integer.parseInt(c2.getIndex()))
+			return -1;
+		else if (Integer.parseInt(index) == Integer.parseInt(c2.getIndex()))
+			return 0;
+		return 1;
 	}
 
 	/**********************************************

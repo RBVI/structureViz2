@@ -33,7 +33,10 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
 // System imports
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -178,8 +181,11 @@ public class ChimeraTreeModel extends DefaultTreeModel {
 		DefaultMutableTreeNode residue = null;
 		TreePath residuePath = null;
 
+		List<ChimeraResidue> sortedResidues = new ArrayList<ChimeraResidue>(residues);
+		Collections.sort(sortedResidues);
+
 		// Iterate over all residues & add them to the tree
-		for (ChimeraResidue res: residues) {
+		for (ChimeraResidue res: sortedResidues) {
 			res.setDisplayType(this.residueDisplay);
 			residue = new DefaultMutableTreeNode(res);
 			residuePath = treePath.pathByAddingChild(residue);

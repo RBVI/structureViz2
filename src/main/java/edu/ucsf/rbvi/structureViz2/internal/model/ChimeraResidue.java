@@ -34,6 +34,8 @@ package edu.ucsf.rbvi.structureViz2.internal.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +59,8 @@ public class ChimeraResidue implements ChimeraStructuralObject, Comparable<Chime
 	private String chainId; // ChainID for this residue
 	private int modelNumber; // model number for this residue
 	private int subModelNumber; // sub-model number for this residue
+	protected int residueNumber;
+	protected String insertionCode;
 	private ChimeraModel chimeraModel; // ChimeraModel thie residue is part of
 	private Object userData; // user data to associate with this residue
 	// public static HashMap<String, String> aaNames = null; // a map of amino acid
@@ -95,6 +99,7 @@ public class ChimeraResidue implements ChimeraStructuralObject, Comparable<Chime
 		this.index = index;
 		this.modelNumber = modelNumber;
 		this.subModelNumber = subModelNumber;
+		splitInsertionCode(this.index);
 		// if (aaNames == null) {
 		// initNames();
 		// }
@@ -145,6 +150,8 @@ public class ChimeraResidue implements ChimeraStructuralObject, Comparable<Chime
 				this.chainId = "_";
 		} else
 			this.index = rTokens[0];
+
+		splitInsertionCode(this.index);
 	}
 
 	/**
@@ -303,11 +310,31 @@ public class ChimeraResidue implements ChimeraStructuralObject, Comparable<Chime
 	}
 
 	public int compareTo(ChimeraResidue c2) {
-		if (Integer.parseInt(index) < Integer.parseInt(c2.getIndex()))
+		if (residueNumber < c2.residueNumber)
 			return -1;
-		else if (Integer.parseInt(index) == Integer.parseInt(c2.getIndex()))
-			return 0;
+		else if (residueNumber == c2.residueNumber) {
+			if (insertionCode == null && c2.insertionCode == null)
+				return 0;
+			else if (insertionCode == null)
+				return -1;
+			else if (c2.insertionCode == null)
+				return 1;
+			return (insertionCode.compareTo(c2.insertionCode));
+		}
 		return 1;
+	}
+
+	public void splitInsertionCode(String residue) {
+		// OK, split the index into number and insertion code
+		Pattern p = Pattern.compile("(\\d*)([A-Z]?)");
+		Matcher m = p.matcher(residue);
+		if (m.matches()) {
+			this.residueNumber = Integer.parseInt(m.group(1));
+			if (m.groupCount() > 1)
+				this.insertionCode = m.group(2);
+			else
+				this.insertionCode = null;
+		}
 	}
 
 	/**********************************************

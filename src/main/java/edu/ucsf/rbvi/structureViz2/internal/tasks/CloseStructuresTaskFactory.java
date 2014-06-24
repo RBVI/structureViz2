@@ -31,6 +31,9 @@ public class CloseStructuresTaskFactory extends AbstractTaskFactory implements T
 		List<CyIdentifiable> selectedList = new ArrayList<CyIdentifiable>();
 		selectedList.addAll(CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED,
 				true));
+		if (selectedList.size() == 0) {
+			selectedList.addAll(netView.getModel().getNodeList());
+		}
 		if (structureManager.getOpenChimObjNames(selectedList).size() > 0) {
 			return true;
 		}

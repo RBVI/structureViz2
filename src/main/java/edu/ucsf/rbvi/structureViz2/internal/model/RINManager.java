@@ -27,8 +27,8 @@ import org.cytoscape.view.vizmap.mappings.DiscreteMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TODO: [Release] Use submodel number in IDs!
 // TODO: [Optional] No dist edges between ligands and others since we only consider distance between C_alphas
+//TODO: [Optional] Self edges (hydrogen bonds) are allowed
 public class RINManager {
 
 	private static Logger logger = LoggerFactory

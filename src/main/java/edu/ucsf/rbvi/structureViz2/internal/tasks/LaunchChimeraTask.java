@@ -28,8 +28,8 @@ public class LaunchChimeraTask extends AbstractTask {
 		if (structureManager.getChimeraManager().isChimeraLaunched()) {
 			structureManager.launchModelNavigatorDialog();
 		} else {
-			taskMonitor.setStatusMessage("Chimera could not be launched. ");
+			taskMonitor
+					.setStatusMessage("UCSF Chimera could not be launched. Make sure that the correct path to Chimera is set in structureViz -> Settings...");
 		}
 	}
-
 }

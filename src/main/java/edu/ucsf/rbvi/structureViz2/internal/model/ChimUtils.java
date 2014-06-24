@@ -374,7 +374,7 @@ public abstract class ChimUtils {
 			//System.out.println(resChain);
 			String[] resChainSplit = resChain.split("\\.");
 			if (resChainSplit.length == 1) {
-				// TODO: Find a better way to distinguish between chain and residue
+				// TODO: [Optional] Find a better way to distinguish between chain and residue
 				// if only one character and not an int, probably a chain
 				if (resChainSplit[0].length() == 1) {
 					try {

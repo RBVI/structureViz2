@@ -406,7 +406,7 @@ public class ChimeraManager {
 		}
 
 		// Tell the user that Chimera could not be started because of an error
-		logger.error(error);
+		logger.warn(error);
 		return false;
 	}
 

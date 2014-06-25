@@ -1339,7 +1339,8 @@ public class StructureManager {
 											currentChimMap.get(model).add(cyObj);
 											model.addCyObject(cyObj, network);
 											model.setFuncResidues(ChimUtils.parseFuncRes(
-													getResidueList(network, cyObj), model.getModelName()));
+													getResidueList(network, cyObj),
+													model.getModelName()));
 										}
 									}
 								}

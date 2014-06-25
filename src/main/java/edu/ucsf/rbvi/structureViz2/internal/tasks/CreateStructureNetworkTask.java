@@ -215,7 +215,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		String name = "RIN ";
 		Map<Integer, ChimeraModel> models = chimeraManager.getSelectedModels();
 		for (ChimeraModel model : models.values()) {
-			name += model.getModelName() + " ";
+			name += model.getModelName();
 		}
 		return name;
 	}

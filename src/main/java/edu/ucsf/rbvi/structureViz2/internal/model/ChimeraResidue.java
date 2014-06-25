@@ -61,7 +61,7 @@ public class ChimeraResidue implements ChimeraStructuralObject, Comparable<Chime
 	private int subModelNumber; // sub-model number for this residue
 	protected int residueNumber;
 	protected String insertionCode;
-	private ChimeraModel chimeraModel; // ChimeraModel thie residue is part of
+	private ChimeraModel chimeraModel; // ChimeraModel the residue is part of
 	private Object userData; // user data to associate with this residue
 	// public static HashMap<String, String> aaNames = null; // a map of amino acid
 	// names

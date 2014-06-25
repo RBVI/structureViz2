@@ -630,12 +630,19 @@ public class RINManager {
 				chimRes += "." + residue.getChainId();
 			}
 			rin.getRow(node).set(ChimUtils.DEFAULT_STRUCTURE_KEY, chimRes);
-			rin.getRow(node).set(ChimUtils.RINALYZER_ATTR,
-					residue.getChainId() + ":" + residue.getIndex() + ":_:" + residue.getType());
+			// add rinalyzer id
+			String rinalyzerID = residue.getChainId() + ":" + residue.residueNumber + ":";
+			if (residue.insertionCode != null && residue.insertionCode.length() == 1) {
+				rinalyzerID += residue.insertionCode;
+			} else {
+				rinalyzerID += "_";
+			}
+			rinalyzerID += ":" + residue.getType();
+			rin.getRow(node).set(ChimUtils.RINALYZER_ATTR, rinalyzerID);
 			rin.getRow(node).set(SEED_ATTR, Boolean.valueOf(residue.isSelected()));
 			rin.getRow(node).set(CHAIN_ATTR, residue.getChainId());
 			rin.getRow(node).set(TYPE_ATTR, residue.getType());
-			rin.getRow(node).set(RESINDEX_ATTR, Integer.valueOf(residue.getIndex()));
+			rin.getRow(node).set(RESINDEX_ATTR, Integer.valueOf(residue.residueNumber));
 
 			// Add structureViz attributes
 			String smiles = ChimUtils.toSMILES(residue.getType());
@@ -689,9 +696,9 @@ public class RINManager {
 			return false;
 		}
 
-		int startIndex = Integer.parseInt(range[0].getIndex());
-		int endIndex = Integer.parseInt(range[1].getIndex());
-		int residueIndex = Integer.parseInt(residue.getIndex());
+		int startIndex = range[0].residueNumber;
+		int endIndex = range[1].residueNumber;
+		int residueIndex = residue.residueNumber;
 
 		if (endIndex < startIndex) {
 			if (endIndex <= residueIndex && residueIndex <= startIndex)
@@ -727,10 +734,10 @@ public class RINManager {
 			return false;
 		}
 
-		int startIndex = Integer.parseInt(range[0].getIndex());
-		int endIndex = Integer.parseInt(range[1].getIndex());
-		int residueIndex1 = Integer.parseInt(residue1.getIndex());
-		int residueIndex2 = Integer.parseInt(residue2.getIndex());
+		int startIndex = range[0].residueNumber;
+		int endIndex = range[1].residueNumber;
+		int residueIndex1 = residue1.residueNumber;
+		int residueIndex2 = residue2.residueNumber;
 		int diff = Math.abs(residueIndex1 - residueIndex2);
 
 		if (endIndex < startIndex) {

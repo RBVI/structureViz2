@@ -116,16 +116,12 @@ public abstract class CytoUtils {
 		// If the property does not exist, create it
 		if (!flag) {
 			Properties chimeraPathProps = new Properties();
+			// chimeraPathProps.setProperty("cyPropertyName", "ChimeraPath");
 			chimeraPathProps.setProperty(chimeraPathPropertyKey, chimeraPathPropertyValue);
 			CyProperty<?> chimeraPathProperty = new SimpleCyProperty(chimeraPathPropertyName,
 					chimeraPathProps, Properties.class,
 					CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
-			try {
-				registrar.registerService(chimeraPathProperty, CyProperty.class, new Properties());
-			} catch (Exception ex) {
-				// ignore
-				// TODO: [Bug] Why is registering not possible sometimes?
-			}
+			registrar.registerService(chimeraPathProperty, CyProperty.class, chimeraPathProps);
 		}
 
 	}

@@ -109,11 +109,20 @@ public class StructureManager {
 	}
 
 	public Object getService(Class<?> serviceClass) {
-		return registrar.getService(serviceClass);
+		try {
+			return registrar.getService(serviceClass);
+		} catch (RuntimeException ex) {
+			return null;
+		}
+
 	}
 
 	public Object getService(Class<?> serviceClass, String filter) {
-		return registrar.getService(serviceClass, filter);
+		try {
+			return registrar.getService(serviceClass, filter);
+		} catch (RuntimeException ex) {
+			return null;
+		}
 	}
 
 	public void setCreateStructureNetFactory(TaskFactory factory) {

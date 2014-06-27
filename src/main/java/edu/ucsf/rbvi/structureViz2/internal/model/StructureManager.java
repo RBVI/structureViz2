@@ -1263,7 +1263,8 @@ public class StructureManager {
 
 		public synchronized void associateNetwork(CyNetwork network,
 				Map<String, List<ChimeraModel>> newModels) {
-			ChimeraModel rinModel = null;
+			// ChimeraModel rinModel = null;
+			Set<ChimeraModel> rinModels = new HashSet<ChimeraModel>();
 			// for each network get the pdb names associated with its nodes
 			List<CyIdentifiable> nodes = new ArrayList<CyIdentifiable>();
 			nodes.addAll(network.getNodeList());
@@ -1314,9 +1315,7 @@ public class StructureManager {
 										currentChimMap.put(residue, new HashSet<CyIdentifiable>());
 									}
 									currentChimMap.get(residue).add(cyObj);
-									if (rinModel == null) {
-										rinModel = residue.getChimeraModel();
-									}
+									rinModels.add(residue.getChimeraModel());
 								}
 							}
 						}
@@ -1350,13 +1349,13 @@ public class StructureManager {
 				}
 			} // end of for loop
 				// if network was a RIN, add associations
-			if (rinModel != null) {
+			for (ChimeraModel rinModel : rinModels) {
 				rinModel.addCyObject(network, network);
 				if (!currentCyMap.containsKey(network)) {
 					currentCyMap.put(network, new HashSet<ChimeraStructuralObject>());
 				}
 				currentCyMap.get(network).add(rinModel);
-				rinModel = null;
+				// rinModel = null;
 			}
 		}
 	}

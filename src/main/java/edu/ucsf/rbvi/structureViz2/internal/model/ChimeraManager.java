@@ -472,7 +472,8 @@ public class ChimeraManager {
 		if (reply != null) {
 			for (String inputLine : reply) {
 				String[] lineParts = inputLine.split("\\s");
-				if (lineParts.length == 5) {
+				// Need to look for both old and new styles of spec
+				if (lineParts.length == 5 || lineParts.length == 7) {
 					ChimeraResidue residue = ChimUtils.getResidue(lineParts[2], model);
 					String value = lineParts[4];
 					if (residue != null) {

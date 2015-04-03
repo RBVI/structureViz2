@@ -30,6 +30,8 @@ public class ListenerThreads extends Thread {
 	private Map<String, List<String>> replyLog = null;
 	private Logger logger;
 	private StructureManager structureManager = null;
+	static boolean modelUpdaterRunning = false;
+	static boolean selectionUpdaterRunning = false;
 
 	/**
 	 * Create a new listener thread to read the responses from Chimera
@@ -116,6 +118,7 @@ public class ListenerThreads extends Thread {
 				(new NetworkUpdater(line)).start();
 			}
 		}
+
 		return;
 	}
 
@@ -154,10 +157,12 @@ public class ListenerThreads extends Thread {
 			}
 			replyLog.put(command, reply);
 		}
-		if (updateModels)
+		if (updateModels) {
 			(new ModelUpdater()).start();
-		if (updateSelection)
+		}
+		if (updateSelection) {
 			(new SelectionUpdater()).start();
+		}
 		if (importNetwork) {
 			(new NetworkUpdater(line)).start();
 		}
@@ -173,8 +178,11 @@ public class ListenerThreads extends Thread {
 		}
 
 		public void run() {
+			if (ListenerThreads.modelUpdaterRunning) return;
+			ListenerThreads.modelUpdaterRunning = true;
 			structureManager.updateModels();
 			structureManager.modelChanged();
+			ListenerThreads.modelUpdaterRunning = false;
 		}
 	}
 
@@ -187,11 +195,14 @@ public class ListenerThreads extends Thread {
 		}
 
 		public void run() {
+			if (ListenerThreads.selectionUpdaterRunning) return;
+			ListenerThreads.selectionUpdaterRunning = true;
 			try {
 				structureManager.chimeraSelectionChanged();
 			} catch (Exception e) {
 				logger.warn("Could not update selection", e);
 			}
+			ListenerThreads.selectionUpdaterRunning = false;
 		}
 	}
 

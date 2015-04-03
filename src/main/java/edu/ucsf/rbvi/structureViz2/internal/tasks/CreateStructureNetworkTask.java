@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.cytoscape.command.AvailableCommands;
+import org.cytoscape.command.CommandExecutorTaskFactory;
+import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
@@ -207,7 +210,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		// structureManager.ignoreCySelection = false;
 		// Activate structureViz for all of our nodes
 		structureManager.addStructureNetwork(rin);
-		finalizeNetwork(rin);
+		finalizeNetwork(taskMonitor, rin);
 		chimeraManager.startListening();
 	}
 
@@ -220,12 +223,14 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		return name;
 	}
 
-	private void finalizeNetwork(CyNetwork network) {
+	private void finalizeNetwork(TaskMonitor taskMonitor, CyNetwork network) {
 		// get factories, etc.
 		CyNetworkViewFactory cyNetworkViewFactory = (CyNetworkViewFactory) structureManager
 				.getService(CyNetworkViewFactory.class);
 		CyNetworkViewManager cyNetworkViewManager = (CyNetworkViewManager) structureManager
 				.getService(CyNetworkViewManager.class);
+		CyEventHelper cyEventHelper = (CyEventHelper) structureManager
+				.getService(CyEventHelper.class);
 
 		// Create a network view
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
@@ -244,6 +249,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		tunables.put("residueAttributes", resAttrTun);
 		// insertTasksAfterCurrentTask(tunableSetter.createTaskIterator(
 		// annotateFactory.createTaskIterator(network), tunables));
+		taskMonitor.setStatusMessage("Annotating network ...");
 		tm.execute(tunableSetter.createTaskIterator(annotateFactory.createTaskIterator(network),
 				tunables));
 
@@ -252,6 +258,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				.getService(CyLayoutAlgorithmManager.class);
 		CyLayoutAlgorithm rinlayout = manager.getLayout("rin-layout");
 		if (rinlayout != null) {
+			taskMonitor.setStatusMessage("Doing RIN Layout ...");
 			TaskManager<?, ?> taskManager = (TaskManager<?, ?>) structureManager
 					.getService(TaskManager.class);
 			taskManager.execute(rinlayout.createTaskIterator(rinView,
@@ -264,18 +271,32 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			insertTasksAfterCurrentTask(layoutTaskFactory.createTaskIterator(views));
 		}
 
+		cyEventHelper.flushPayloadEvents(); // make sure everything is updated
+
 		// Set vizmap
-		NetworkTaskFactory rinalyzerVisProps = (NetworkTaskFactory) structureManager.getService(
-				NetworkTaskFactory.class,
-				"(&(commandNamespace=rinalyzer)(command=initRinVisProps))");
-		if (rinalyzerVisProps != null) {
-			insertTasksAfterCurrentTask(rinalyzerVisProps.createTaskIterator(network));
+		// NetworkTaskFactory rinalyzerVisProps = (NetworkTaskFactory) structureManager.getService(
+		// 		NetworkTaskFactory.class,
+		// 		"(&(commandNamespace=rinalyzer)(command=initRinVisProps))");
+		AvailableCommands availableCommands = 
+			(AvailableCommands) structureManager.getService(AvailableCommands.class);
+		CommandExecutorTaskFactory commandTaskFactory = 
+			(CommandExecutorTaskFactory) structureManager.getService(CommandExecutorTaskFactory.class);
+		if (availableCommands.getNamespaces().contains("rinalyzer") &&
+				availableCommands.getCommands("rinalyzer").contains("initRinVisProps")) {
+			taskMonitor.setStatusMessage("Using RINalyzer to set visual properties ...");
+			// We've got RINalyzer -- use it!
+			tm.execute(
+						commandTaskFactory.createTaskIterator("rinalyzer", "initRinVisProps", 
+						                                      new HashMap<String, Object>(), null)
+			);
+			return;
 		} else {
 			VisualMappingManager cyVmManager = (VisualMappingManager) structureManager
 					.getService(VisualMappingManager.class);
 			VisualStyleFactory cyVsFactory = (VisualStyleFactory) structureManager
 					.getService(VisualStyleFactory.class);
 			VisualStyle rinStyle = null;
+			taskMonitor.setStatusMessage("Creating visual properties ...");
 			for (VisualStyle vs : cyVmManager.getAllVisualStyles()) {
 				if (vs.getTitle().equals("RIN style")) {
 					rinStyle = vs;
@@ -286,9 +307,11 @@ public class CreateStructureNetworkTask extends AbstractTask {
 				rinStyle.setTitle("RIN style");
 				cyVmManager.addVisualStyle(rinStyle);
 			}
+			cyEventHelper.flushPayloadEvents();
 			cyVmManager.setVisualStyle(rinStyle, rinView);
 			rinStyle.apply(rinView);
 		}
+		cyEventHelper.flushPayloadEvents();
 		rinView.updateView();
 	}
 

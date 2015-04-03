@@ -15,7 +15,7 @@
 	<packaging>bundle</packaging>
 	<name>${bundle.symbolicName}</name>
 
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 
 	<build>
 		<plugins>
@@ -140,6 +140,11 @@
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>presentation-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>command-executor-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 		</dependency>
 		<dependency>

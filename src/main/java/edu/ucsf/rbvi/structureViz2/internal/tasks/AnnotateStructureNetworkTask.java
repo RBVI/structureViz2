@@ -42,6 +42,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Annotating Residue Interaction Network");
+		try {
 		if (net == null) {
 			CyNetwork current = net = ((CyApplicationManager) structureManager
 					.getService(CyApplicationManager.class)).getCurrentNetwork();
@@ -57,7 +58,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 		if (residueAttributes != null && residueAttributes.getSelectedValues().size() > 0) {
 			taskMonitor.setStatusMessage("Getting attribute data from Chimera ...");
 			for (String resAttr : residueAttributes.getSelectedValues()) {
-				// taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
+				taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
 				if (resAttr.equals("SecondaryStructure")) {
 					rinManager.annotateSS(net);
 				} else if (resAttr.equals("Coordinates")) {
@@ -69,6 +70,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 		} else {
 			taskMonitor.setStatusMessage("No input found, aborting...");
 		}
+		} catch (Exception e) { e.printStackTrace(); }
 	}
 
 	// TODO: [Optional] How could we return annotations?

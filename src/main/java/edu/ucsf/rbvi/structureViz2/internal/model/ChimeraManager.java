@@ -281,8 +281,6 @@ public class ChimeraManager {
 	}
 
 	public List<String> getSelectedResidueSpecs() {
-		System.out.println("getSelectedResidueSpecs");
-		Thread.dumpStack();
 		List<String> selectedResidues = new ArrayList<String>();
 		List<String> chimeraReply = sendChimeraCommand("list selection level residue", true);
 		if (chimeraReply != null) {
@@ -297,8 +295,6 @@ public class ChimeraManager {
 	}
 
 	public void getSelectedResidues(Map<Integer, ChimeraModel> selectedModelsMap) {
-		System.out.println("getSelectedResidues");
-		Thread.dumpStack();
 		List<String> chimeraReply = sendChimeraCommand("list selection level residue", true);
 		if (chimeraReply != null) {
 			for (String inputLine : chimeraReply) {

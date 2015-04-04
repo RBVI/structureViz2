@@ -252,6 +252,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		taskMonitor.setStatusMessage("Annotating network ...");
 		tm.execute(tunableSetter.createTaskIterator(annotateFactory.createTaskIterator(network),
 				tunables));
+		taskMonitor.setStatusMessage("Done annotating network ...");
 
 		// Apply RIN Layout and if not found, do a preferred
 		CyLayoutAlgorithmManager manager = (CyLayoutAlgorithmManager) structureManager
@@ -261,7 +262,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			taskMonitor.setStatusMessage("Doing RIN Layout ...");
 			TaskManager<?, ?> taskManager = (TaskManager<?, ?>) structureManager
 					.getService(TaskManager.class);
-			taskManager.execute(rinlayout.createTaskIterator(rinView,
+			tm.execute(rinlayout.createTaskIterator(rinView,
 					rinlayout.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null));
 		} else {
 			ApplyPreferredLayoutTaskFactory layoutTaskFactory = (ApplyPreferredLayoutTaskFactory) structureManager

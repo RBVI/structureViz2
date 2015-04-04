@@ -435,7 +435,9 @@ public abstract class ChimUtils {
 					resKeyParts[0] = modelID;
 				}
 			} else {
+				// length > 1, so we probably have a file name with "." in it
 				logger.info("Could not parse model identifier: " + modelID);
+				resKeyParts[0] = modelID;
 			}
 		}
 	}
@@ -515,8 +517,7 @@ public abstract class ChimUtils {
 			// chain = split[1];
 			// }
 
-			// System.out.println("model = " + model + " chain = " + chain + " residue = " +
-			// residue);
+			// System.out.println("model = " + model + " chain = " + chain + " residue = " + residue);
 			if (model != null) {
 				List<ChimeraModel> models = chimeraManager.getChimeraModels(model,
 						ModelType.PDB_MODEL);
@@ -573,6 +574,13 @@ public abstract class ChimUtils {
 			return null;
 		}
 		String[] modelIDNoResChain = getResKeyParts(attrSpec);
+
+		/*
+		System.out.print("modelIDNoResChain: [");
+		for (int i=0; i < modelIDNoResChain.length-1;i++)
+			System.out.print(modelIDNoResChain[i]+",");
+		System.out.println(modelIDNoResChain[modelIDNoResChain.length-1]+"]");
+		*/
 
 		ChimeraModel chimeraModel = null;
 		ChimeraChain chimeraChain = null;

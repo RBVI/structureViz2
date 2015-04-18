@@ -42,6 +42,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFact
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.FindModeledStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.ListModelsTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureFileTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
@@ -333,6 +334,13 @@ public class CyActivator extends AbstractCyActivator {
 		commandProps.setProperty(COMMAND_DESCRIPTION, "Send a command to Chimera.");
 		commandProps.setProperty(COMMAND_NAMESPACE, "structureViz");
 		registerService(bc, sendCommandTaskFactory, TaskFactory.class, commandProps);
+
+		TaskFactory listModelsTaskFactory = new ListModelsTaskFactory(structureManager);
+		Properties listModelsProps = new Properties();
+		listModelsProps.setProperty(COMMAND, "list models");
+		listModelsProps.setProperty(COMMAND_DESCRIPTION, "List currently open Chimera models.");
+		listModelsProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		registerService(bc, listModelsTaskFactory, TaskFactory.class, listModelsProps);
 
 		TaskFactory alignTaskFactory = new AlignCommandTaskFactory(structureManager);
 		Properties alignTaskProperties = new Properties();

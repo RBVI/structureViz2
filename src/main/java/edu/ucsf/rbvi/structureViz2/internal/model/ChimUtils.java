@@ -57,9 +57,20 @@ public abstract class ChimUtils {
 	 */
 	// invoked by openModel in ChimeraManager
 	// line: #1, chain A: hiv-1 protease
+	// line: Model 0 (filename)
 	public static int[] parseOpenedModelNumber(String inputLine) {
 		int hash = inputLine.indexOf('#');
-		int space = inputLine.indexOf(',', hash);
+		int space = -1;
+		if (hash == (-1)) {
+			hash = inputLine.indexOf("Model");
+			if (hash >= 0) {
+				hash = hash+5;
+			}
+			space = inputLine.indexOf(' ', hash+1);
+		} else {
+			space = inputLine.indexOf(',', hash);
+		}
+
 		int decimal = inputLine.substring(hash + 1, space).indexOf('.');
 		// model number is between hash+1 and space
 		int modelNumber = -1;

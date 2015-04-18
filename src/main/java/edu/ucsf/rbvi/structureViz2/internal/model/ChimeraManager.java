@@ -139,7 +139,7 @@ public class ChimeraManager {
 		int[] modelNumbers = null;
 		if (type == ModelType.PDB_MODEL) {
 			for (String line : response) {
-				if (line.startsWith("#")) {
+				if (line.startsWith("#") || line.startsWith("Model ")) {
 					modelNumbers = ChimUtils.parseOpenedModelNumber(line);
 					if (modelNumbers != null) {
 						int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);

@@ -3,8 +3,10 @@ package edu.ucsf.rbvi.structureViz2.internal.tasks;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.command.util.EdgeList;
@@ -13,22 +15,26 @@ import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
 
 import edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils;
+import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraModel;
+import edu.ucsf.rbvi.structureViz2.internal.model.ChimeraStructuralObject;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.ModelType;
 
-public class OpenStructuresTask extends AbstractTask {
+public class OpenStructuresTask extends AbstractTask implements ObservableTask {
 	// private List<CyNode> nodeList;
 	private CyNetwork net = null;
 	private List<CyIdentifiable> cyList;
 	private StructureManager structureManager;
-	private Map<String, CyIdentifiable> structruesMap;
+	private Map<String, CyIdentifiable> structuresMap;
 	private Map<String, CyIdentifiable> chemStructruesMap;
+	private Set<ChimeraStructuralObject> newModels;
 
 	@Tunable(description = "Network for the selected nodes/edges", context = "nogui")
 	public CyNetwork network = null;
@@ -48,7 +54,7 @@ public class OpenStructuresTask extends AbstractTask {
 	@Tunable(description = "Modbase models to fetch", context = "nogui")
 	public String modbaseID = "";
 
-	@Tunable(description = "Show the Moleculra Structure Navigator dialog after opening the structure in Chimera", context = "nogui")
+	@Tunable(description = "Show the Molecular Structure Navigator dialog after opening the structure in Chimera", context = "nogui")
 	public boolean showDialog = false;
 
 	@Tunable(description = "Open structures", gravity = 1.0, context = "gui")
@@ -99,6 +105,14 @@ public class OpenStructuresTask extends AbstractTask {
 
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle("Opening Structures");
+		Set<ChimeraStructuralObject> allModels = new HashSet<ChimeraStructuralObject>();
+		newModels = new HashSet<ChimeraStructuralObject>();
+
+		for (ChimeraStructuralObject chimObj: structureManager.getAllChimObjs()) {
+			if (chimObj instanceof ChimeraModel)
+				allModels.add(chimObj);
+		}
+
 		// reinitialize tunables for the nogui arguments if any of them is set
 		// otherwise, all selected nodes in structurePairs will be considered
 		cyList.clear();
@@ -122,7 +136,7 @@ public class OpenStructuresTask extends AbstractTask {
 		// add selected structures from gui tunables
 		if (structurePairs.getSelectedValues().size() > 0) {
 			structuresToOpen.putAll(CytoUtils.getCyChimPairsToMap(
-					structurePairs.getSelectedValues(), structruesMap));
+					structurePairs.getSelectedValues(), structuresMap));
 		}
 		// add structure file
 		List<String> structures = new ArrayList<String>();
@@ -195,20 +209,38 @@ public class OpenStructuresTask extends AbstractTask {
 		} else {
 			taskMonitor.setStatusMessage("No structures could be matched from input.");
 		}
+
+		// Get the new models
+		for (ChimeraStructuralObject obj: structureManager.getAllChimObjs()) {
+			if (obj instanceof ChimeraModel && !allModels.contains(obj))
+				newModels.add(obj);
+		}
+	}
+
+	public <R> R getResults(Class<? extends R> type) {
+		if (type.equals(String.class)) {
+			String result = "";
+			for (ChimeraStructuralObject obj: newModels) {
+				ChimeraModel model = (ChimeraModel)obj;
+				result += "#"+model.getModelNumber()+" "+model.getModelName()+"\n";
+			}
+			return (R)result;
+		}
+		return (R)newModels;
 	}
 
 	private void initTunables() {
 		// get all structure annotations for the nodes/edges in the list
 		Map<CyIdentifiable, List<String>> mapChimObjNames = new HashMap<CyIdentifiable, List<String>>();
 		structureManager.getChimObjNames(mapChimObjNames, net, cyList, ModelType.PDB_MODEL, false);
-		structruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
+		structuresMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
 		mapChimObjNames.clear();
 		// get all smiles annotations for the nodes/edges in the list
 		structureManager.getChimObjNames(mapChimObjNames, net, cyList, ModelType.SMILES, false);
 		chemStructruesMap = CytoUtils.getCyChimPiarsToStrings(net, mapChimObjNames);
 
 		// fill in tunables
-		List<String> availableStructures = new ArrayList<String>(structruesMap.keySet());
+		List<String> availableStructures = new ArrayList<String>(structuresMap.keySet());
 		if (availableStructures.size() > 0) {
 			structurePairs = new ListMultipleSelection<String>(availableStructures);
 			structurePairs.setSelectedValues(availableStructures);

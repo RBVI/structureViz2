@@ -260,8 +260,6 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		CyLayoutAlgorithm rinlayout = manager.getLayout("rin-layout");
 		if (rinlayout != null) {
 			taskMonitor.setStatusMessage("Doing RIN Layout ...");
-			TaskManager<?, ?> taskManager = (TaskManager<?, ?>) structureManager
-					.getService(TaskManager.class);
 			tm.execute(rinlayout.createTaskIterator(rinView,
 					rinlayout.getDefaultLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null));
 		} else {
@@ -290,6 +288,8 @@ public class CreateStructureNetworkTask extends AbstractTask {
 						commandTaskFactory.createTaskIterator("rinalyzer", "initRinVisProps", 
 						                                      new HashMap<String, Object>(), null)
 			);
+			cyEventHelper.flushPayloadEvents();
+			rinView.updateView();
 			return;
 		} else {
 			VisualMappingManager cyVmManager = (VisualMappingManager) structureManager

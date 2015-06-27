@@ -142,6 +142,7 @@ public class OpenStructuresTask extends AbstractTask implements ObservableTask {
 		List<String> structures = new ArrayList<String>();
 		if (structureFile != null && structureFile.isFile()) {
 			// taskMonitor.setStatusMessage("Opening structure from file ...");
+			// System.out.println("Opening structure from file: "+structureFile.getAbsolutePath());
 			structures.add(structureFile.getAbsolutePath());
 		}
 		// add pdbIDs from nongui tunable
@@ -155,6 +156,7 @@ public class OpenStructuresTask extends AbstractTask implements ObservableTask {
 		// open all PDB models
 		if (structuresToOpen.size() > 0) {
 			taskMonitor.setStatusMessage("Opening structures ...");
+			// System.out.println("Opening "+structuresToOpen.size()+" structures");
 			if (!structureManager.openStructures(net, structuresToOpen, ModelType.PDB_MODEL)) {
 				taskMonitor.setStatusMessage("Structures could not be opened.");
 			}

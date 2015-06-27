@@ -121,6 +121,10 @@ public class ChimeraManager {
 		logger.info("chimera open " + modelPath);
 		stopListening();
 		List<String> response = null;
+
+		// Get the current list of open models
+		List<ChimeraModel> modelList = getModelList();
+
 		// TODO: [Optional] Handle modbase models
 		if (type == ModelType.MODBASE_MODEL) {
 			response = sendChimeraCommand("open modbase:" + modelPath, true);
@@ -135,52 +139,16 @@ public class ChimeraManager {
 			logger.warn("Could not open " + modelPath);
 			return null;
 		}
+
 		List<ChimeraModel> models = new ArrayList<ChimeraModel>();
-		int[] modelNumbers = null;
-		if (type == ModelType.PDB_MODEL) {
-			for (String line : response) {
-				if (line.startsWith("#") || line.startsWith("Model ")) {
-					modelNumbers = ChimUtils.parseOpenedModelNumber(line);
-					if (modelNumbers != null) {
-						int modelNumber = ChimUtils.makeModelKey(modelNumbers[0], modelNumbers[1]);
-						if (currentModelsMap.containsKey(modelNumber)) {
-							continue;
-						}
-						String modelName = modelPath;
-						// TODO: [Optional] Convert path to name in a better way
-						if (modelPath.lastIndexOf(File.separator) > 0) {
-							modelName = modelPath
-									.substring(modelPath.lastIndexOf(File.separator) + 1);
-						} else if (modelPath.lastIndexOf("/") > 0) {
-							modelName = modelPath.substring(modelPath.lastIndexOf("/") + 1);
-						}
-						ChimeraModel newModel = new ChimeraModel(modelName, type, modelNumbers[0],
-								modelNumbers[1]);
-						currentModelsMap.put(modelNumber, newModel);
-						models.add(newModel);
-						modelNumbers = null;
-					}
-				}
+
+		for (ChimeraModel model: getModelList()) {
+			for (ChimeraModel oldModel: modelList) {
+				if (model.getModelNumber() != oldModel.getModelNumber())
+					break;
 			}
-		} else {
-			// TODO: [Optional] Open smiles from file would fail. Do we need it?
-			// If parsing fails, iterate over all open models to get the right one
-			List<ChimeraModel> openModels = getModelList();
-			for (ChimeraModel openModel : openModels) {
-				String openModelName = openModel.getModelName();
-				if (openModelName.endsWith("...")) {
-					openModelName = openModelName.substring(0, openModelName.length() - 3);
-				}
-				if (modelPath.startsWith(openModelName)) {
-					openModel.setModelName(modelPath);
-					int modelNumber = ChimUtils.makeModelKey(openModel.getModelNumber(),
-							openModel.getSubModelNumber());
-					if (!currentModelsMap.containsKey(modelNumber)) {
-						currentModelsMap.put(modelNumber, openModel);
-						models.add(openModel);
-					}
-				}
-			}
+			models.add(model);
+			addChimeraModel(model.getModelNumber(), model.getSubModelNumber(), model);
 		}
 
 		// assign color and residues to open models

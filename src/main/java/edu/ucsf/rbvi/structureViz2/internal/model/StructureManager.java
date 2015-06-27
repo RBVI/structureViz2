@@ -139,15 +139,12 @@ public class StructureManager {
 			}
 			for (String chimObjName : names) {
 				// get or open the corresponding models if they already exist
-				System.out.println("Opening "+chimObjName);
 				List<ChimeraModel> currentModels = chimeraManager.getChimeraModels(chimObjName, type);
 				if (currentModels.size() == 0) {
-					System.out.println("No current models");
 					// open and return models
 					currentModels = chimeraManager.openModel(chimObjName, type);
 					if (currentModels == null) {
 						// failed to open model, continue with next
-						System.out.println("Failed to open "+chimObjName);
 						continue;
 					}
 					// if (type == ModelType.SMILES) {

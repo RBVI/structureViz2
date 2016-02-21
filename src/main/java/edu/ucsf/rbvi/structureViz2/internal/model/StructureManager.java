@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.cytoscape.application.CyApplicationConfiguration;
+import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
@@ -45,20 +46,18 @@ public class StructureManager {
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList", "Residues" };
 
-	private final String chimeraPropertyName = "chimera";
 	private final String chimeraPathPropertyKey = "LastChimeraPath";
 
 	public enum ModelType {
 		PDB_MODEL, MODBASE_MODEL, SMILES
 	};
 
-	public static Properties pathProps;
-
 	private String chimeraCommandAttr = "ChimeraCommand";
 	private String chimeraOutputTable = "ChimeraTable";
 	private String chimeraOutputAttr = "ChimeraOutput";
 	private CyTable chimTable = null;
 	private CyServiceRegistrar registrar = null;
+	private CyApplicationManager appManager = null;
 	private boolean haveGUI = true;
 	private ChimeraManager chimeraManager = null;
 	private RINManager rinManager = null;
@@ -77,6 +76,8 @@ public class StructureManager {
 	private boolean ignoreCySelection = false;
 	private File configurationDirectory = null;
 
+	private String defaultChimeraPath = null;
+
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.StructureManager.class);
 
@@ -93,11 +94,8 @@ public class StructureManager {
 		chimeraManager = new ChimeraManager(this);
 		rinManager = new RINManager(this);
 		chimSelectionList = new ArrayList<ChimeraStructuralObject>();
-		pathProps = new Properties();
-
-		// Get the configuration directory
-		CyApplicationConfiguration appConfiguration = (CyApplicationConfiguration) getService(CyApplicationConfiguration.class);
-		configurationDirectory = appConfiguration.getConfigurationDirectoryLocation();
+		defaultChimeraPath = CytoUtils.getDefaultChimeraPath(registrar, chimeraPathPropertyKey);
+		appManager = registrar.getService(CyApplicationManager.class);
 	}
 
 	public ChimeraManager getChimeraManager() {
@@ -1081,7 +1079,11 @@ public class StructureManager {
 	}
 
 	public List<String> getAllStructureKeys() {
-		return Arrays.asList(defaultStructureKeys);
+		CyNetwork network = appManager.getCurrentNetwork();
+		if (network == null)
+			return Arrays.asList(defaultStructureKeys);
+
+		return CytoUtils.getStringAttributes(network.getDefaultNodeTable());
 	}
 
 	public List<String> getCurrentStructureKeys(CyNetwork network) {
@@ -1090,12 +1092,30 @@ public class StructureManager {
 		} else if (network == null && defaultSettings != null) {
 			return defaultSettings.getStructureColumns().getSelectedValues();
 		} else {
+			Map<String, List<String>> sessionMap = CytoUtils.getDefaultColumns(registrar, "structureColumns");
+			if (sessionMap.containsKey("")) {
+				return sessionMap.get("");
+			} else if (network != null && sessionMap.containsKey(network))
+				return sessionMap.get(network);
 			return Arrays.asList(defaultStructureKeys);
 		}
 	}
 
+	public void setCurrentColumns(CyNetwork network, List<String> structureKeys, String columnKey) {
+		Map<String, List<String>> keyMap = CytoUtils.getDefaultColumns(registrar, columnKey);
+		String name = "";
+		if (network != null)
+			name = CytoUtils.getName(network, network);
+		keyMap.put(name, structureKeys);
+		CytoUtils.setDefaultColumns(registrar, columnKey, keyMap);
+	}
+
 	public List<String> getAllChemStructKeys() {
-		return Arrays.asList(defaultChemStructKeys);
+		CyNetwork network = appManager.getCurrentNetwork();
+		if (network == null)
+			return Arrays.asList(defaultChemStructKeys);
+
+		return CytoUtils.getStringAttributes(network.getDefaultNodeTable());
 	}
 
 	public List<String> getCurrentChemStructKeys(CyNetwork network) {
@@ -1104,12 +1124,21 @@ public class StructureManager {
 		} else if (network == null && defaultSettings != null) {
 			return defaultSettings.getChemStructureColumns().getSelectedValues();
 		} else {
-			return Arrays.asList(defaultChemStructKeys);
+			Map<String, List<String>> sessionMap = CytoUtils.getDefaultColumns(registrar, "chemStructureColumns");
+			if (sessionMap.containsKey("")) {
+				return sessionMap.get("");
+			} else if (network != null && sessionMap.containsKey(network))
+				return sessionMap.get(network);
+			return Arrays.asList(defaultStructureKeys);
 		}
 	}
 
 	public List<String> getAllResidueKeys() {
-		return Arrays.asList(defaultResidueKeys);
+		CyNetwork network = appManager.getCurrentNetwork();
+		if (network == null)
+			return Arrays.asList(defaultResidueKeys);
+
+		return CytoUtils.getStringAttributes(network.getDefaultNodeTable());
 	}
 
 	public List<String> getCurrentResidueKeys(CyNetwork network) {
@@ -1118,7 +1147,12 @@ public class StructureManager {
 		} else if (network == null && defaultSettings != null) {
 			return defaultSettings.getResidueColumns().getSelectedValues();
 		} else {
-			return Arrays.asList(defaultResidueKeys);
+			Map<String, List<String>> sessionMap = CytoUtils.getDefaultColumns(registrar, "residueColumns");
+			if (sessionMap.containsKey("")) {
+				return sessionMap.get("");
+			} else if (network != null && sessionMap.containsKey(network))
+				return sessionMap.get(network);
+			return Arrays.asList(defaultStructureKeys);
 		}
 	}
 
@@ -1128,6 +1162,10 @@ public class StructureManager {
 		} else if (network == null && defaultSettings != null) {
 			return defaultSettings.getChimeraPath();
 		} else {
+			String lastPath = CytoUtils.getDefaultChimeraPath(registrar, chimeraPathPropertyKey);
+			if (lastPath != null && lastPath.length() > 0) {
+				return lastPath;
+			}
 			return "";
 		}
 	}
@@ -1163,9 +1201,8 @@ public class StructureManager {
 		}
 
 		// if no network settings, check if the last chimera path is saved in the session
-		String lastPath = CytoUtils.getDefaultChimeraPath(registrar, chimeraPropertyName,
-				chimeraPathPropertyKey);
-		if (lastPath != null && !lastPath.equals("")) {
+		String lastPath = CytoUtils.getDefaultChimeraPath(registrar, chimeraPathPropertyKey);
+		if (lastPath != null && lastPath.length() > 0) {
 			pathList.add(lastPath);
 			return pathList;
 		}
@@ -1186,8 +1223,7 @@ public class StructureManager {
 	}
 
 	public void setChimeraPathProperty(String path) {
-		CytoUtils.setDefaultChimeraPath(registrar, chimeraPropertyName, chimeraPathPropertyKey,
-				path);
+		CytoUtils.setDefaultChimeraPath(registrar, chimeraPathPropertyKey, path);
 	}
 
 	/**
@@ -1234,26 +1270,6 @@ public class StructureManager {
 		}
 		return residueList;
 	}
-
-	// public void initChimTable() {
-	// CyTableManager manager = (CyTableManager) getService(CyTableManager.class);
-	// CyTableFactory factory = (CyTableFactory) getService(CyTableFactory.class);
-	// for (CyTable table : manager.getGlobalTables()) {
-	// if (table.getTitle().equals(chimeraOutputTable)) {
-	// manager.deleteTable(table.getSUID());
-	// }
-	// }
-	// chimTable = factory.createTable(chimeraOutputTable, chimeraCommandAttr, String.class,
-	// false, true);
-	// manager.addTable(chimTable);
-	// if (chimTable.getColumn(chimeraOutputAttr) == null) {
-	// chimTable.createListColumn(chimeraOutputAttr, String.class, false);
-	// }
-	// }
-
-	// public void addChimReply(String command, List<String> reply) {
-	// chimTable.getRow(command).set(chimeraOutputAttr, reply);
-	// }
 
 	class AssociationTask extends Thread {
 

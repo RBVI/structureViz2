@@ -1,6 +1,8 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.property.AbstractConfigDirPropsReader;
+import org.cytoscape.property.CyProperty.SavePolicy;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListMultipleSelection;
 
@@ -9,13 +11,16 @@ import org.cytoscape.work.util.ListMultipleSelection;
  */
 public class StructureSettings {
 	// Add Tunables to get the column names to search
-	@Tunable(description = "Columns to search for PDB identifiers", groups = "PDB Identifiers", gravity = 1.0)
+	@Tunable(description = "Columns to search for PDB identifiers", 
+	         groups = "PDB Identifiers", gravity = 1.0)
 	public ListMultipleSelection<String> structureColumns = null;
 
-	@Tunable(description = "Columns to search for Compound (small molecule) identifiers", groups = "Compound Identifiers", gravity = 2.0)
+	@Tunable(description = "Columns to search for Compound (small molecule) identifiers", 
+	         groups = "Compound Identifiers", gravity = 2.0)
 	public ListMultipleSelection<String> chemColumns = null;
 
-	@Tunable(description = "Columns to search for key or functional residue identifiers", groups = "Functional residues", gravity = 3.0)
+	@Tunable(description = "Columns to search for key or functional residue identifiers", 
+	         groups = "Functional residues", gravity = 3.0)
 	public ListMultipleSelection<String> residueColumns = null;
 
 	@Tunable(description = "Path to UCSF Chimera application", gravity = 4.0)
@@ -54,4 +59,5 @@ public class StructureSettings {
 	public String getChimeraPath() {
 		return chimeraPath;
 	}
+
 }

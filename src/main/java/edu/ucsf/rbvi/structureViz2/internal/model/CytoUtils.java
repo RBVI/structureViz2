@@ -1,18 +1,27 @@
 package edu.ucsf.rbvi.structureViz2.internal.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import org.cytoscape.model.CyIdentifiable;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
+import org.cytoscape.property.AbstractConfigDirPropsReader;
 import org.cytoscape.property.CyProperty;
+import org.cytoscape.property.CyProperty.SavePolicy;
 import org.cytoscape.property.SimpleCyProperty;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CySession;
@@ -25,6 +34,9 @@ public abstract class CytoUtils {
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.structureViz2.internal.model.CytoUtils.class);
 
+	private static CyProperty<Properties> configProperties = null;
+	private static CyProperty<Properties> sessionProperties = null;
+
 	public static List<String> getMatchingAttributes(CyTable table, List<String> columns) {
 		Set<String> columnNames = CyTableUtil.getColumnNames(table);
 
@@ -34,6 +46,23 @@ public abstract class CytoUtils {
 				columnsFound.add(attribute);
 		}
 		return columnsFound;
+	}
+
+	public static String getName(CyNetwork network, CyIdentifiable id) {
+		return network.getRow(id).get(CyNetwork.NAME, String.class);
+	}
+
+	public static List<String> getStringAttributes(CyTable table) {
+		Collection<CyColumn> columns = table.getColumns();
+
+		List<String> columnsFound = new ArrayList<String>();
+		for (CyColumn attribute : columns) {
+			if (attribute.getType() == String.class ||
+			    attribute.getListElementType() == String.class)
+				columnsFound.add(attribute.getName());
+		}
+		return columnsFound;
+
 	}
 
 	public static Map<String, CyIdentifiable> getCyChimPiarsToStrings(CyNetwork network,
@@ -52,7 +81,10 @@ public abstract class CytoUtils {
 
 	public static Map<CyIdentifiable, List<String>> getCyChimPairsToMap(List<String> selectedPairs,
 			Map<String, CyIdentifiable> allPairs) {
-		Map<CyIdentifiable, List<String>> selectedPairsMap = new HashMap<CyIdentifiable, List<String>>();
+
+		Map<CyIdentifiable, List<String>> selectedPairsMap = 
+						new HashMap<CyIdentifiable, List<String>>();
+		
 		for (String selectedPair : selectedPairs) {
 			String[] names = selectedPair.split("\\|");
 			// System.out.println("Input: " + selectedPair);
@@ -81,79 +113,6 @@ public abstract class CytoUtils {
 		return "";
 	}
 
-	public static void setDefaultChimeraPath(CyServiceRegistrar registrar,
-			String chimeraPathPropertyName, String chimeraPathPropertyKey,
-			String chimeraPathPropertyValue) {
-
-		// Find if the CyProperty already exists, if not create one with default value.
-		boolean flag = false;
-		CySessionManager mySessionManager = (CySessionManager) registrar
-				.getService(CySessionManager.class);
-		// TODO: [Cy bug] Should not through a NullPointerException
-		CySession session = null;
-		try {
-			session = mySessionManager.getCurrentSession();
-		} catch (Exception ex) {
-			return;
-		}
-		if (session == null) {
-			return;
-		}
-		Set<CyProperty<?>> sessionProperties = session.getProperties();
-		if (sessionProperties == null) {
-			return;
-		}
-		for (CyProperty<?> cyProperty : sessionProperties) {
-			if (cyProperty.getName() != null
-					&& cyProperty.getName().equals(chimeraPathPropertyName)) {
-				Properties props = (Properties) cyProperty.getProperties();
-				props.setProperty(chimeraPathPropertyKey, chimeraPathPropertyValue);
-				flag = true;
-				break;
-			}
-		}
-
-		// If the property does not exist, create it
-		if (!flag) {
-			Properties chimeraPathProps = new Properties();
-			// chimeraPathProps.setProperty("cyPropertyName", "ChimeraPath");
-			chimeraPathProps.setProperty(chimeraPathPropertyKey, chimeraPathPropertyValue);
-			CyProperty<?> chimeraPathProperty = new SimpleCyProperty(chimeraPathPropertyName,
-					chimeraPathProps, Properties.class,
-					CyProperty.SavePolicy.SESSION_FILE_AND_CONFIG_DIR);
-			registrar.registerService(chimeraPathProperty, CyProperty.class, chimeraPathProps);
-		}
-
-	}
-
-	public static String getDefaultChimeraPath(CyServiceRegistrar registrar,
-			String chimeraPathPropertyName, String chimeraPathPropertyKey) {
-		// Find if the CyProperty already exists, if not create one with default value.
-		CySessionManager mySessionManager = (CySessionManager) registrar
-				.getService(CySessionManager.class);
-		// TODO: [Cy bug] Should not through a NullPointerException
-		CySession session = null;
-		try {
-			session = mySessionManager.getCurrentSession();
-		} catch (Exception ex) {
-			return "";
-		}
-		if (session == null) {
-			return "";
-		}
-		Set<CyProperty<?>> sessionProperties = session.getProperties();
-		if (sessionProperties == null) {
-			return "";
-		}
-		for (CyProperty<?> prop : sessionProperties) {
-			if (prop.getName() != null && prop.getName().equals(chimeraPathPropertyName)) {
-				Properties chimeraPathProperties = (Properties) prop.getProperties();
-				return chimeraPathProperties.getProperty(chimeraPathPropertyKey);
-			}
-		}
-		return "";
-	}
-
 	public static String join(List<String> list, String delim) {
 		StringBuilder sb = new StringBuilder();
 		String loopDelim = "";
@@ -163,6 +122,85 @@ public abstract class CytoUtils {
 			loopDelim = delim;
 		}
 		return sb.toString();
+	}
+
+	public static void setDefaultChimeraPath(CyServiceRegistrar registrar, 
+		                                       String chimeraPathPropertyKey, 
+																					 String path) {
+		if (configProperties == null) {
+			configProperties = getPropertyService(registrar, SavePolicy.CONFIG_DIR);
+		}
+		Properties p = configProperties.getProperties();
+		System.out.println("Setting "+chimeraPathPropertyKey+" to "+path);
+		p.setProperty(chimeraPathPropertyKey, path); 
+	}
+
+	public static String getDefaultChimeraPath(CyServiceRegistrar registrar, 
+		                                         String chimeraPathPropertyKey) {
+		if (configProperties == null) {
+			configProperties = getPropertyService(registrar, SavePolicy.CONFIG_DIR);
+		}
+		Properties p = configProperties.getProperties();
+		String path = p.getProperty(chimeraPathPropertyKey); 
+		System.out.println("Getting "+chimeraPathPropertyKey+"="+path);
+		return path;
+	}
+
+	public static void setDefaultColumns(CyServiceRegistrar registrar, 
+		                                   String columnPropertyKey,
+																			 Map<String,List<String>> columnMap) {
+		if (sessionProperties == null) {
+			sessionProperties = getPropertyService(registrar, SavePolicy.SESSION_FILE);
+		}
+		Properties p = sessionProperties.getProperties();
+		JSONObject obj = new JSONObject();
+		for (String key: columnMap.keySet()) {
+			obj.put(key, columnMap.get(key));
+		}
+		p.setProperty(columnPropertyKey, obj.toString()); 
+	}
+
+	public static Map<String,List<String>> getDefaultColumns(CyServiceRegistrar registrar, 
+		                                                       String columnPropertyKey) {
+		if (sessionProperties == null) {
+			sessionProperties = getPropertyService(registrar, SavePolicy.SESSION_FILE);
+		}
+		Properties p = sessionProperties.getProperties();
+		String columns = p.getProperty(columnPropertyKey);
+		JSONParser parser = new JSONParser();
+		JSONObject obj = null;
+		try {
+			obj = (JSONObject)parser.parse(columns);
+		} catch(Exception e) {
+		}
+		Map<String, List<String>> outmap = new HashMap<>();
+		for (Object key: obj.keySet()) {
+			JSONArray arr = (JSONArray)obj.get((String)key);
+			List<String> columnList = new ArrayList<>();
+			for (Object a: arr) {
+				columnList.add((String)a);
+			}
+			outmap.put((String)key, columnList);
+		}
+		return outmap;
+	}
+
+	static CyProperty<Properties> getPropertyService(CyServiceRegistrar registrar,
+	                                                 SavePolicy policy) {
+		String name = "structureVizSession";
+		if (policy.equals(SavePolicy.CONFIG_DIR))
+			name = "structureViz";
+		CyProperty<Properties> service = new ConfigPropsReader(policy, name);
+		Properties serviceProps = new Properties();
+		serviceProps.setProperty("cyPropertyName", service.getName());
+		registrar.registerAllServices(service, serviceProps);
+		return service;
+	}
+
+	public static class ConfigPropsReader extends AbstractConfigDirPropsReader {
+		ConfigPropsReader(SavePolicy policy, String name) {
+			super(name, "structureViz.props", policy);
+		}
 	}
 
 }

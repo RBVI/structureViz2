@@ -1,8 +1,7 @@
 package edu.ucsf.rbvi.structureViz2.internal;
 
 import static org.cytoscape.work.ServiceProperties.COMMAND;
-// Commented out until 3.2 is released
-// import static org.cytoscape.work.ServiceProperties.COMMAND_DESCRIPTION;
+import static org.cytoscape.work.ServiceProperties.COMMAND_DESCRIPTION;
 import static org.cytoscape.work.ServiceProperties.COMMAND_NAMESPACE;
 import static org.cytoscape.work.ServiceProperties.ENABLE_FOR;
 import static org.cytoscape.work.ServiceProperties.INSERT_SEPARATOR_BEFORE;
@@ -26,6 +25,7 @@ import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.work.TaskFactory;
+import org.cytoscape.work.properties.TunablePropertySerializerFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -55,10 +55,6 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.SyncColorsTaskFactory;
 
 // TODO: [Optional] Improve non-gui mode
 public class CyActivator extends AbstractCyActivator {
-	// private static Logger logger = LoggerFactory
-	// .getLogger(edu.ucsf.rbvi.structureViz2.internal.CyActivator.class);
-	// Until 3.2 is released
-	static String COMMAND_DESCRIPTION = "commandDescription";
 
 	public CyActivator() {
 		super();
@@ -314,6 +310,8 @@ public class CyActivator extends AbstractCyActivator {
 		exitChimeraProps.setProperty(MENU_GRAVITY, "10.0");
 		registerService(bc, exitChimera, TaskFactory.class, exitChimeraProps);
 
+		TunablePropertySerializerFactory serializerFactory = 
+			getService(bc, TunablePropertySerializerFactory.class);
 		StructureVizSettingsTaskFactory settingsTask = new StructureVizSettingsTaskFactory(
 				structureManager);
 		Properties settingsProps = new Properties();

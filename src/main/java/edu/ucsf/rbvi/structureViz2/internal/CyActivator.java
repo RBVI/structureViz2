@@ -39,6 +39,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.AnnotateStructureNetworkTaskFa
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.ExecuteScriptTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.ExitChimeraTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.FindModeledStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.LaunchChimeraTaskFactory;
@@ -182,6 +183,16 @@ public class CyActivator extends AbstractCyActivator {
 		selectResiduesProps.setProperty(IN_MENU_BAR, "false");
 		selectResiduesProps.setProperty(MENU_GRAVITY, "3.5");
 		registerService(bc, selectResidues, NodeViewTaskFactory.class, selectResiduesProps);
+
+		TaskFactory executeScript = new ExecuteScriptTaskFactory(structureManager);
+		Properties executeScriptProps = new Properties();
+		executeScriptProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		executeScriptProps.setProperty(TITLE, "Execute Script in Column");
+		executeScriptProps.setProperty(ENABLE_FOR, "networkAndView");
+		executeScriptProps.setProperty(IN_MENU_BAR, "false");
+		executeScriptProps.setProperty(MENU_GRAVITY, "3.7");
+		registerService(bc, executeScript, NodeViewTaskFactory.class,
+				executeScriptProps);
 
 		// Note that this isn't in the main menu since it only applies to a particular
 		// node.

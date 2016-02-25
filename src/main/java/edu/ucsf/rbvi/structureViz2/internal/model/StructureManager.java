@@ -45,6 +45,7 @@ public class StructureManager {
 			"structure", "biopax.xref.PDB", "pdb_ids", "ModelName", "ModelNumber" };
 	static final String[] defaultChemStructKeys = { "Smiles", "smiles", "SMILES" };
 	static final String[] defaultResidueKeys = { "FunctionalResidues", "ResidueList", "Residues" };
+	static final String[] defaultCommandKeys = { "ChimeraCommands", "ChimeraScript" };
 
 	private final String chimeraPathPropertyKey = "LastChimeraPath";
 
@@ -1152,7 +1153,30 @@ public class StructureManager {
 				return sessionMap.get("");
 			} else if (network != null && sessionMap.containsKey(network))
 				return sessionMap.get(network);
-			return Arrays.asList(defaultStructureKeys);
+			return Arrays.asList(defaultResidueKeys);
+		}
+	}
+
+	public List<String> getAllCommandKeys() {
+		CyNetwork network = appManager.getCurrentNetwork();
+		if (network == null)
+			return Arrays.asList(defaultCommandKeys);
+
+		return CytoUtils.getStringAttributes(network.getDefaultNodeTable());
+	}
+
+	public List<String> getCurrentCommandKeys(CyNetwork network) {
+		if (settings.containsKey(network)) {
+			return settings.get(network).getCommandColumns().getSelectedValues();
+		} else if (network == null && defaultSettings != null) {
+			return defaultSettings.getCommandColumns().getSelectedValues();
+		} else {
+			Map<String, List<String>> sessionMap = CytoUtils.getDefaultColumns(registrar, "commandColumns");
+			if (sessionMap.containsKey("")) {
+				return sessionMap.get("");
+			} else if (network != null && sessionMap.containsKey(network))
+				return sessionMap.get(network);
+			return Arrays.asList(defaultCommandKeys);
 		}
 	}
 

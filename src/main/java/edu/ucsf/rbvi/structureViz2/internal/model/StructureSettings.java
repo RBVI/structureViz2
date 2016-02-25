@@ -23,6 +23,10 @@ public class StructureSettings {
 	         groups = "Functional residues", gravity = 3.0)
 	public ListMultipleSelection<String> residueColumns = null;
 
+	@Tunable(description = "Columns to search for Chimera command scripts", 
+	         groups = "Command scripts", gravity = 4.0)
+	public ListMultipleSelection<String> commandColumns = null;
+
 	@Tunable(description = "Path to UCSF Chimera application", gravity = 4.0)
 	public String chimeraPath = null;
 
@@ -35,6 +39,9 @@ public class StructureSettings {
 
 		residueColumns = new ListMultipleSelection<String>(manager.getAllResidueKeys());
 		residueColumns.setSelectedValues(manager.getCurrentResidueKeys(network));
+
+		commandColumns = new ListMultipleSelection<String>(manager.getAllCommandKeys());
+		commandColumns.setSelectedValues(manager.getCurrentCommandKeys(network));
 
 		chimeraPath = manager.getCurrentChimeraPath(network);
 
@@ -54,6 +61,10 @@ public class StructureSettings {
 
 	public ListMultipleSelection<String> getResidueColumns() {
 		return residueColumns;
+	}
+
+	public ListMultipleSelection<String> getCommandColumns() {
+		return commandColumns;
 	}
 
 	public String getChimeraPath() {

@@ -231,8 +231,10 @@ public abstract class CytoUtils {
 		}
 	}
 
-	public static String columnSubstitution(StructureManager manager, CyNetwork network, 
-	                                        CyRow row, String originalString) {
+	public static List<String> columnSubstitution(StructureManager manager, CyNetwork network, 
+	                                              CyRow row, String originalString) {
+		List<String> scripts = new ArrayList<>();
+
 		// Find app matching patterns
 		if (pat == null)
 			pat = Pattern.compile("%.+?%");
@@ -261,7 +263,8 @@ public abstract class CytoUtils {
 		sb.append(originalString.substring(pend, originalString.length()));
 		// System.out.println("final string: "+sb.toString());
 
-		return sb.toString();
+		scripts.add(sb.toString());
+		return scripts;
 	}
 
 }

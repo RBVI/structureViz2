@@ -240,30 +240,71 @@ public abstract class CytoUtils {
 			pat = Pattern.compile("%.+?%");
 		Matcher m = pat.matcher(originalString);
 		Set<String> columnNames = CyTableUtil.getColumnNames(network.getDefaultNodeTable());
-		StringBuilder sb =  new StringBuilder();
-		int pend = 0;
-		while (m.find() == true) {
-			int start = m.start();
-			int end = m.end();
-			String key = originalString.substring(start+1, end-1);
-			// System.out.println("key = "+key);
-			if (!columnNames.contains(key)) {
-				sb.append(originalString.substring(pend, end));
-				// System.out.println("No match: string = "+sb.toString());
-			} else {
-				sb.append(originalString.substring(pend, start));
+		int iteration = 0; // This is used for when we have list values
+		boolean foundList = false;
+		boolean endList;
+		do {
+			StringBuilder sb =  new StringBuilder();
+			int pend = 0;
+			endList = true;
+			m.reset();
+			while (m.find() == true) {
+				boolean list = false;
+				int start = m.start();
+				int end = m.end();
+				String key = originalString.substring(start+1, end-1);
+				if (key.startsWith("[") && key.endsWith("]")) {
+					list = true;
+					foundList = true;
+					key = key.substring(1, key.length()-1);
+				}
+				// System.out.println("key = "+key);
+				if (!columnNames.contains(key)) {
+					sb.append(originalString.substring(pend, end));
+					// System.out.println("No match: string = "+sb.toString());
+				} else {
+					sb.append(originalString.substring(pend, start));
 
-				Object v = row.getRaw(key);
-				sb.append(v.toString());
-				// System.out.println("Found match: string = "+sb.toString());
+					Object v = row.getRaw(key);
+					if (list) {
+						if (v instanceof List) {
+							List<?> vList = (List<?>)v;
+							if (vList.size() > (iteration+1)) {
+								v = vList.get(iteration);
+								endList = false;
+							} else {
+								v = vList.get(vList.size()-1);
+								endList = true;
+							}
+						} else {
+							// Try comma, |, tab
+							String [] split = v.toString().split(",");
+							if (split.length == 0)
+								split = v.toString().split("|");
+							if (split.length == 0)
+								split = v.toString().split("\t");
+							if (split.length > (iteration+1)) {
+								v = split[iteration];
+								endList = false;
+							} else {
+								v = split[split.length-1];
+								endList = true;
+							}
+						}
+					}
+					sb.append(v.toString());
+					// System.out.println("Found match: string = "+sb.toString());
+				}
+				pend = end;
 			}
-			pend = end;
-		}
+	
+			sb.append(originalString.substring(pend, originalString.length()));
+			// System.out.println("final string: "+sb.toString());
 
-		sb.append(originalString.substring(pend, originalString.length()));
-		// System.out.println("final string: "+sb.toString());
-
-		scripts.add(sb.toString());
+			scripts.add(sb.toString());
+			if (foundList)
+				iteration++;
+		} while (!endList && iteration > 0);
 		return scripts;
 	}
 

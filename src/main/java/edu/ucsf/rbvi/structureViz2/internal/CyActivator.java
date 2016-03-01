@@ -47,6 +47,7 @@ import edu.ucsf.rbvi.structureViz2.internal.tasks.ListModelsTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructureFileTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenStructuresTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.OpenUnassociatedStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.PaintStructureTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SelectResiduesTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.SendCommandTaskFactory;
@@ -95,8 +96,16 @@ public class CyActivator extends AbstractCyActivator {
 				new Properties());
 
 		// Menu task factories
-		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
+		TaskFactory openUnassociatedStructures = new OpenUnassociatedStructuresTaskFactory(structureManager);
 		Properties openStructuresProps = new Properties();
+		openStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		openStructuresProps.setProperty(TITLE, "Open Unassociated Structures");
+		openStructuresProps.setProperty(IN_MENU_BAR, "true");
+		openStructuresProps.setProperty(MENU_GRAVITY, "1.0");
+		registerService(bc, openUnassociatedStructures, TaskFactory.class, openStructuresProps);
+
+		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
+		openStructuresProps = new Properties();
 		openStructuresProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
 		openStructuresProps.setProperty(TITLE, "Open Structures For Node(s)");
 		openStructuresProps.setProperty(ENABLE_FOR, "networkAndView");

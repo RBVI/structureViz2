@@ -341,6 +341,7 @@ public class RINManager {
 		int index = 0;
 		for (index = 0; index < replyLog.size(); index++) {
 			String str = replyLog.get(index);
+			System.out.println("parseHBondReplies: "+str);
 			if (str.trim().startsWith("H-bonds")) {
 				foundHeader = true;
 				break;
@@ -352,6 +353,7 @@ public class RINManager {
 
 		Map<CyEdge, Double> distanceMap = new HashMap<CyEdge, Double>();
 		for (++index; index < replyLog.size(); index++) {
+			System.out.println("parseHBondReplies: "+replyLog.get(index));
 			String[] line = replyLog.get(index).trim().split("\\s+");
 			if (line.length != 5 && line.length != 6)
 				continue;
@@ -388,6 +390,7 @@ public class RINManager {
 		List<CyEdge> edgeList = new ArrayList<CyEdge>();
 		List<ChimeraResidue[]> rangeList = new ArrayList<ChimeraResidue[]>();
 		for (String line : replyLog) {
+			System.out.println("parseConnectivity: "+line);
 			String[] tokens = line.split(" ");
 			if (tokens.length != 4)
 				continue;

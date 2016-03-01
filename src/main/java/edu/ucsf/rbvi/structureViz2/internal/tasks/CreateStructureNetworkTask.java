@@ -202,10 +202,12 @@ public class CreateStructureNetworkTask extends AbstractTask {
 			rinManager.addCombinedEdges(rin);
 		}
 
+		taskMonitor.setStatusMessage("Registering network...");
 		// register network
 		CyNetworkManager cyNetworkManager = (CyNetworkManager) structureManager
 				.getService(CyNetworkManager.class);
 		cyNetworkManager.addNetwork(rin);
+		taskMonitor.setStatusMessage("Done registering network");
 
 		// structureManager.ignoreCySelection = false;
 		// Activate structureViz for all of our nodes
@@ -224,6 +226,7 @@ public class CreateStructureNetworkTask extends AbstractTask {
 	}
 
 	private void finalizeNetwork(TaskMonitor taskMonitor, CyNetwork network) {
+		taskMonitor.setStatusMessage("Finalizing network..."+network);
 		// get factories, etc.
 		CyNetworkViewFactory cyNetworkViewFactory = (CyNetworkViewFactory) structureManager
 				.getService(CyNetworkViewFactory.class);
@@ -232,13 +235,18 @@ public class CreateStructureNetworkTask extends AbstractTask {
 		CyEventHelper cyEventHelper = (CyEventHelper) structureManager
 				.getService(CyEventHelper.class);
 
+		cyEventHelper.flushPayloadEvents();
+		// System.out.println("Creating network view");
 		// Create a network view
 		CyNetworkView rinView = cyNetworkViewFactory.createNetworkView(network);
+		cyEventHelper.flushPayloadEvents();
 		cyNetworkViewManager.addNetworkView(rinView);
+
+		// System.out.println("Annotating network");
 		// annotate
 		NetworkTaskFactory annotateFactory = new AnnotateStructureNetworkTaskFactory(
 				structureManager);
-		SynchronousTaskManager tm = (SynchronousTaskManager) structureManager
+		SynchronousTaskManager<?> tm = (SynchronousTaskManager) structureManager
 				.getService(SynchronousTaskManager.class);
 		TunableSetter tunableSetter = (TunableSetter) structureManager
 				.getService(TunableSetter.class);

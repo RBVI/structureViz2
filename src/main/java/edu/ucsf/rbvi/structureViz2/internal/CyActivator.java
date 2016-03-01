@@ -36,6 +36,7 @@ import edu.ucsf.rbvi.structureViz2.internal.model.StructureManager;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignCommandTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AlignStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.AnnotateStructureNetworkTaskFactory;
+import edu.ucsf.rbvi.structureViz2.internal.tasks.AssociateStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresEdgeTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CloseStructuresTaskFactory;
 import edu.ucsf.rbvi.structureViz2.internal.tasks.CreateStructureNetworkTaskFactory;
@@ -103,6 +104,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStructuresProps.setProperty(IN_MENU_BAR, "true");
 		openStructuresProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, openUnassociatedStructures, TaskFactory.class, openStructuresProps);
+
 
 		TaskFactory openStructures = new OpenStructuresTaskFactory(structureManager);
 		openStructuresProps = new Properties();
@@ -307,6 +309,19 @@ public class CyActivator extends AbstractCyActivator {
 		launchChimeraProps.setProperty(MENU_GRAVITY, "8.0");
 		launchChimeraProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		registerService(bc, launchChimera, TaskFactory.class, launchChimeraProps);
+
+
+		TaskFactory reAssociate = new AssociateStructuresTaskFactory(structureManager);
+		Properties reAssociateProps = new Properties();
+		registerService(bc, reAssociate, TaskFactory.class, reAssociateProps);
+		reAssociateProps.setProperty(PREFERRED_MENU, "Apps.StructureViz");
+		reAssociateProps.setProperty(TITLE, "Reassociate structures");
+		reAssociateProps.setProperty(COMMAND, "reassociate");
+		reAssociateProps.setProperty(COMMAND_DESCRIPTION, "Reassociate cytoscape with structures");
+		reAssociateProps.setProperty(COMMAND_NAMESPACE, "structureViz");
+		reAssociateProps.setProperty(IN_MENU_BAR, "true");
+		reAssociateProps.setProperty(MENU_GRAVITY, "8.1");
+		registerService(bc, reAssociate, TaskFactory.class, reAssociateProps);
 
 		TaskFactory showDialog = new ShowDialogTaskFactory(structureManager);
 		Properties showDialogProps = new Properties();

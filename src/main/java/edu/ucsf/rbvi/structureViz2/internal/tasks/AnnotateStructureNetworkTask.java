@@ -42,6 +42,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Annotating Residue Interaction Network");
+		// System.out.println("Annotating Residue Interaction Network");
 		try {
 		if (net == null) {
 			CyNetwork current = net = ((CyApplicationManager) structureManager
@@ -52,12 +53,15 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 				net = current;
 			} else {
 				taskMonitor.setStatusMessage("No network found, aborting...");
+				// System.out.println("No network found, aborting...");
 				return;
 			}
 		}
 		if (residueAttributes != null && residueAttributes.getSelectedValues().size() > 0) {
+			// System.out.println("Getting attribute data from Chimera ...");
 			taskMonitor.setStatusMessage("Getting attribute data from Chimera ...");
 			for (String resAttr : residueAttributes.getSelectedValues()) {
+				// System.out.println("Getting data for attribute " + resAttr + " ...");
 				taskMonitor.setStatusMessage("Getting data for attribute " + resAttr + " ...");
 				if (resAttr.equals("SecondaryStructure")) {
 					rinManager.annotateSS(net);
@@ -68,6 +72,7 @@ public class AnnotateStructureNetworkTask extends AbstractTask {
 				}
 			}
 		} else {
+			// System.out.println("No input found, aborting...");
 			taskMonitor.setStatusMessage("No input found, aborting...");
 		}
 		} catch (Exception e) { e.printStackTrace(); }

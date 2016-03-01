@@ -90,7 +90,7 @@ public class StructureManager {
 		currentChimMap = new HashMap<ChimeraStructuralObject, Set<CyIdentifiable>>();
 		networkMap = new HashMap<CyIdentifiable, Set<CyNetwork>>();
 		aTask = new AssociationTask();
-		aTask.start();
+		// aTask.start();
 		// Create the Chimera interface
 		chimeraManager = new ChimeraManager(this);
 		rinManager = new RINManager(this);
@@ -1304,6 +1304,7 @@ public class StructureManager {
 		}
 
 		public void associate(CyNetwork network) {
+			// System.out.println("Associating network");
 			associateNetwork(network, chimeraManager.getChimeraModelsMap());
 			modelChanged();
 		}
@@ -1320,6 +1321,8 @@ public class StructureManager {
 
 		public synchronized void associateNetwork(CyNetwork network,
 				Map<String, List<ChimeraModel>> newModels) {
+			// System.out.println("associateNetwork");
+			// Thread.dumpStack();
 			// ChimeraModel rinModel = null;
 			Set<ChimeraModel> rinModels = new HashSet<ChimeraModel>();
 			// for each network get the pdb names associated with its nodes

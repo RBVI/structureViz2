@@ -27,7 +27,9 @@ public class CySelectionListener implements RowsSetListener {
 		if (e.getSource().toString().endsWith("default network")) {
 			return;
 		}
+
 		if (e.containsColumn(CyNetwork.SELECTED)) {
+			// System.out.println("Handling selection event");
 			Map<Long, Boolean> selectedRows = new HashMap<Long, Boolean>();
 			Collection<RowSetRecord> records = e.getColumnRecords(CyNetwork.SELECTED);
 			for (RowSetRecord record : records) {
@@ -42,6 +44,9 @@ public class CySelectionListener implements RowsSetListener {
 				structureManager.cytoscapeSelectionChanged(selectedRows);
 			}
 		} else {
+			//XXX THIS CAUSES REAL SYNCHRONIZATION PROBLEMS!!!!
+			//XXX Particularly when loading a network/creating a RIN
+			/*
 			boolean update = false;
 			// TODO: [Optional] Rewrite if too slow (ckeck only selected attributes?)
 			List<String> defaultstructurekeys = structureManager.getAllStructureKeys();
@@ -62,8 +67,13 @@ public class CySelectionListener implements RowsSetListener {
 				}
 			}
 			if (update) {
+				System.out.println("Setting associating to true");
+				associating = true;
 				structureManager.associate(null);
+				System.out.println("Setting associating to false");
+				associating = false;
 			}
+			*/
 		}
 	}
 }

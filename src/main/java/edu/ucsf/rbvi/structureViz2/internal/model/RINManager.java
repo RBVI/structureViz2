@@ -390,7 +390,6 @@ public class RINManager {
 		List<CyEdge> edgeList = new ArrayList<CyEdge>();
 		List<ChimeraResidue[]> rangeList = new ArrayList<ChimeraResidue[]>();
 		for (String line : replyLog) {
-			System.out.println("parseConnectivity: "+line);
 			String[] tokens = line.split(" ");
 			if (tokens.length != 4)
 				continue;

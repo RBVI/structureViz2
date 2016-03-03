@@ -32,16 +32,32 @@ public class StructureSettings {
 
 	public StructureSettings(CyNetwork network, StructureManager manager) {
 		structureColumns = new ListMultipleSelection<String>(manager.getAllStructureKeys());
-		structureColumns.setSelectedValues(manager.getCurrentStructureKeys(network));
+		try {
+			structureColumns.setSelectedValues(manager.getCurrentStructureKeys(network));
+		} catch (IllegalArgumentException iae) {
+			// Just leave the setting with no selections
+		}
 
 		chemColumns = new ListMultipleSelection<String>(manager.getAllChemStructKeys());
-		chemColumns.setSelectedValues(manager.getCurrentChemStructKeys(network));
+		try {
+			chemColumns.setSelectedValues(manager.getCurrentChemStructKeys(network));
+		} catch (IllegalArgumentException iae) {
+			// Just leave the setting with no selections
+		}
 
 		residueColumns = new ListMultipleSelection<String>(manager.getAllResidueKeys());
-		residueColumns.setSelectedValues(manager.getCurrentResidueKeys(network));
+		try {
+			residueColumns.setSelectedValues(manager.getCurrentResidueKeys(network));
+		} catch (IllegalArgumentException iae) {
+			// Just leave the setting with no selections
+		}
 
 		commandColumns = new ListMultipleSelection<String>(manager.getAllCommandKeys());
-		commandColumns.setSelectedValues(manager.getCurrentCommandKeys(network));
+		try {
+			commandColumns.setSelectedValues(manager.getCurrentCommandKeys(network));
+		} catch (IllegalArgumentException iae) {
+			// Just leave the setting with no selections
+		}
 
 		chimeraPath = manager.getCurrentChimeraPath(network);
 

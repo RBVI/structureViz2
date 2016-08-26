@@ -27,6 +27,9 @@ public abstract class ChimUtils {
 	public static String RESIDUE_ATTR = "ChimeraResidue";
 	public static String RINALYZER_ATTR = "RINalyzerResidue";
 	public static String DEFAULT_STRUCTURE_KEY = "pdbFileName";
+	public static String splitQuotedCommas = ",(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+	public static String splitQuotedDashes = "-(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+	public static String splitQuotedDots = "\\.(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
 
 	/**
 	 * Parse the model number returned by Chimera and return the int value
@@ -59,6 +62,7 @@ public abstract class ChimUtils {
 	// line: #1, chain A: hiv-1 protease
 	// line: Model 0 (filename)
 	public static int[] parseOpenedModelNumber(String inputLine) {
+		// System.out.println("parseOpenedModelNumber: "+inputLine);
 		int hash = inputLine.indexOf('#');
 		int space = -1;
 		if (hash == (-1)) {
@@ -255,6 +259,7 @@ public abstract class ChimUtils {
 
 	public static List<String> getStructureKeys(CyTable table, CyIdentifiable cyObj,
 			List<String> attrsFound) {
+		// Set up our regular expression so that we honor quotes
 		CyRow row = table.getRow(cyObj.getSUID());
 		List<String> cellList = new ArrayList<String>();
 		// iterate over attributes that contain structures
@@ -271,7 +276,7 @@ public abstract class ChimUtils {
 					continue;
 				}
 				// TODO: [Bug] Will break parsing if residueID contains commas
-				String[] cellArray = cell.split(",");
+				String[] cellArray = cell.split(splitQuotedCommas);
 				for (String str : cellArray) {
 					String[] keyParts = ChimUtils.getResKeyParts(str.trim());
 					if (keyParts[0] != null) {
@@ -314,7 +319,7 @@ public abstract class ChimUtils {
 					continue;
 				}
 				// TODO: [Bug] Will break parsing if residueID contains commas
-				String[] cellArray = cell.split(",");
+				String[] cellArray = cell.split(splitQuotedCommas);
 				for (String str : cellArray) {
 					if (!str.trim().equals("")) {
 						cellList.add(str.trim());
@@ -467,7 +472,8 @@ public abstract class ChimUtils {
 	 */
 	public static ChimeraStructuralObject fromAttributeOld(String attrSpec,
 			ChimeraManager chimeraManager) {
-		if (attrSpec == null || attrSpec.indexOf(',') > 0 || attrSpec.indexOf('-') > 0) {
+		if (attrSpec == null || attrSpec.split(splitQuotedCommas).length > 1 || 
+		    attrSpec.split(splitQuotedDashes).length > 1) {
 			// No support for either lists or ranges
 			logger.warn("No support for identifier: " + attrSpec);
 			return null;
@@ -578,7 +584,8 @@ public abstract class ChimUtils {
 	public static ChimeraStructuralObject fromAttribute(String attrSpec,
 			ChimeraManager chimeraManager) {
 		// TODO: Make sure it is OK to remove this: || attrSpec.indexOf('-') > 0
-		if (attrSpec == null || attrSpec.indexOf(',') > 0) {
+		if (attrSpec == null || 
+		    attrSpec.split(splitQuotedCommas).length > 1) {
 			// No support for either lists or ranges
 			// System.out.println("No support for identifier: " + attrSpec);
 			logger.warn("No support for identifier: " + attrSpec);
@@ -682,7 +689,7 @@ public abstract class ChimUtils {
 	public static String findStructures(String residueList) {
 		if (residueList == null)
 			return null;
-		String[] residues = residueList.split(",");
+		String[] residues = residueList.split(splitQuotedCommas);
 		Map<String, String> structureNameMap = new HashMap<String, String>();
 		for (int i = 0; i < residues.length; i++) {
 			String[] components = residues[i].split("#");

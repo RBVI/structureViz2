@@ -1342,6 +1342,7 @@ public class StructureManager {
 						cyObj, attrsFound);
 				// iterate over all associated structures for a node
 				for (String modelName : mapChimObjNames.get(cyObj)) {
+					System.out.println("Looking at: "+modelName);
 					// node should be associated with current model
 					if (newModels.containsKey(modelName)) {
 						// add it to the map
